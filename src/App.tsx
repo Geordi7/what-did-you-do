@@ -1,4 +1,4 @@
-import { Show, For, createSignal, createMemo, onMount } from 'solid-js';
+import { Show, For, createSignal, createMemo, createEffect, onMount } from 'solid-js';
 import { store } from './store';
 import CalendarGrid from './components/CalendarGrid';
 import { totalActivities, hexToRgb } from './utils';
@@ -16,24 +16,25 @@ function App() {
   const [newName, setNewName] = createSignal('');
   const [showRecover, setShowRecover] = createSignal(false);
   const theme = createMemo(() => store.theme);
+  const [systemDark, setSystemDark] = createSignal(window.matchMedia('(prefers-color-scheme: dark)').matches);
   const isLight = createMemo(() => {
     const mode = theme();
     if (mode !== 'system') return mode === 'light';
-    return !window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return !systemDark();
   });
 
   onMount(() => {
-    applyTheme(theme());
     const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => {
+    setSystemDark(media.matches);
+    const handler = (e: MediaQueryListEvent) => {
+      setSystemDark(e.matches);
       if (store.theme === 'system') applyTheme('system');
     };
     media.addEventListener('change', handler);
   });
 
-  createMemo(() => {
+  createEffect(() => {
     applyTheme(theme());
-    return theme();
   });
 
   function handleCreate(e: SubmitEvent) {

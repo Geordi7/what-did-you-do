@@ -8,12 +8,8 @@ const CELL_PX = 12;
 const GAP_PX = 2;
 const STEP = CELL_PX + GAP_PX;
 
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'];
-
 function formatDate(date: Date): string {
-  return `${DAY_NAMES[date.getDay()]}, ${MONTH_NAMES[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  return date.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function useNow(): () => Date {
@@ -209,9 +205,7 @@ function CalendarGrid(props: Props) {
       <div class="day-detail">
         <Show when={highlighted()} fallback={<p class="detail-placeholder">Select a day to see details</p>}>
           <div class="detail-date">{highlightedDate()}</div>
-          <Show when={highlightedIsToday()}>
-            <span class="detail-badge">Today</span>
-          </Show>
+          <span class="detail-badge" classList={{ invisible: !highlightedIsToday() }}>Today</span>
           <div class="detail-count">
             <span class="detail-number">{highlightedVal()}</span>
             <span class="detail-label">{highlightedVal() === 1 ? 'activity' : 'activities'}</span>
