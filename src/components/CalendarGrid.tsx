@@ -16,13 +16,11 @@ function formatDate(date: Date): string {
   return `${DAY_NAMES[date.getDay()]}, ${MONTH_NAMES[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
-/** Current date signal that updates at midnight */
 function useNow(): () => Date {
   const [now, setNow] = createSignal(new Date());
   const tick = () => {
     const next = new Date();
     setNow(next);
-    // Schedule next tick at next midnight + 1s to avoid drift
     const msToMidnight =
       new Date(next.getFullYear(), next.getMonth(), next.getDate() + 1, 0, 0, 0, 0).getTime() - next.getTime() + 1000;
     return setTimeout(tick, msToMidnight);
@@ -41,7 +39,6 @@ function CalendarGrid(props: Props) {
   const weeks = createMemo(() => buildGrid(now(), WEEKS));
   const todayKey = createMemo(() => dateKey(now()));
 
-  // Long press (works for both mouse and touch via pointer events)
   let pressTimer: ReturnType<typeof setTimeout> | null = null;
   let pressedKey = '';
   let longPressFired = false;
@@ -88,26 +85,21 @@ function CalendarGrid(props: Props) {
     longPressFired = false;
   }
 
-  // Max value for normalization
   const maxVal = createMemo(() => {
     const vals = Object.values(props.calendar.days);
     if (vals.length === 0) return 1;
     return Math.max(...vals, 1);
   });
 
-  // Highlighted day — default to today
   const [highlighted, setHighlighted] = createSignal<{ key: string; date: Date } | null>({ key: dateKey(now()), date: now() });
 
-  // When todayKey changes (midnight), update highlighted if still on old today
   createEffect(() => {
     const h = highlighted();
     const tk = todayKey();
     if (h && h.key !== tk) {
-      // Don't auto-advance, user might be looking at a past day
     }
   });
 
-  // Month labels
   const months = createMemo(() => {
     const labels: { text: string; col: number }[] = [];
     let lastMonth = -1;
@@ -213,11 +205,8 @@ function CalendarGrid(props: Props) {
         </div>
       </div>
 
-      {/* Detail panel */}
       <div class="day-detail">
-        <Show when={highlighted()} fallback={
-          <p class="detail-placeholder">Select a day to see details</p>
-        }>
+        <Show when={highlighted()} fallback={<p class="detail-placeholder">Select a day to see details</p>}>
           <div class="detail-date">{highlightedDate()}</div>
           <Show when={highlightedIsToday()}>
             <span class="detail-badge">Today</span>

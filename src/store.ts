@@ -8,7 +8,6 @@ const STORAGE_VERSION = 1;
 
 function migrate(state: AppState & { version?: number }): AppState {
   let calendars = state.calendars;
-  // v0 → v1: add color
   if (!state.version || state.version < 1) {
     calendars = calendars.map(c => ({
       id: c.id,
@@ -25,7 +24,7 @@ function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrate(JSON.parse(raw) as AppState);
-  } catch { /* ignore */ }
+  } catch {}
   return { calendars: [] };
 }
 

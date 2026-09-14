@@ -46,7 +46,6 @@ body {
   }
 }
 
-/* ---- New Calendar Form ---- */
 .new-cal-form {
   display: flex;
   gap: 0.5rem;
@@ -93,7 +92,6 @@ body {
   padding: 2rem 0;
 }
 
-/* ---- Calendar Card ---- */
 .cal-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -210,7 +208,6 @@ body {
   }
 }
 
-/* ---- Grid + Detail layout ---- */
 .grid-with-detail {
   display: flex;
   gap: 1.5rem;
@@ -292,7 +289,6 @@ body {
   }
 }
 
-/* ---- Day Detail Panel ---- */
 .day-detail {
   flex: 1;
   min-width: 0;
@@ -351,7 +347,6 @@ body {
   color: var(--text-dim);
 }
 
-/* ---- Legend ---- */
 .legend {
   display: flex;
   align-items: center;
@@ -368,7 +363,6 @@ body {
   }
 }
 
-/* ---- Recover Section ---- */
 .recover-section {
   margin-top: 1.5rem;
   text-align: center;
@@ -455,7 +449,6 @@ body {
   }
 }
 
-/* ---- Global Hint ---- */
 .hint {
   text-align: center;
   color: var(--text-dim);
@@ -463,7 +456,6 @@ body {
   margin-top: 2rem;
 }
 
-/* ---- Responsive ---- */
 @media (max-width: 600px) {
   .app {
     padding: 1rem 0.75rem;

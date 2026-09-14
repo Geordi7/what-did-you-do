@@ -27,7 +27,7 @@ function App() {
     <div class="app">
       <header class="header">
         <h1>🏆 Achievement Calendars</h1>
-        <p class="subtitle">Track your daily wins</p>
+        <p class="subtitle">Track daily wins</p>
       </header>
 
       <form class="new-cal-form" onSubmit={handleCreate}>
@@ -98,7 +98,6 @@ function App() {
         <strong>Click</strong> a day to add +1 · <strong>Long-press</strong> / <strong>Long-tap</strong> to reset to 0
       </div>
 
-      {/* Recover deleted calendars */}
       <div class="recover-section">
         <Show when={store.deletedCalendars.length > 0}>
           <button
