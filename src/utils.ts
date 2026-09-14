@@ -75,6 +75,16 @@ export function cellColor(baseHex: string, intensity: number): string {
   );
 }
 
+/** Sum all activity values for a day record. */
+export function totalActivities(days: Record<string, number>): number {
+  return Object.values(days).reduce((a, b) => a + b, 0);
+}
+
+/** Return hex color as comma-separated RGB values for CSS. */
+export function hexToRgb(hex: string): string {
+  return parseHex(hex).join(', ');
+}
+
 /** Generate a random vibrant hex color. */
 export function randomColor(): string {
   const hue = Math.random() * 360;

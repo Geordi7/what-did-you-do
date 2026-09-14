@@ -1,10 +1,12 @@
 import { Show, For, createSignal } from 'solid-js';
 import { store } from './store';
 import CalendarGrid from './components/CalendarGrid';
+import { totalActivities, hexToRgb } from './utils';
 import './App.css';
 
 function App() {
   const [newName, setNewName] = createSignal('');
+  const [showRecover, setShowRecover] = createSignal(false);
 
   function handleCreate(e: SubmitEvent) {
     e.preventDefault();
@@ -14,11 +16,12 @@ function App() {
     setNewName('');
   }
 
-  const totalActivities = () => {
-    const cal = store.selected;
-    if (!cal) return 0;
-    return Object.values(cal.days).reduce((a, b) => a + b, 0);
-  };
+  function purgeDeleted() {
+    if (confirm('Permanently delete all trashed calendars? This cannot be undone.')) {
+      store.purgeDeleted();
+      setShowRecover(false);
+    }
+  }
 
   return (
     <div class="app">
@@ -27,63 +30,105 @@ function App() {
         <p class="subtitle">Track your daily wins</p>
       </header>
 
-      <div class="main">
-        <aside class="sidebar">
-          <form class="new-cal-form" onSubmit={handleCreate}>
-            <input
-              type="text"
-              placeholder="New calendar name…"
-              value={newName()}
-              onInput={(e) => setNewName(e.currentTarget.value)}
-            />
-            <button type="submit">+</button>
-          </form>
+      <form class="new-cal-form" onSubmit={handleCreate}>
+        <input
+          type="text"
+          placeholder="New calendar name…"
+          value={newName()}
+          onInput={(e) => setNewName(e.currentTarget.value)}
+        />
+        <button type="submit">+</button>
+      </form>
 
-          <div class="cal-list">
-            <Show when={store.calendars.length === 0} fallback={
-              <For each={store.calendars}>
-                {(cal) => (
-                  <div
-                    class="cal-item"
-                    classList={{ active: cal.id === store.selectedId }}
-                    onClick={() => store.select(cal.id)}
+      <Show when={store.activeCalendars.length > 0}>
+        <For each={store.activeCalendars} fallback={<div class="empty-state">No calendars yet. Create one above!</div>}>
+          {(cal, idx) => (
+            <div class="cal-card" style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}>
+              <div class="cal-card-header">
+                <div class="cal-info">
+                  <input
+                    class="cal-name-input"
+                    value={cal.name}
+                    onInput={(e) => store.setCalendarName(cal.id, e.currentTarget.value)}
+                  />
+                  <span class="cal-stat">
+                    {totalActivities(cal.days)} activities
+                  </span>
+                </div>
+                <div class="cal-actions">
+                  <input
+                    type="color"
+                    class="color-picker"
+                    value={cal.color}
+                    onChange={(e) => store.setColor(cal.id, e.currentTarget.value)}
+                    title="Calendar color"
+                  />
+                  <button
+                    class="move-btn"
+                    onClick={() => store.moveCalendar(cal.id, -1)}
+                    disabled={idx() === 0}
+                    title="Move up"
                   >
-                    <span class="cal-name">{cal.name}</span>
+                    ▲
+                  </button>
+                  <button
+                    class="move-btn"
+                    onClick={() => store.moveCalendar(cal.id, 1)}
+                    disabled={idx() === store.activeCalendars.length - 1}
+                    title="Move down"
+                  >
+                    ▼
+                  </button>
+                  <button
+                    class="delete-btn"
+                    onClick={() => store.deleteCalendar(cal.id)}
+                    title="Delete calendar"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <CalendarGrid calendar={cal} />
+            </div>
+          )}
+        </For>
+      </Show>
+
+      <div class="hint">
+        <strong>Click</strong> a day to add +1 · <strong>Long-press</strong> / <strong>Long-tap</strong> to reset to 0
+      </div>
+
+      {/* Recover deleted calendars */}
+      <div class="recover-section">
+        <Show when={store.deletedCalendars.length > 0}>
+          <button
+            class="recover-toggle"
+            onClick={() => setShowRecover(!showRecover())}
+          >
+            🗑 {store.deletedCalendars.length} deleted calendar{store.deletedCalendars.length !== 1 ? 's' : ''} — click to {showRecover() ? 'hide' : 'recover'}
+          </button>
+          <Show when={showRecover()}>
+            <div class="recover-list">
+              <For each={store.deletedCalendars}>
+                {(cal) => (
+                  <div class="recover-item">
+                    <span class="recover-name">{cal.name}</span>
+                    <span class="recover-stat">{totalActivities(cal.days)} activities</span>
                     <button
-                      class="delete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        store.deleteCalendar(cal.id);
-                      }}
-                      title="Delete"
+                      class="recover-btn"
+                      onClick={() => store.recoverCalendar(cal.id)}
                     >
-                      ×
+                      Recover
                     </button>
                   </div>
                 )}
               </For>
-            }>
-              <div class="empty-msg">No calendars yet.<br/>Create one above!</div>
-            </Show>
-          </div>
-        </aside>
-
-        <section class="content">
-          <Show when={store.selected} fallback={
-            <div class="placeholder">
-              <p>Select or create a calendar to get started 🎯</p>
-            </div>
-          }>
-            <div class="cal-header">
-              <h2>{store.selected!.name}</h2>
-              <span class="stat">{totalActivities()} total activities</span>
-            </div>
-            <CalendarGrid />
-            <div class="hint">
-              <strong>Click</strong> a day to add +1 · <strong>Long-press</strong> to reset to 0
             </div>
           </Show>
-        </section>
+        </Show>
+        <Show when={store.deletedCalendars.length > 1}>
+          <button class="purge-btn" onClick={purgeDeleted}>Empty trash</button>
+        </Show>
       </div>
     </div>
   );
