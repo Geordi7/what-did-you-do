@@ -5,6 +5,7 @@
 - Compact card layout for each calendar.
 - Heatmap grid with color intensity based on activity count.
 - Clear hover, focus, today, and selected outlines.
+- Heatmap zero-activity cell color adapts to the resolved theme (light or dark).
 
 ## Layout
 - Header, create form, calendar cards, hint, trash section.

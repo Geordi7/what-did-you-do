@@ -6,7 +6,10 @@ export interface Calendar {
   deleted?: boolean;
 }
 
+export type ThemeMode = 'light' | 'dark' | 'system';
+
 export interface AppState {
   version?: number;
+  theme?: ThemeMode;
   calendars: Calendar[];
 }

@@ -1,12 +1,40 @@
-import { Show, For, createSignal } from 'solid-js';
+import { Show, For, createSignal, createMemo, onMount } from 'solid-js';
 import { store } from './store';
 import CalendarGrid from './components/CalendarGrid';
 import { totalActivities, hexToRgb } from './utils';
+import type { ThemeMode } from './types';
 import './App.css';
+
+function applyTheme(mode: ThemeMode) {
+  const root = document.documentElement;
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = mode;
+  root.dataset.themeResolved = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
+}
 
 function App() {
   const [newName, setNewName] = createSignal('');
   const [showRecover, setShowRecover] = createSignal(false);
+  const theme = createMemo(() => store.theme);
+  const isLight = createMemo(() => {
+    const mode = theme();
+    if (mode !== 'system') return mode === 'light';
+    return !window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  onMount(() => {
+    applyTheme(theme());
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => {
+      if (store.theme === 'system') applyTheme('system');
+    };
+    media.addEventListener('change', handler);
+  });
+
+  createMemo(() => {
+    applyTheme(theme());
+    return theme();
+  });
 
   function handleCreate(e: SubmitEvent) {
     e.preventDefault();
@@ -26,8 +54,17 @@ function App() {
   return (
     <div class="app">
       <header class="header">
-        <h1>🏆 Achievement Calendars</h1>
-        <p class="subtitle">Track daily wins</p>
+        <div class="title-row">
+          <div>
+            <h1>🏆 Achievement Calendars</h1>
+            <p class="subtitle">Track daily wins</p>
+          </div>
+          <div class="theme-toggle" role="group" aria-label="Theme">
+            <button classList={{ active: theme() === 'light' }} onClick={() => store.setTheme('light')}>Light</button>
+            <button classList={{ active: theme() === 'dark' }} onClick={() => store.setTheme('dark')}>Dark</button>
+            <button classList={{ active: theme() === 'system' }} onClick={() => store.setTheme('system')}>System</button>
+          </div>
+        </div>
       </header>
 
       <form class="new-cal-form" onSubmit={handleCreate}>
@@ -63,32 +100,12 @@ function App() {
                     onChange={(e) => store.setColor(cal.id, e.currentTarget.value)}
                     title="Calendar color"
                   />
-                  <button
-                    class="move-btn"
-                    onClick={() => store.moveCalendar(cal.id, -1)}
-                    disabled={idx() === 0}
-                    title="Move up"
-                  >
-                    ▲
-                  </button>
-                  <button
-                    class="move-btn"
-                    onClick={() => store.moveCalendar(cal.id, 1)}
-                    disabled={idx() === store.activeCalendars.length - 1}
-                    title="Move down"
-                  >
-                    ▼
-                  </button>
-                  <button
-                    class="delete-btn"
-                    onClick={() => store.deleteCalendar(cal.id)}
-                    title="Delete calendar"
-                  >
-                    ×
-                  </button>
+                  <button class="move-btn" onClick={() => store.moveCalendar(cal.id, -1)} disabled={idx() === 0} title="Move up">▲</button>
+                  <button class="move-btn" onClick={() => store.moveCalendar(cal.id, 1)} disabled={idx() === store.activeCalendars.length - 1} title="Move down">▼</button>
+                  <button class="delete-btn" onClick={() => store.deleteCalendar(cal.id)} title="Delete calendar">×</button>
                 </div>
               </div>
-              <CalendarGrid calendar={cal} />
+              <CalendarGrid calendar={cal} isLight={isLight()} />
             </div>
           )}
         </For>
@@ -100,10 +117,7 @@ function App() {
 
       <div class="recover-section">
         <Show when={store.deletedCalendars.length > 0}>
-          <button
-            class="recover-toggle"
-            onClick={() => setShowRecover(!showRecover())}
-          >
+          <button class="recover-toggle" onClick={() => setShowRecover(!showRecover())}>
             🗑 {store.deletedCalendars.length} deleted calendar{store.deletedCalendars.length !== 1 ? 's' : ''} — click to {showRecover() ? 'hide' : 'recover'}
           </button>
           <Show when={showRecover()}>
@@ -113,12 +127,7 @@ function App() {
                   <div class="recover-item">
                     <span class="recover-name">{cal.name}</span>
                     <span class="recover-stat">{totalActivities(cal.days)} activities</span>
-                    <button
-                      class="recover-btn"
-                      onClick={() => store.recoverCalendar(cal.id)}
-                    >
-                      Recover
-                    </button>
+                    <button class="recover-btn" onClick={() => store.recoverCalendar(cal.id)}>Recover</button>
                   </div>
                 )}
               </For>

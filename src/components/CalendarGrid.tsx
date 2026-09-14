@@ -32,6 +32,7 @@ function useNow(): () => Date {
 
 interface Props {
   calendar: Calendar;
+  isLight: boolean;
 }
 
 function CalendarGrid(props: Props) {
@@ -174,7 +175,7 @@ function CalendarGrid(props: Props) {
                         style={{
                           width: `${CELL_PX}px`,
                           height: `${CELL_PX}px`,
-                          background: cellColor(props.calendar.color, intensity),
+                          background: cellColor(props.calendar.color, intensity, props.isLight),
                         }}
                         aria-label={`${formatDate(date)}: ${val} ${val === 1 ? 'activity' : 'activities'}. Click to add, long press to reset.`}
                         onPointerDown={() => startPress(key)}
@@ -196,11 +197,11 @@ function CalendarGrid(props: Props) {
 
         <div class="legend">
           <span>Less</span>
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.25) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.5) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.75) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 1) }} />
+          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0, props.isLight) }} />
+          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.25, props.isLight) }} />
+          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.5, props.isLight) }} />
+          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.75, props.isLight) }} />
+          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 1, props.isLight) }} />
           <span>More</span>
         </div>
       </div>
