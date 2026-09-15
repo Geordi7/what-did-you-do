@@ -1,6 +1,7 @@
-import { Show, For, createSignal, createMemo, createEffect, onMount } from 'solid-js';
+import { Show, For, createSignal, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
 import { store } from './store';
 import CalendarGrid from './components/CalendarGrid';
+import CalendarMenu from './components/CalendarMenu';
 import { totalActivities, hexToRgb } from './utils';
 import type { ThemeMode } from './types';
 import './App.css';
@@ -93,18 +94,7 @@ function App() {
                     {totalActivities(cal.days)} activities
                   </span>
                 </div>
-                <div class="cal-actions">
-                  <input
-                    type="color"
-                    class="color-picker"
-                    value={cal.color}
-                    onChange={(e) => store.setColor(cal.id, e.currentTarget.value)}
-                    title="Calendar color"
-                  />
-                  <button class="move-btn" onClick={() => store.moveCalendar(cal.id, -1)} disabled={idx() === 0} title="Move up">▲</button>
-                  <button class="move-btn" onClick={() => store.moveCalendar(cal.id, 1)} disabled={idx() === store.activeCalendars.length - 1} title="Move down">▼</button>
-                  <button class="delete-btn" onClick={() => store.deleteCalendar(cal.id)} title="Delete calendar">×</button>
-                </div>
+                <CalendarMenu cal={cal} idx={idx()} total={store.activeCalendars.length} />
               </div>
               <CalendarGrid calendar={cal} isLight={isLight()} />
             </div>

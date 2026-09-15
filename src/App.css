@@ -220,25 +220,80 @@ body {
   }
 }
 
-.move-btn {
+.cal-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cal-menu-trigger {
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   border-radius: 4px;
   color: var(--text-dim);
-  font-size: 0.65rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  padding: 0.2rem 0.35rem;
-  line-height: 1;
+  padding: 0 0.3rem;
+  line-height: 1.4;
   transition: color 0.15s, border-color 0.15s;
 
-  &:hover:not(:disabled) {
+  &:hover,
+  &[aria-expanded='true'] {
     color: var(--text);
-    border-color: var(--text-dim);
+    border-color: var(--border);
+  }
+}
+
+.cal-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  min-width: 140px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cal-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
   }
 
   &:disabled {
-    opacity: 0.3;
+    opacity: 0.35;
     cursor: default;
+  }
+}
+
+.cal-menu-color {
+  justify-content: space-between;
+}
+
+.cal-menu-delete {
+  color: var(--danger);
+  border-top: 1px solid var(--border);
+  margin-top: 0.15rem;
+  padding-top: 0.45rem;
+
+  &:hover:not(:disabled) {
+    background: rgba(248, 81, 73, 0.08);
   }
 }
 
