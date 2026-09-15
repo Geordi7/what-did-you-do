@@ -75,42 +75,118 @@ body {
   margin-top: 0.25rem;
 }
 
-.theme-toggle {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--bg-secondary);
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
-.theme-toggle button {
-  border: 0;
-  background: transparent;
-  color: var(--text-dim);
+.theme-dropdown {
+  position: relative;
+}
+
+.theme-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
   padding: 0.4rem 0.6rem;
   cursor: pointer;
   font-size: 0.8rem;
+  transition: border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--accent);
+  }
 }
 
-.theme-toggle button.active {
-  background: var(--accent);
-  color: #fff;
+.theme-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  margin-top: 4px;
+  min-width: 120px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
-.new-cal-form {
+.theme-option {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &.active {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+.new-cal-section {
+  display: flex;
+  align-items: center;
+}
+
+.add-cal-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  &.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.new-cal-bar {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  align-items: center;
   justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 
   input {
-    width: 260px;
-    background: var(--bg-secondary);
+    flex: 1;
+    max-width: 360px;
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0.5rem 0.75rem;
     color: var(--text);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     outline: none;
     transition: border-color 0.15s;
 
@@ -118,21 +194,39 @@ body {
       border-color: var(--accent);
     }
   }
+}
 
-  button {
-    background: var(--accent);
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 1.2rem;
-    font-weight: 600;
-    padding: 0 0.75rem;
-    cursor: pointer;
-    transition: opacity 0.15s;
+.create-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
 
-    &:hover {
-      opacity: 0.85;
-    }
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.cancel-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
   }
 }
 
@@ -192,6 +286,26 @@ body {
 .cal-stat {
   color: var(--text-dim);
   font-size: 0.8rem;
+}
+
+.header-icon-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  line-height: 1;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+}
+
+.hidden-input {
+  display: none;
 }
 
 .cal-actions {
@@ -286,6 +400,28 @@ body {
   justify-content: space-between;
 }
 
+.cal-menu-value {
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.value-input {
+  width: 60px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.8rem;
+  padding: 0.15rem 0.35rem;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: var(--accent);
+  }
+}
+
 .cal-menu-delete {
   color: var(--danger);
   border-top: 1px solid var(--border);
@@ -365,7 +501,7 @@ body {
   transition: outline 0.05s;
 
   &:hover {
-    outline: 1px solid rgba(255, 255, 255, 0.5);
+    outline: 1px solid var(--text-dim);
     outline-offset: -1px;
   }
 
@@ -375,7 +511,7 @@ body {
   }
 
   &.today {
-    outline: 1px solid rgba(255, 255, 255, 0.85);
+    outline: 1px solid var(--text);
     outline-offset: -1px;
 
     &:focus-visible {
@@ -385,7 +521,7 @@ body {
   }
 
   &.highlighted {
-    outline: 2px solid rgba(255, 255, 255, 0.9);
+    outline: 2px solid var(--text);
     outline-offset: -2px;
 
     &:focus-visible {
@@ -443,14 +579,13 @@ body {
 .detail-count {
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
 }
 
 .detail-number {
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--text);
-  line-height: 1;
+  line-height: 1.3;
 }
 
 .detail-label {
@@ -537,12 +672,19 @@ body {
 .recover-name {
   font-size: 0.9rem;
   font-weight: 500;
+  min-width: 0;
 }
 
 .recover-stat {
   font-size: 0.75rem;
   color: var(--text-dim);
   flex: 1;
+}
+
+.recover-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .recover-btn {
@@ -554,10 +696,142 @@ body {
   font-size: 0.75rem;
   padding: 0.25rem 0.6rem;
   transition: opacity 0.15s;
+  white-space: nowrap;
 
   &:hover {
     opacity: 0.85;
   }
+}
+
+.recover-delete-btn {
+  background: none;
+  border: 1px solid var(--danger);
+  border-radius: 4px;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--danger);
+    color: #fff;
+  }
+}
+
+.score-chart {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.score-chart-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.score-bar-wrap {
+  position: relative;
+  height: 80px;
+}
+
+.score-bars {
+  display: flex;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.score-bar-col {
+  flex: 1;
+  min-width: 2px;
+  position: relative;
+}
+
+.score-bar-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.score-netbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.score-dot {
+  left: 0;
+  right: 0;
+}
+
+.score-bar-hit {
+  opacity: 0;
+  outline: none;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    outline: 1px dashed var(--text-dim);
+  }
+}
+
+.score-zero-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.score-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.score-tooltip-date {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.score-tooltip-pos {
+  font-size: 0.75rem;
+  color: #4caf50;
+}
+
+.score-tooltip-neg {
+  font-size: 0.75rem;
+  color: #f44336;
+}
+
+.score-tooltip-net {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+.score-total-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: right;
+  margin-top: 0.4rem;
 }
 
 .hint {
@@ -577,8 +851,8 @@ body {
     align-items: stretch;
   }
 
-  .theme-toggle {
-    align-self: flex-start;
+  .header-actions {
+    flex-wrap: wrap;
   }
 
   .grid-with-detail {
@@ -591,8 +865,13 @@ body {
     min-height: 70px;
   }
 
-  .new-cal-form input {
-    width: 160px;
+  .new-cal-bar {
+    flex-wrap: wrap;
+
+    input {
+      max-width: 100%;
+      min-width: 0;
+    }
   }
 
   .cal-card {

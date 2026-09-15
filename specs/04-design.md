@@ -10,8 +10,9 @@
 
 ## Layout
 - Header contains title, subtitle, and theme toggle (Light / Dark / System).
+- Score chart at top showing combined daily score from all calendars.
 - Create form, calendar cards, hint, trash section.
-- Calendar card header contains name, total, and a "…" overflow menu housing color picker, reorder, and delete controls.
+- Calendar card header contains name, total, and a "…" overflow menu housing color picker, activity value, reorder, and delete controls.
 - Grid and detail panel sit side by side on desktop.
 - Grid and detail stack on mobile.
 

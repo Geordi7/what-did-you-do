@@ -1,7 +1,9 @@
-import { Show, For, createSignal, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
+import { Show, For, createSignal, createMemo, createEffect, onMount } from 'solid-js';
 import { store } from './store';
 import CalendarGrid from './components/CalendarGrid';
 import CalendarMenu from './components/CalendarMenu';
+import ScoreChart from './components/ScoreChart';
+import CalendarNameInput from './components/CalendarNameInput';
 import { totalActivities, hexToRgb } from './utils';
 import type { ThemeMode } from './types';
 import './App.css';
@@ -13,9 +15,27 @@ function applyTheme(mode: ThemeMode) {
   root.dataset.themeResolved = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
 }
 
+const THEME_LABELS: Record<ThemeMode, string> = {
+  light: 'Light',
+  dark: 'Dark',
+  system: 'System',
+};
+
+function downloadFile(base64: string, filename: string) {
+  const blob = new Blob([atob(base64)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function App() {
   const [newName, setNewName] = createSignal('');
+  const [showNewCal, setShowNewCal] = createSignal(false);
   const [showRecover, setShowRecover] = createSignal(false);
+  const [themeOpen, setThemeOpen] = createSignal(false);
   const theme = createMemo(() => store.theme);
   const [systemDark, setSystemDark] = createSignal(window.matchMedia('(prefers-color-scheme: dark)').matches);
   const isLight = createMemo(() => {
@@ -23,6 +43,8 @@ function App() {
     if (mode !== 'system') return mode === 'light';
     return !systemDark();
   });
+
+  let fileInput: HTMLInputElement | undefined;
 
   onMount(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -41,9 +63,20 @@ function App() {
   function handleCreate(e: SubmitEvent) {
     e.preventDefault();
     const name = newName().trim();
-    if (!name) return;
+    if (!name) {
+      setShowNewCal(false);
+      return;
+    }
     store.addCalendar(name);
     setNewName('');
+    setShowNewCal(false);
+  }
+
+  function handleNewCalKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      setShowNewCal(false);
+      setNewName('');
+    }
   }
 
   function purgeDeleted() {
@@ -53,6 +86,67 @@ function App() {
     }
   }
 
+  function permanentlyDelete(id: string, name: string) {
+    if (confirm(`Permanently delete "${name}"? This cannot be undone.`)) {
+      store.permanentlyDeleteCalendar(id);
+    }
+  }
+
+  function handleExportAll() {
+    const b64 = store.exportAllCalendars();
+    if (b64) {
+      const ts = new Date().toISOString().slice(0, 10);
+      downloadFile(b64, `calendars_${ts}.json`);
+    }
+  }
+
+  function handleImportClick() {
+    fileInput?.click();
+  }
+
+  function handleFileChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const idx = text.indexOf(',');
+      const b64 = idx >= 0 ? text.slice(idx + 1) : btoa(text);
+      const result = store.importCalendars(b64);
+      if (result === -1) {
+        alert('Failed to parse file.');
+      } else if (result === 0) {
+        alert('No valid calendars found in file.');
+      } else {
+        alert(`Imported ${result} calendar${result !== 1 ? 's' : ''}.`);
+      }
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  function toggleThemeDropdown() {
+    setThemeOpen(v => !v);
+  }
+
+  function selectTheme(mode: ThemeMode) {
+    store.setTheme(mode);
+    setThemeOpen(false);
+  }
+
+  // Close theme dropdown on outside click
+  function handleThemeOutsideClick(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.theme-dropdown')) {
+      setThemeOpen(false);
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('click', handleThemeOutsideClick);
+  });
+
   return (
     <div class="app">
       <header class="header">
@@ -61,23 +155,69 @@ function App() {
             <h1>🏆 Achievement Calendars</h1>
             <p class="subtitle">Track daily wins</p>
           </div>
-          <div class="theme-toggle" role="group" aria-label="Theme">
-            <button classList={{ active: theme() === 'light' }} onClick={() => store.setTheme('light')}>Light</button>
-            <button classList={{ active: theme() === 'dark' }} onClick={() => store.setTheme('dark')}>Dark</button>
-            <button classList={{ active: theme() === 'system' }} onClick={() => store.setTheme('system')}>System</button>
+          <div class="header-actions">
+            <div class="theme-dropdown" role="group" aria-label="Theme">
+              <button class="theme-btn" onClick={toggleThemeDropdown} aria-expanded={themeOpen()}>
+                Theme: {THEME_LABELS[theme()]}
+              </button>
+              <Show when={themeOpen()}>
+                <div class="theme-dropdown-menu">
+                  {(['light', 'dark', 'system'] as ThemeMode[]).map(mode => (
+                    <button
+                      class="theme-option"
+                      classList={{ active: theme() === mode }}
+                      onClick={() => selectTheme(mode)}
+                    >
+                      {THEME_LABELS[mode]}
+                    </button>
+                  ))}
+                </div>
+              </Show>
+            </div>
+            <div class="new-cal-section">
+              <button
+                class="add-cal-btn"
+                classList={{ active: showNewCal() }}
+                onClick={() => setShowNewCal(v => !v)}
+                title="Create new calendar"
+                aria-label="Create new calendar"
+              >
+                + New calendar
+              </button>
+            </div>
+            <button class="header-icon-btn" onClick={handleImportClick} title="Import calendars" aria-label="Import calendars">
+              📥
+            </button>
+            <input
+              ref={(el) => { fileInput = el; }}
+              type="file"
+              accept=".json"
+              class="hidden-input"
+              onChange={handleFileChange}
+            />
+            <button class="header-icon-btn" onClick={handleExportAll} title="Export all calendars" aria-label="Export all calendars">
+              📤
+            </button>
           </div>
         </div>
       </header>
 
-      <form class="new-cal-form" onSubmit={handleCreate}>
-        <input
-          type="text"
-          placeholder="New calendar name…"
-          value={newName()}
-          onInput={(e) => setNewName(e.currentTarget.value)}
-        />
-        <button type="submit">+</button>
-      </form>
+      <ScoreChart isLight={isLight()} />
+
+      <Show when={showNewCal()}>
+        <form class="new-cal-bar" onSubmit={handleCreate}>
+          <input
+            type="text"
+            placeholder="Calendar name…"
+            value={newName()}
+            onInput={(e) => setNewName(e.currentTarget.value)}
+            onKeyDown={handleNewCalKeydown}
+            autofocus
+          />
+          <button type="submit" class="create-btn">Create</button>
+          <button type="button" class="cancel-btn" onClick={() => { setShowNewCal(false); setNewName(''); }}>Cancel</button>
+        </form>
+      </Show>
 
       <Show when={store.activeCalendars.length > 0}>
         <For each={store.activeCalendars} fallback={<div class="empty-state">No calendars yet. Create one above!</div>}>
@@ -85,11 +225,7 @@ function App() {
             <div class="cal-card" style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}>
               <div class="cal-card-header">
                 <div class="cal-info">
-                  <input
-                    class="cal-name-input"
-                    value={cal.name}
-                    onInput={(e) => store.setCalendarName(cal.id, e.currentTarget.value)}
-                  />
+                  <CalendarNameInput id={cal.id} name={cal.name} />
                   <span class="cal-stat">
                     {totalActivities(cal.days)} activities
                   </span>
@@ -118,7 +254,10 @@ function App() {
                   <div class="recover-item">
                     <span class="recover-name">{cal.name}</span>
                     <span class="recover-stat">{totalActivities(cal.days)} activities</span>
-                    <button class="recover-btn" onClick={() => store.recoverCalendar(cal.id)}>Recover</button>
+                    <div class="recover-actions">
+                      <button class="recover-btn" onClick={() => store.recoverCalendar(cal.id)}>Recover</button>
+                      <button class="recover-delete-btn" onClick={() => permanentlyDelete(cal.id, cal.name)}>Delete forever</button>
+                    </div>
                   </div>
                 )}
               </For>

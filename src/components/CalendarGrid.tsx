@@ -1,7 +1,7 @@
 import { createMemo, createSignal, createEffect, For, onCleanup, Show } from 'solid-js';
 import type { Calendar } from '../types';
 import { store } from '../store';
-import { buildGrid, dateKey, cellColor } from '../utils';
+import { buildGrid, dateKey, cellColor, parseKey } from '../utils';
 
 const WEEKS = 26;
 const CELL_PX = 12;
@@ -88,12 +88,21 @@ function CalendarGrid(props: Props) {
     return Math.max(...vals, 1);
   });
 
-  const [highlighted, setHighlighted] = createSignal<{ key: string; date: Date } | null>({ key: dateKey(now()), date: now() });
+  const highlighted = createMemo(() => {
+    const hk = store.highlightedKey;
+    if (!hk) return null;
+    const d = parseKey(hk);
+    return { key: hk, date: d };
+  });
 
+  // Imperative DOM update for cross-calendar highlight; SolidJS <For> freezes cell values at creation time
   createEffect(() => {
-    const h = highlighted();
-    const tk = todayKey();
-    if (h && h.key !== tk) {
+    const hk = store.highlightedKey;
+    const prev = document.querySelectorAll('.cell.highlighted');
+    prev.forEach(el => el.classList.remove('highlighted'));
+    if (hk) {
+      const cells = document.querySelectorAll(`[data-key="${hk}"]`);
+      cells.forEach(el => el.classList.add('highlighted'));
     }
   });
 
@@ -160,26 +169,25 @@ function CalendarGrid(props: Props) {
                     const val = props.calendar.days[key] ?? 0;
                     const intensity = val / maxVal();
                     const isToday = key === todayKey();
-                    const isHighlighted = highlighted()?.key === key;
                     return (
                       <button
                         class="cell"
                         classList={{
                           today: isToday,
-                          highlighted: isHighlighted,
                         }}
+                        data-key={key}
                         style={{
                           width: `${CELL_PX}px`,
                           height: `${CELL_PX}px`,
                           background: cellColor(props.calendar.color, intensity, props.isLight),
                         }}
-                        aria-label={`${formatDate(date)}: ${val} ${val === 1 ? 'activity' : 'activities'}. Click to add, long press to reset.`}
+                        aria-label={`${formatDate(date)}: ${val} × ${props.calendar.activityValue} = ${(val * props.calendar.activityValue).toFixed(1)}. Click to add, long press to reset.`}
                         onPointerDown={() => startPress(key)}
                         onPointerUp={endPress}
                         onPointerLeave={cancelPress}
                         onPointerCancel={cancelPress}
-                        onMouseEnter={() => setHighlighted({ key, date })}
-                        onFocus={() => setHighlighted({ key, date })}
+                        onMouseEnter={() => store.setHighlightedKey(key)}
+                        onFocus={() => store.setHighlightedKey(key)}
                         onKeyDown={(e) => handleKeyDown(e, key, date)}
                         tabindex="0"
                       />
@@ -207,8 +215,7 @@ function CalendarGrid(props: Props) {
           <div class="detail-date">{highlightedDate()}</div>
           <span class="detail-badge" classList={{ invisible: !highlightedIsToday() }}>Today</span>
           <div class="detail-count">
-            <span class="detail-number">{highlightedVal()}</span>
-            <span class="detail-label">{highlightedVal() === 1 ? 'activity' : 'activities'}</span>
+            <span class="detail-number">{highlightedVal()} × {props.calendar.activityValue} = {(highlightedVal()! * props.calendar.activityValue).toFixed(1)}</span>
           </div>
         </Show>
       </div>

@@ -7,6 +7,7 @@ interface Calendar {
   name: string;
   color: string;
   days: Record<string, number>;
+  activityValue: number;
   deleted?: boolean;
 }
 ```
@@ -15,6 +16,7 @@ interface Calendar {
 - `name`: user-editable label.
 - `color`: hex color string.
 - `days`: map of `YYYY-MM-DD` to integer activity count.
+- `activityValue`: float weight used in daily score calculation. Default 1.0.
 - `deleted`: soft-delete flag for trash flow.
 
 ## ThemeMode

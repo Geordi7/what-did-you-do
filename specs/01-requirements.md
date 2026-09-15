@@ -28,3 +28,6 @@ Project: achievement calendar app.
 - Counts persist across reloads.
 - Deleted calendars remain recoverable until purged.
 - State migration may be needed when schema changes.
+- Each calendar has an Activity Value (float) for scoring.
+- Daily score = sum across calendars of (activityValue * count).
+- Score chart at top shows last 26 weeks of daily scores.

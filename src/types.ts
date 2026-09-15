@@ -3,6 +3,7 @@ export interface Calendar {
   name: string;
   color: string;
   days: Record<string, number>;
+  activityValue: number;
   deleted?: boolean;
 }
 

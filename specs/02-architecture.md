@@ -21,6 +21,7 @@ SolidJS single-page app with Vite build.
 - Pointer long press resets day.
 - Keyboard Enter/Space increments, Backspace/Delete clears.
 - Midnight timer refreshes current-day derived UI.
+- Hovering a date in any calendar highlights that date across all calendars.
 
 ## Responsive behavior
 - Desktop uses grid + detail side by side.
