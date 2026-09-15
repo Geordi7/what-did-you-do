@@ -18,6 +18,8 @@
 - Delete calendar, then recover it.
 - Empty trash after confirmation.
 - Reload page and confirm state persists.
+- Toggle theme light/dark/system and confirm heatmap zero cells adapt.
+- Reload after theme change and confirm preference persists.
 
 ## Build verification
 - TypeScript build must pass.

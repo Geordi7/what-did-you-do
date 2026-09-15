@@ -1,15 +1,17 @@
 # Design
 
 ## Visual style
-- Dark UI with GitHub-like palette.
+- Dark UI by default, with light/dark/system theme toggle.
+- GitHub-like palette for heatmap in both themes.
 - Compact card layout for each calendar.
 - Heatmap grid with color intensity based on activity count.
 - Clear hover, focus, today, and selected outlines.
 - Heatmap zero-activity cell color adapts to the resolved theme (light or dark).
 
 ## Layout
-- Header, create form, calendar cards, hint, trash section.
-- Calendar card header contains name, total, color picker, reorder, delete.
+- Header contains title, subtitle, and theme toggle (Light / Dark / System).
+- Create form, calendar cards, hint, trash section.
+- Calendar card header contains name, total, and a "…" overflow menu housing color picker, reorder, and delete controls.
 - Grid and detail panel sit side by side on desktop.
 - Grid and detail stack on mobile.
 
@@ -18,9 +20,10 @@
 - Inline text input for calendar rename.
 - Color picker for calendar theme color.
 - Buttons for reorder, delete, recover, purge.
+- Per-calendar controls (color, reorder, delete) collected in a "…" overflow menu.
 - Calendar cells act as buttons.
 
 ## Copy
-- Default title: “Achievement Calendars”.
-- Subtitle: “Track your daily wins”.
+- Default title: "🏆 Achievement Calendars".
+- Subtitle: "Track daily wins".
 - Hint explains click and long-press behavior.
