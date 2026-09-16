@@ -31,3 +31,4 @@ Project: achievement calendar app.
 - Each calendar has an Activity Value (float) for scoring.
 - Daily score = sum across calendars of (activityValue * count).
 - Score chart at top shows last 26 weeks of daily scores.
+- Prompt for full export backup every 24 hours since last export.

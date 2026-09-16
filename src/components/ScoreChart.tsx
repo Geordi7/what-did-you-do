@@ -102,12 +102,8 @@ export default function ScoreChart(props: { isLight: boolean }) {
                       <div
                         class="score-dot score-dot-pos"
                         style={{
-                          position: 'absolute',
                           bottom: `${50 + posDotY - 2}%`,
-                          width: '100%',
-                          height: '4px',
                           'background-color': '#4caf50',
-                          'border-radius': '50%',
                         }}
                       />
                     )}
@@ -116,12 +112,8 @@ export default function ScoreChart(props: { isLight: boolean }) {
                       <div
                         class="score-dot score-dot-neg"
                         style={{
-                          position: 'absolute',
                           top: `${50 + negDotY - 2}%`,
-                          width: '100%',
-                          height: '4px',
                           'background-color': '#f44336',
-                          'border-radius': '50%',
                         }}
                       />
                     )}

@@ -54,6 +54,64 @@ body {
   padding: 2rem 1.5rem;
 }
 
+.backup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+
+.backup-banner-text {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.backup-banner-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.backup-banner-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.backup-banner-dismiss {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+}
+
 .header {
   margin-bottom: 1.5rem;
 }
@@ -766,9 +824,16 @@ body {
 }
 
 .score-dot {
+  position: absolute;
   left: 0;
   right: 0;
+  width: 100%;
+  height: 1px;
 }
+
+.score-dot-pos {background-color: '#f44336'}
+
+.score-dot-neg {background-color: '#f44336'}
 
 .score-bar-hit {
   opacity: 0;

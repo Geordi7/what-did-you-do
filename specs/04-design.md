@@ -28,3 +28,7 @@
 - Default title: "🏆 Achievement Calendars".
 - Subtitle: "Track daily wins".
 - Hint explains click and long-press behavior.
+- Banner below header reminding to export backup if 24+ hours since last export.
+- Banner has dismiss button and export-now button.
+- Banner appears on page load, not live-countdown.
+- Dismiss hides banner for session.

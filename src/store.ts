@@ -3,6 +3,7 @@ import type { Calendar, AppState, ThemeMode } from './types';
 import { randomColor } from './utils';
 
 const STORAGE_KEY = 'achievement-calendars';
+const EXPORT_KEY = 'achievement-calendars-last-export';
 const STORAGE_VERSION = 3;
 const THEME_KEY = 'achievement-calendars-theme';
 
@@ -127,6 +128,17 @@ export const store = {
     const cal = state().calendars.find(c => c.id === id);
     if (!cal) return '';
     return btoa(JSON.stringify(cal));
+  },
+
+  setLastExport() {
+    localStorage.setItem(EXPORT_KEY, Date.now().toString());
+  },
+
+  getLastExport(): number | null {
+    const raw = localStorage.getItem(EXPORT_KEY);
+    if (!raw) return null;
+    const ts = parseInt(raw, 10);
+    return isNaN(ts) ? null : ts;
   },
 
   exportAllCalendars(): string {

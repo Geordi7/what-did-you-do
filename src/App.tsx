@@ -4,6 +4,7 @@ import CalendarGrid from './components/CalendarGrid';
 import CalendarMenu from './components/CalendarMenu';
 import ScoreChart from './components/ScoreChart';
 import CalendarNameInput from './components/CalendarNameInput';
+import BackupBanner from './components/BackupBanner';
 import { totalActivities, hexToRgb } from './utils';
 import type { ThemeMode } from './types';
 import './App.css';
@@ -95,6 +96,7 @@ function App() {
   function handleExportAll() {
     const b64 = store.exportAllCalendars();
     if (b64) {
+      store.setLastExport();
       const ts = new Date().toISOString().slice(0, 10);
       downloadFile(b64, `calendars_${ts}.json`);
     }
@@ -201,6 +203,8 @@ function App() {
           </div>
         </div>
       </header>
+
+      <BackupBanner onExport={handleExportAll} />
 
       <ScoreChart isLight={isLight()} />
 
