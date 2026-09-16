@@ -12,6 +12,7 @@ SolidJS single-page app with Vite build.
 - State persists to `localStorage` under `achievement-calendars`.
 - Store exposes calendar CRUD, reorder, recover, purge, and day mutation methods.
 - State migration handles schema upgrades.
+- Score chart reads state via `store.state` and `store.activeCalendars`. Its `<For>` list must be reactive — derive chart data inside a `createMemo` that touches `store.state` or store signals so `<For>` re-renders on state changes.
 
 ## Utilities
 - `src/utils.ts` contains date grid helpers, color conversion, intensity coloring, and aggregate totals.

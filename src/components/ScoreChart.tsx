@@ -11,8 +11,6 @@ function formatDate(d: Date): string {
 }
 
 export default function ScoreChart(props: { isLight: boolean }) {
-  const weeks = createMemo(() => buildGrid(new Date(), WEEKS));
-
   const dayScores = createMemo(() => {
     const posMap: Record<string, number> = {};
     const negMap: Record<string, number> = {};
@@ -41,6 +39,22 @@ export default function ScoreChart(props: { isLight: boolean }) {
     return max || 1;
   });
 
+  // Derive reactive list so <For> re-renders bars when scores change
+  const chartDays = createMemo(() => {
+    const scores = dayScores();
+    store.state; // establish reactivity on any store change
+    const weeks = buildGrid(new Date(), WEEKS);
+    return weeks.flat().map(date => {
+      const key = dateKey(date);
+      return {
+        date, key,
+        pos: scores.pos[key] ?? 0,
+        neg: scores.neg[key] ?? 0,
+        net: scores.net[key] ?? 0,
+      };
+    });
+  });
+
   const [tooltip, setTooltip] = createSignal<{
     key: string; pos: number; neg: number; net: number; x: number; y: number;
   } | null>(null);
@@ -58,21 +72,14 @@ export default function ScoreChart(props: { isLight: boolean }) {
       <div class="score-chart-title">Daily Score</div>
       <div class="score-bar-wrap">
         <div class="score-bars">
-          <For each={weeks().flat()}>
-            {(date) => {
-              const key = dateKey(date);
-              const pos = dayScores().pos[key] ?? 0;
-              const neg = dayScores().neg[key] ?? 0;
-              const net = dayScores().net[key] ?? 0;
+          <For each={chartDays()}>
+            {(day) => {
+              const { key, date, pos, neg, net } = day;
               const m = maxAbs();
 
               const netH = (Math.abs(net) / m) * 100;
               const posDotY = pos > 0 ? (pos / m) * 100 : 0;
               const negDotY = neg < 0 ? (Math.abs(neg) / m) * 100 : 0;
-
-              const barStyle = net >= 0
-                ? { height: `${netH}%`, 'background-color': calColor() }
-                : { height: `${netH}%`, 'background-color': calColor(), 'align-self': 'flex-start' };
 
               return (
                 <div class="score-bar-col" style={{ 'margin-left': `${BAR_GAP}px` }}>
