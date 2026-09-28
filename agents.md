@@ -16,7 +16,7 @@ Project follows spec-driven workflow.
 6. Add observations in specs as HTML comments when QA finds issues.
 7. Remove observations after fix.
 8. Commit specs and code together.
-9. Check for drift regularly: compare specs against implementation; update specs first if code has diverged.
+9. Check for drift as its own activity every few commits, not as part of every activity: compare specs against implementation, and update specs first where code has diverged.
 
 ## Notes
 - Use `ls specs` to map spec tree.
