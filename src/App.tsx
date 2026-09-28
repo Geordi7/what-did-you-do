@@ -154,7 +154,7 @@ function App() {
       <header class="header">
         <div class="title-row">
           <div>
-            <h1>🏆 Achievement Calendars</h1>
+            <h1>😱 What did you do!?</h1>
             <p class="subtitle">Track daily wins</p>
           </div>
           <div class="header-actions">
