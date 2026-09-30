@@ -4,6 +4,7 @@ SolidJS single-page app with Vite build.
 
 ## Refinements
 - `02-01-coding-standard.md` — TypeScript and Solid coding rules, and the CSS convention.
+- `02-02-state-store.md` — the `createStore` state container, persistence, cross-tab sync, and the `window.__store` test affordance.
 
 ## UI structure
 - `src/main.tsx` mounts `App` into `#root`.
@@ -15,28 +16,17 @@ SolidJS single-page app with Vite build.
 - `src/components/ActivityValueInput.tsx` edits a calendar's activity value.
 - `src/components/BackupBanner.tsx` renders the backup reminder.
 
-## State
-- `src/store.ts` owns app state with Solid signals.
-- State persists to `localStorage` under `achievement-calendars`.
-- Store exposes calendar CRUD, reorder, recover, permanent delete, and day mutation methods.
-- State migration handles schema upgrades.
-
-## Cross-tab sync
-- One `window` `storage` listener at store init, removed on teardown. It fires only in other tabs, never the writer; the design depends on that.
-- Dispatch by key — the state key migrates, validates and replaces state; the theme key updates the theme signal; the last-export key updates the export signal.
-- A `null` `newValue` means another tab cleared storage; it is ignored and memory state stands.
-- Loop guard: the store keeps the last written string, the save effect skips a write equal to it, and the handler sets it before replacing state.
-- Focused name and activity-value inputs keep in-flight edits.
-- Two tabs writing in the same event-loop turn resolve last-write-wins.
-
 ## Clock
 - One shared midnight clock drives every current-day and trailing-window derivation, grid and chart alike.
 
 ## Build
-- `vite.config.ts` pins `build.target` explicitly; that target is the browser baseline.
+- `vite.config.ts` pins `build.target` to `es2020, edge88, firefox78, chrome87, safari14` —
+  Vite's `'modules'` default written out. That target is the browser baseline.
 
 ## Utilities
-- `src/utils.ts` contains date grid helpers, color conversion, intensity coloring, and aggregate totals.
+- `src/utils.ts` contains date grid helpers, date formatting, color conversion, intensity coloring,
+  aggregate totals, id generation with a non-secure-context fallback, file download, and the shared
+  click-outside helper.
 
 ## Interaction model
 - Pointer short press increments day.

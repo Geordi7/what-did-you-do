@@ -3,6 +3,7 @@
 ## Refinements
 - `04-01-score-chart.md` — score chart ranges and the range toggle.
 - `04-02-copy.md` — title, favicon, subtitle, hint, and the banner region's messages.
+- `04-03-dialogs.md` — the import review modal and the unrecoverable-data blocking message.
 
 ## Visual style
 - Light, dark, and system themes, selectable from the header. `system` is the default.
@@ -40,6 +41,6 @@
 - Inline text input for calendar rename.
 - The "…" overflow menu holds color picker, activity value, move up, move down, Export, and Delete.
 - Trash section offers Recover and Delete forever per item. There is no empty-trash control.
-- Delete forever confirms through a native `confirm` dialog, the only such dialog in the app.
+- Delete forever confirms through a native `confirm` dialog, the app's only native dialog.
 - Calendar cells act as buttons.
 - Click or tap a cell to add 1. Long-press for 600 ms resets it to 0 and vibrates for 50 ms.

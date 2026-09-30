@@ -4,20 +4,23 @@ import { store } from '../store';
 const MS_24H = 24 * 60 * 60 * 1000;
 
 /**
- * Banner reminding user to export full backup if 24+ hours since last export.
- * Appears once per session — dismissed until reload.
+ * Banner reminding the user to export a full backup once 24 or more hours have passed
+ * since the last export. Per specs/04-02-copy.md it is evaluated on page load rather
+ * than as a live countdown, so "now" is captured once at mount — but it reads the
+ * store's reactive `lastExport`, so exporting hides it immediately.
  */
 export default function BackupBanner(props: { onExport: () => void }) {
   const [dismissed, setDismissed] = createSignal(false);
+  const loadedAt = Date.now();
 
   const show = createMemo(() => {
     if (dismissed()) return false;
-    const last = store.getLastExport();
+    const last = store.lastExport;
     if (last === null) {
-      // never exported — show after first calendar exists
+      // Never exported — show once at least one calendar exists.
       return store.activeCalendars.length > 0;
     }
-    return Date.now() - last > MS_24H;
+    return loadedAt - last > MS_24H;
   });
 
   return (

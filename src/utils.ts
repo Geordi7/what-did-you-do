@@ -50,11 +50,14 @@ export function rgbToHex(r: number, g: number, b: number): string {
   return '#' + [clamp(r), clamp(g), clamp(b)].map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
+// Positive-bias curve, see specs/04-design.md "Heatmap intensity curve".
+export const INTENSITY_EXPONENT = 0.5;
+
 export function cellColor(baseHex: string, intensity: number, isLight = false): string {
   if (intensity <= 0) return isLight ? '#ebedf0' : '#1d2226';
   const bg: [number, number, number] = isLight ? [235, 237, 240] : [29, 34, 38];
   const [r, g, b] = parseHex(baseHex);
-  const t = intensity;
+  const t = intensity ** INTENSITY_EXPONENT;
   return rgbToHex(
     bg[0] + (r - bg[0]) * t,
     bg[1] + (g - bg[1]) * t,
@@ -85,4 +88,80 @@ export function randomColor(): string {
   else if (hue < 300) { r = x; g = 0; b = c; }
   else { r = c; g = 0; b = x; }
   return rgbToHex((r + m) * 255, (g + m) * 255, (b + m) * 255);
+}
+
+// `crypto.randomUUID` is undefined on plain HTTP to a non-localhost origin in every browser,
+// so this degrades twice rather than throwing. See specs/03-data-model.md (Calendar.id).
+export function newId(): string {
+  const c: Crypto | undefined = typeof crypto !== 'undefined' ? crypto : undefined;
+  if (c && typeof c.randomUUID === 'function') {
+    try {
+      return c.randomUUID();
+    } catch {
+      // fall through to the byte-based paths
+    }
+  }
+  const bytes = new Uint8Array(16);
+  let filled = false;
+  if (c && typeof c.getRandomValues === 'function') {
+    try {
+      c.getRandomValues(bytes);
+      filled = true;
+    } catch {
+      filled = false;
+    }
+  }
+  if (!filled) {
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 1
+  const hex: string[] = [];
+  for (let i = 0; i < bytes.length; i++) {
+    hex.push(bytes[i].toString(16).padStart(2, '0'));
+  }
+  return (
+    hex.slice(0, 4).join('') +
+    '-' +
+    hex.slice(4, 6).join('') +
+    '-' +
+    hex.slice(6, 8).join('') +
+    '-' +
+    hex.slice(8, 10).join('') +
+    '-' +
+    hex.slice(10, 16).join('')
+  );
+}
+
+export function formatDate(d: Date): string {
+  return d.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export function downloadFile(filename: string, contents: string, mime = 'application/json'): void {
+  const blob = new Blob([contents], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Returns the disposer; every caller must invoke it (onCleanup), see specs/02-01-coding-standard.md.
+export function onClickOutside(el: HTMLElement, handler: () => void): () => void {
+  const listener = (e: MouseEvent) => {
+    const target = e.target;
+    if (target instanceof Node && el.contains(target)) return;
+    handler();
+  };
+  // Attach on the next tick. A listener added to a node propagation has not yet reached
+  // still receives the in-flight event, so registering while a click is being dispatched
+  // would fire `handler` for the very click that opened the thing being watched.
+  const pending = setTimeout(() => document.addEventListener('click', listener), 0);
+  return () => {
+    clearTimeout(pending);
+    document.removeEventListener('click', listener);
+  };
 }

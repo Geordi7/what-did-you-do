@@ -1,4 +1,4 @@
-import { createSignal, createMemo } from 'solid-js';
+import { createSignal, createEffect } from 'solid-js';
 import { store } from '../store';
 
 interface Props {
@@ -10,11 +10,13 @@ export default function CalendarNameInput(props: Props) {
   const [editing, setEditing] = createSignal(props.name);
   const [focused, setFocused] = createSignal(false);
 
-  // Sync initial value if props change while not editing
-  // Only sync when not focused (avoids overwriting local edits on re-render)
-  createMemo(() => {
+  // Follow the stored name, but leave an in-flight edit alone while the field has
+  // focus — see specs/02-02-state-store.md. This is a side effect on a signal, so it
+  // is a createEffect; a createMemo would only run while something read its value.
+  createEffect(() => {
+    const stored = props.name;
     if (!focused()) {
-      setEditing(props.name);
+      setEditing(stored);
     }
   });
 
@@ -28,11 +30,13 @@ export default function CalendarNameInput(props: Props) {
   }
 
   function handleKeyDown(e: KeyboardEvent) {
+    const target = e.currentTarget;
+    if (!(target instanceof HTMLInputElement)) return;
     if (e.key === 'Enter') {
-      (e.target as HTMLInputElement).blur();
+      target.blur();
     } else if (e.key === 'Escape') {
       setEditing(props.name);
-      (e.target as HTMLInputElement).blur();
+      target.blur();
     }
   }
 

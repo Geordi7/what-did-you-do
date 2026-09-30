@@ -1,5 +1,6 @@
-import { createSignal, Show, onCleanup } from 'solid-js';
+import { createSignal, createEffect, onCleanup, Show } from 'solid-js';
 import { store } from '../store';
+import { downloadFile, onClickOutside } from '../utils';
 import ActivityValueInput from './ActivityValueInput';
 import type { Calendar } from '../types';
 
@@ -9,18 +10,9 @@ interface Props {
   total: number;
 }
 
-function downloadFile(base64: string, filename: string) {
-  const blob = new Blob([atob(base64)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function CalendarMenu(props: Props) {
   const [open, setOpen] = createSignal(false);
+  let root: HTMLDivElement | undefined;
 
   function close() {
     setOpen(false);
@@ -31,37 +23,32 @@ export default function CalendarMenu(props: Props) {
     setOpen((v) => !v);
   }
 
-  function handleClickOutside(e: MouseEvent) {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.cal-menu')) {
-      close();
+  // Document-level listeners exist only while the menu is open, and each one is
+  // disposed when it closes or the component goes away — specs/02-01-coding-standard.md.
+  createEffect(() => {
+    if (!open()) return;
+    const el = root;
+    if (el !== undefined) {
+      onCleanup(onClickOutside(el, close));
     }
-  }
-
-  function handleEscape(e: KeyboardEvent) {
-    if (e.key === 'Escape') close();
-  }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    document.addEventListener('keydown', handleEscape);
+    onCleanup(() => document.removeEventListener('keydown', handleEscape));
+  });
 
   function handleExport() {
-    const b64 = store.exportCalendar(props.cal.id);
-    if (b64) {
-      downloadFile(b64, `${props.cal.name.replace(/[^a-z0-9]/gi, '_')}.json`);
+    // A plain-JSON envelope, not base64 — see specs/03-02-import-export.md.
+    const contents = store.exportCalendar(props.cal.id);
+    if (contents) {
+      downloadFile(`${props.cal.name.replace(/[^a-z0-9]/gi, '_')}.json`, contents);
     }
     close();
   }
 
-  // Use document listeners so clicks outside close menu
-  if (typeof document !== 'undefined') {
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    });
-  }
-
   return (
-    <div class="cal-menu">
+    <div class="cal-menu" ref={root}>
       <button
         class="cal-menu-trigger"
         onClick={toggle}

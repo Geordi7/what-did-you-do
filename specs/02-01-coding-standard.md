@@ -5,6 +5,9 @@ Rules for everything under `src/`.
 ## TypeScript
 - `strict` stays on; no per-file or per-line opt-outs.
 - No `as any`. Narrow with a type guard, or fix the type.
+- One caveat, and only this one: the `window.__store` test affordance extends the `Window` interface
+  through a `declare global` block. Declaring that one optional property is permitted; reaching the
+  affordance — or anything else — through a cast is not.
 
 ## Solid
 - Read reactive values as getters inside JSX. Do not destructure props or pull a signal into a local before the markup.

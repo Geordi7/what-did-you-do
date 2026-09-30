@@ -15,6 +15,7 @@
   --text-dim: #8b949e;
   --accent: #58a6ff;
   --danger: #f85149;
+  --scrim: rgba(1, 4, 9, 0.7);
   --cell-size: 12px;
   --cell-gap: 2px;
 }
@@ -28,6 +29,7 @@
   --text-dim: #57606a;
   --accent: #0969da;
   --danger: #cf222e;
+  --scrim: rgba(27, 31, 36, 0.45);
 }
 
 :root[data-theme-resolved='dark'] {
@@ -39,6 +41,7 @@
   --text-dim: #8b949e;
   --accent: #58a6ff;
   --danger: #f85149;
+  --scrim: rgba(1, 4, 9, 0.7);
 }
 
 body {
@@ -52,6 +55,58 @@ body {
   max-width: 720px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
+}
+
+/* Import status line. Shares the banner region below the header, per the design spec.
+   The element stays mounted even when empty so a screen reader has a live region to
+   watch; `.import-status-empty` is what makes it take no space. */
+.import-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+}
+
+.import-status-empty {
+  display: none;
+}
+
+.import-status-success {
+  border-left-color: var(--accent);
+}
+
+.import-status-failure {
+  border-left-color: var(--danger);
+}
+
+.import-status-text {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.import-status-dismiss {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
 }
 
 .backup-banner {
@@ -676,23 +731,6 @@ body {
   }
 }
 
-.purge-btn {
-  background: none;
-  border: 1px solid var(--danger);
-  border-radius: 6px;
-  color: var(--danger);
-  cursor: pointer;
-  font-size: 0.75rem;
-  padding: 0.35rem 0.6rem;
-  margin-top: 0.75rem;
-  transition: background 0.15s, color 0.15s;
-
-  &:hover {
-    background: var(--danger);
-    color: #fff;
-  }
-}
-
 .recover-toggle {
   background: none;
   border: 1px solid var(--border);
@@ -786,6 +824,16 @@ body {
   margin-bottom: 1.25rem;
 }
 
+/* Chart header: title on the left, range toggle on the right. */
+.score-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
 .score-chart-title {
   font-size: 0.85rem;
   font-weight: 600;
@@ -793,13 +841,64 @@ body {
   color: var(--text);
 }
 
+.score-chart-header .score-chart-title {
+  margin-bottom: 0;
+}
+
+/* Range toggle: 28d / 26w. Right-aligned in the header however it is wrapped. */
+.score-range {
+  display: flex;
+  align-items: stretch;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.score-range-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  & + & {
+    border-left: 1px solid var(--border);
+  }
+
+  &:hover {
+    color: var(--text);
+    background: rgba(127, 127, 127, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  &.active,
+  &[aria-pressed='true'],
+  &[aria-selected='true'] {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
 .score-bar-wrap {
   position: relative;
   height: 80px;
 }
 
+/* Bar column gap lives here, not as a per-column inline margin. */
 .score-bars {
   display: flex;
+  gap: 1px;
   height: 100%;
   position: relative;
   z-index: 1;
@@ -817,10 +916,13 @@ body {
   position: relative;
 }
 
+/* Only height and the positive/negative side stay inline; the rest is static. */
 .score-netbar {
   position: absolute;
   left: 0;
   right: 0;
+  width: 100%;
+  border-radius: 1px 1px 0 0;
 }
 
 .score-dot {
@@ -831,11 +933,20 @@ body {
   height: 1px;
 }
 
-.score-dot-pos {background-color: '#f44336'}
+.score-dot-pos {
+  background-color: #4caf50;
+}
 
-.score-dot-neg {background-color: '#f44336'}
+.score-dot-neg {
+  background-color: #f44336;
+}
 
 .score-bar-hit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
   opacity: 0;
   outline: none;
 
@@ -892,18 +1003,434 @@ body {
   text-align: center;
 }
 
-.score-total-label {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  text-align: right;
-  margin-top: 0.4rem;
-}
-
 .hint {
   text-align: center;
   color: var(--text-dim);
   font-size: 0.8rem;
   margin-top: 2rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Import review modal (specs/04-03-dialogs.md)
+   The scrim is its own element; .import-modal is the dialog card. The card also
+   centres itself when it is rendered without a scrim wrapper.
+   --------------------------------------------------------------------------- */
+
+.import-modal-scrim,
+.import-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--scrim);
+  animation: modal-scrim-in 0.15s ease-out;
+}
+
+.import-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: min(80vh, 40rem);
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  animation: modal-card-in 0.15s ease-out;
+}
+
+.import-modal-scrim > .import-modal,
+.import-modal-backdrop > .import-modal {
+  position: static;
+  transform: none;
+  width: min(34rem, 100%);
+  animation: none;
+}
+
+/* Title and actions stay in view; only the row list scrolls. */
+.import-modal-title,
+.import-modal > h2 {
+  flex-shrink: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.9rem 1.1rem 0.6rem;
+}
+
+.import-modal-body,
+.import-modal-intro {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+  padding: 0 1.1rem 0.6rem;
+}
+
+/* The scroll container. Title and actions stay in view because only this
+   grows and scrolls — specs/04-03-dialogs.md "Outcome". */
+.import-modal-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.import-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.25rem 1.1rem 0.75rem;
+  list-style: none;
+}
+
+/* Column headings sit above the rows and share their track widths. */
+.import-modal-headers {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 1.75rem 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+}
+
+.import-modal-headers > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.import-modal-headers > :nth-child(2),
+.import-modal-headers > :nth-child(3) {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.import-modal-headers > :nth-child(2) {
+  width: 3.5rem;
+}
+
+.import-modal-headers > :nth-child(3) {
+  width: 5.5rem;
+}
+
+.import-modal-none {
+  flex-shrink: 0;
+  padding: 0 1.1rem 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.import-modal-empty {
+  padding: 1.25rem 1.1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.import-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: opacity 0.15s;
+}
+
+.import-modal-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.import-modal-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.import-modal-events,
+.import-modal-updated {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.import-modal-events {
+  width: 3.5rem;
+}
+
+.import-modal-updated {
+  width: 5.5rem;
+}
+
+.import-modal-meta {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.import-modal-collision {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Skipped rows are distinct at a glance, not only by their control's state.
+   The :has() clause covers checkbox rows without any extra markup; the class
+   and the data attribute cover a dropdown row sitting on its skip option. */
+.import-modal-row.skipped,
+.import-modal-row-skipped,
+.import-modal-row[data-skipped='true'],
+.import-modal-row:has(.import-modal-skip input:checked) {
+  opacity: 0.5;
+}
+
+.import-modal-row.skipped .import-modal-name,
+.import-modal-row-skipped .import-modal-name,
+.import-modal-row[data-skipped='true'] .import-modal-name,
+.import-modal-row:has(.import-modal-skip input:checked) .import-modal-name {
+  text-decoration: line-through;
+}
+
+.import-modal-skipped-tag {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+}
+
+.import-modal-skip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.import-modal-skip input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.import-modal-merge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: 11rem;
+}
+
+.import-modal-merge-label {
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.import-modal-merge select {
+  max-width: 11rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+}
+
+.import-modal-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.7rem 1.1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.import-modal-apply {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.import-modal-cancel {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Unrecoverable data message (specs/04-03-dialogs.md)
+   Covers the app, no dismiss.
+   --------------------------------------------------------------------------- */
+
+.blocking {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--text);
+  text-align: center;
+}
+
+.blocking-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.blocking-body {
+  max-width: 34rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.blocking-diagnostic {
+  width: min(34rem, 100%);
+  max-height: 12rem;
+  overflow: auto;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.blocking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Copy diagnostic / Download diagnostic. The second selector covers the
+   diagnostic class being used on the controls themselves. */
+.blocking-btn,
+button.blocking-diagnostic {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+button.blocking-diagnostic {
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  text-align: center;
+  white-space: nowrap;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+@keyframes modal-scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-card-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%);
+  }
 }
 
 @media (max-width: 600px) {
@@ -945,5 +1472,83 @@ body {
 
   .month-labels {
     font-size: 0.55rem;
+  }
+
+  .score-chart-header {
+    align-items: flex-start;
+  }
+
+  .score-range-btn {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .import-modal-scrim {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .import-modal {
+    width: calc(100vw - 1rem);
+    max-height: 88vh;
+  }
+
+  .import-modal-scrim > .import-modal {
+    width: 100%;
+  }
+
+  .import-modal-title,
+  .import-modal-body,
+  .import-modal-list,
+  .import-modal-actions {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .import-modal-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .import-modal-merge {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .import-modal-actions {
+    justify-content: stretch;
+  }
+
+  .import-modal-apply,
+  .import-modal-cancel {
+    flex: 1;
+  }
+
+  .blocking {
+    padding: 1rem 0.75rem;
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+
+  .blocking-diagnostic {
+    width: 100%;
+    max-height: 9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .import-modal-scrim,
+  .import-modal,
+  .import-modal-scrim > .import-modal {
+    animation: none;
+  }
+
+  .import-modal-row,
+  .import-modal-merge,
+  .import-modal-apply,
+  .import-modal-cancel,
+  .score-range-btn,
+  .blocking-btn,
+  button.blocking-diagnostic {
+    transition: none;
   }
 }

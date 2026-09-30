@@ -1,16 +1,12 @@
-import { createMemo, createSignal, createEffect, For, onCleanup, Show } from 'solid-js';
+import { createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
 import type { Calendar } from '../types';
 import { store } from '../store';
-import { buildGrid, dateKey, cellColor, parseKey } from '../utils';
+import { buildGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
 
 const WEEKS = 26;
 const CELL_PX = 12;
 const GAP_PX = 2;
 const STEP = CELL_PX + GAP_PX;
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 function useNow(): () => Date {
   const [now, setNow] = createSignal(new Date());
@@ -95,17 +91,6 @@ function CalendarGrid(props: Props) {
     return { key: hk, date: d };
   });
 
-  // Imperative DOM update for cross-calendar highlight; SolidJS <For> freezes cell values at creation time
-  createEffect(() => {
-    const hk = store.highlightedKey;
-    const prev = document.querySelectorAll('.cell.highlighted');
-    prev.forEach(el => el.classList.remove('highlighted'));
-    if (hk) {
-      const cells = document.querySelectorAll(`[data-key="${hk}"]`);
-      cells.forEach(el => el.classList.add('highlighted'));
-    }
-  });
-
   const months = createMemo(() => {
     const labels: { text: string; col: number }[] = [];
     let lastMonth = -1;
@@ -138,7 +123,7 @@ function CalendarGrid(props: Props) {
     return h.key === todayKey();
   };
 
-  function handleKeyDown(e: KeyboardEvent, key: string, date: Date) {
+  function handleKeyDown(e: KeyboardEvent, key: string) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       store.incrementDay(props.calendar.id, key);
@@ -166,29 +151,31 @@ function CalendarGrid(props: Props) {
                 <For each={week}>
                   {(date) => {
                     const key = dateKey(date);
-                    const val = props.calendar.days[key] ?? 0;
-                    const intensity = val / maxVal();
-                    const isToday = key === todayKey();
+                    const val = () => props.calendar.days[key] ?? 0;
+                    const intensity = () => val() / maxVal();
+                    const isToday = () => key === todayKey();
                     return (
                       <button
                         class="cell"
                         classList={{
-                          today: isToday,
+                          today: isToday(),
+                          highlighted: store.highlightedKey === key,
                         }}
                         data-key={key}
                         style={{
                           width: `${CELL_PX}px`,
                           height: `${CELL_PX}px`,
-                          background: cellColor(props.calendar.color, intensity, props.isLight),
+                          background: cellColor(props.calendar.color, intensity(), props.isLight),
                         }}
-                        aria-label={`${formatDate(date)}: ${val} × ${props.calendar.activityValue} = ${(val * props.calendar.activityValue).toFixed(1)}. Click to add, long press to reset.`}
+                        aria-label={`${formatDate(date)}: ${val()} × ${props.calendar.activityValue} = ${(val() * props.calendar.activityValue).toFixed(1)}. Click to add, long press to reset.`}
                         onPointerDown={() => startPress(key)}
                         onPointerUp={endPress}
                         onPointerLeave={cancelPress}
                         onPointerCancel={cancelPress}
+                        onContextMenu={(e) => e.preventDefault()}
                         onMouseEnter={() => store.setHighlightedKey(key)}
                         onFocus={() => store.setHighlightedKey(key)}
-                        onKeyDown={(e) => handleKeyDown(e, key, date)}
+                        onKeyDown={(e) => handleKeyDown(e, key)}
                         tabindex="0"
                       />
                     );

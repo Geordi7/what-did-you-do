@@ -8,12 +8,14 @@ interface Calendar {
   color: string;                 // hex
   days: Record<string, number>;  // YYYY-MM-DD -> count
   activityValue: number;
+  updatedAt: string;             // ISO 8601 instant
   deleted?: boolean;             // trash flag
 }
 ```
 
 - Counts in `days` are finite integers `>= 0`; an absent key reads as zero, and resetting a day deletes its key rather than storing `0`. A calendar's total activities is the sum of its `days` values.
 - `activityValue` is a finite float of any sign, default `1.0`. Negative weights are intended — the chart's positive/negative/net split depends on them.
+- `updatedAt` is an ISO 8601 instant (`YYYY-MM-DDTHH:mm:ss.sssZ`, UTC) recording when the calendar was last changed, restamped on a day count, rename, colour, activity value, soft delete, recover, or a merge that alters it. It is a wall-clock time, unrelated to which dates the calendar holds. A change to another calendar leaves it alone.
 
 ## AppState
 ```ts
@@ -28,14 +30,12 @@ interface AppState {
 ```
 
 - `version` is the `STORAGE_VERSION` of the stored shape, unrelated to the `package.json` version.
-- `theme` is the persisted theme preference, nothing more. Defaults to `'system'`.
 - `calendars` holds active and trashed calendars in one ordered array.
-- `chartRange` is the score-chart span. Defaults to `'28d'`.
+- `theme` is the persisted theme preference, default `'system'`; `chartRange` is the score-chart span, default `'28d'`.
 
 ## Trash
 - A trashed calendar has `deleted === true`, stays in the array, and keeps its index, so recovery returns it to its original position.
-- Trashed calendars are excluded from the score chart and from every active total; active calendars are `deleted !== true`.
-- Purge is per item and removes the entry outright.
+- Trashed calendars are excluded from the score chart and from every active total; active calendars are `deleted !== true`. Purge is per item and removes the entry outright.
 
 ## Persistence
 - `JSON.stringify` of `AppState` into `localStorage` under `achievement-calendars`.

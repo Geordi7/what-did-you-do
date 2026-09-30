@@ -1,16 +1,42 @@
-import { createMemo, For, createSignal, Show } from 'solid-js';
+import { createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
+import type { ChartRange } from '../types';
 import { store } from '../store';
-import { buildGrid, dateKey, parseKey } from '../utils';
+import { buildGrid, dateKey, formatDate } from '../utils';
 
-const WEEKS = 26;
-const BAR_GAP = 1;
+const DAILY_BARS = 28;
+const WEEKLY_BARS = 26;
 const TOOLTIP_OFFSET = 8;
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+const RANGES: Array<{ value: ChartRange; label: string }> = [
+  { value: '28d', label: 'Last 28 days' },
+  { value: '26w', label: 'Last 26 weeks' },
+];
+
+interface Bar {
+  key: string;
+  label: string;
+  pos: number;
+  neg: number;
+  net: number;
+}
+
+function useNow(): () => Date {
+  const [now, setNow] = createSignal(new Date());
+  const tick = () => {
+    const next = new Date();
+    setNow(next);
+    const msToMidnight =
+      new Date(next.getFullYear(), next.getMonth(), next.getDate() + 1, 0, 0, 0, 0).getTime() - next.getTime() + 1000;
+    return setTimeout(tick, msToMidnight);
+  };
+  const id = tick();
+  onCleanup(() => clearTimeout(id));
+  return now;
 }
 
 export default function ScoreChart(props: { isLight: boolean }) {
+  const now = useNow();
+
   const dayScores = createMemo(() => {
     const posMap: Record<string, number> = {};
     const negMap: Record<string, number> = {};
@@ -25,157 +51,152 @@ export default function ScoreChart(props: { isLight: boolean }) {
         }
       }
     }
-    const netMap: Record<string, number> = {};
-    for (const key of new Set([...Object.keys(posMap), ...Object.keys(negMap)])) {
-      netMap[key] = (posMap[key] ?? 0) + (negMap[key] ?? 0);
+    return { pos: posMap, neg: negMap };
+  });
+
+  const bars = createMemo<Bar[]>(() => {
+    const scores = dayScores();
+    const today = now();
+
+    if (store.chartRange === '26w') {
+      return buildGrid(today, WEEKLY_BARS).map((week) => {
+        let pos = 0;
+        let neg = 0;
+        for (const date of week) {
+          const key = dateKey(date);
+          pos += scores.pos[key] ?? 0;
+          neg += scores.neg[key] ?? 0;
+        }
+        return {
+          key: dateKey(week[0]),
+          label: `Week of ${formatDate(week[0])}`,
+          pos,
+          neg,
+          net: pos + neg,
+        };
+      });
     }
-    return { pos: posMap, neg: negMap, net: netMap };
+
+    const out: Bar[] = [];
+    for (let i = DAILY_BARS - 1; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      const key = dateKey(date);
+      const pos = scores.pos[key] ?? 0;
+      const neg = scores.neg[key] ?? 0;
+      out.push({ key, label: formatDate(date), pos, neg, net: pos + neg });
+    }
+    return out;
   });
 
   const maxAbs = createMemo(() => {
     let max = 0;
-    for (const v of Object.values(dayScores().pos)) max = Math.max(max, v);
-    for (const v of Object.values(dayScores().neg)) max = Math.max(max, Math.abs(v));
+    for (const bar of bars()) {
+      max = Math.max(max, bar.pos, Math.abs(bar.neg));
+    }
     return max || 1;
   });
 
-  // Derive reactive list so <For> re-renders bars when scores change
-  const chartDays = createMemo(() => {
-    const scores = dayScores();
-    store.state; // establish reactivity on any store change
-    const weeks = buildGrid(new Date(), WEEKS);
-    return weeks.flat().map(date => {
-      const key = dateKey(date);
-      return {
-        date, key,
-        pos: scores.pos[key] ?? 0,
-        neg: scores.neg[key] ?? 0,
-        net: scores.net[key] ?? 0,
-      };
+  const [tooltip, setTooltip] = createSignal<Bar & { x: number; y: number } | null>(null);
+
+  function showTooltip(target: HTMLElement, bar: Bar) {
+    const chart = target.closest('.score-chart');
+    if (!chart) return;
+    const rect = target.getBoundingClientRect();
+    const parent = chart.getBoundingClientRect();
+    setTooltip({
+      ...bar,
+      x: rect.left - parent.left + rect.width / 2,
+      y: rect.top - parent.top,
     });
-  });
-
-  const [tooltip, setTooltip] = createSignal<{
-    key: string; pos: number; neg: number; net: number; x: number; y: number;
-  } | null>(null);
-
-  const calColor = createMemo(() => {
-    const active = store.activeCalendars;
-    if (active.length > 0) return active[0].color;
-    return '#58a6ff';
-  });
-
-  const total = createMemo(() => Object.values(dayScores().net).reduce((a, b) => a + b, 0));
+  }
 
   return (
     <div class="score-chart">
-      <div class="score-chart-title">Daily Score</div>
+      <div class="score-chart-header">
+        <div class="score-chart-title">Daily Score</div>
+        <div class="score-range" role="group" aria-label="Chart range">
+          <For each={RANGES}>
+            {(range) => (
+              <button
+                type="button"
+                class="score-range-btn"
+                classList={{ active: store.chartRange === range.value }}
+                aria-pressed={store.chartRange === range.value}
+                onClick={() => store.setChartRange(range.value)}
+              >
+                {range.label}
+              </button>
+            )}
+          </For>
+        </div>
+      </div>
       <div class="score-bar-wrap">
         <div class="score-bars">
-          <For each={chartDays()}>
-            {(day) => {
-              const { key, date, pos, neg, net } = day;
-              const m = maxAbs();
-
-              const netH = (Math.abs(net) / m) * 100;
-              const posDotY = pos > 0 ? (pos / m) * 100 : 0;
-              const negDotY = neg < 0 ? (Math.abs(neg) / m) * 100 : 0;
+          <For each={bars()}>
+            {(bar) => {
+              const netHeight = () => (Math.abs(bar.net) / maxAbs()) * 100;
+              const posOffset = () => (bar.pos > 0 ? (bar.pos / maxAbs()) * 100 : 0);
+              const negOffset = () => (bar.neg < 0 ? (Math.abs(bar.neg) / maxAbs()) * 100 : 0);
 
               return (
-                <div class="score-bar-col" style={{ 'margin-left': `${BAR_GAP}px` }}>
-                  <div class="score-bar-inner" style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    {/* net bar */}
-                    <div
-                      class="score-netbar"
-                      style={net !== 0 ? {
-                        position: 'absolute',
-                        bottom: net >= 0 ? '50%' : 'auto',
-                        top: net < 0 ? '50%' : 'auto',
-                        width: '100%',
-                        height: `${netH}%`,
-                        'background-color': net >= 0 ? '#4caf50' : '#f44336',
-                        'border-radius': '1px 1px 0 0',
-                      } : { display: 'none' }}
-                    />
-                    {/* positive dot */}
-                    {pos > 0 && (
+                <div class="score-bar-col">
+                  <div class="score-bar-inner">
+                    <Show when={bar.net !== 0}>
+                      <div
+                        class="score-netbar"
+                        classList={{
+                          'score-netbar-up': bar.net >= 0,
+                          'score-netbar-down': bar.net < 0,
+                        }}
+                        style={{ height: `${netHeight()}%` }}
+                      />
+                    </Show>
+                    <Show when={bar.pos > 0}>
                       <div
                         class="score-dot score-dot-pos"
-                        style={{
-                          bottom: `${50 + posDotY - 2}%`,
-                          'background-color': '#4caf50',
-                        }}
+                        style={{ bottom: `${50 + posOffset() - 2}%` }}
                       />
-                    )}
-                    {/* negative dot */}
-                    {neg < 0 && (
+                    </Show>
+                    <Show when={bar.neg < 0}>
                       <div
                         class="score-dot score-dot-neg"
-                        style={{
-                          top: `${50 + negDotY - 2}%`,
-                          'background-color': '#f44336',
-                        }}
+                        style={{ top: `${50 + negOffset() - 2}%` }}
                       />
-                    )}
+                    </Show>
                   </div>
-                  {/* invisible hit target for tooltip */}
                   <div
                     class="score-bar-hit"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      const parent = (e.currentTarget as HTMLElement).closest('.score-chart')!.getBoundingClientRect();
-                      setTooltip({
-                        key, pos, neg, net,
-                        x: rect.left - parent.left + rect.width / 2,
-                        y: rect.top - parent.top,
-                      });
-                    }}
+                    onMouseEnter={(e) => showTooltip(e.currentTarget, bar)}
                     onMouseLeave={() => setTooltip(null)}
-                    onFocusIn={(e) => {
-                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      const parent = (e.currentTarget as HTMLElement).closest('.score-chart')!.getBoundingClientRect();
-                      setTooltip({
-                        key, pos, neg, net,
-                        x: rect.left - parent.left + rect.width / 2,
-                        y: rect.top - parent.top,
-                      });
-                    }}
+                    onFocusIn={(e) => showTooltip(e.currentTarget, bar)}
                     onFocusOut={() => setTooltip(null)}
                     tabindex="0"
                     role="img"
-                    aria-label={`${formatDate(date)}: +${pos.toFixed(1)} ${neg.toFixed(1)} → net ${net.toFixed(1)}`}
+                    aria-label={`${bar.label}: +${bar.pos.toFixed(1)} ${bar.neg.toFixed(1)} → net ${bar.net.toFixed(1)}`}
                   />
                 </div>
               );
             }}
           </For>
         </div>
-        {/* zero line */}
         <div class="score-zero-line" />
-        {tooltip() && (
-          <div
-            class="score-tooltip"
-            style={{
-              left: `${tooltip()!.x}px`,
-              top: `${tooltip()!.y - TOOLTIP_OFFSET}px`,
-            }}
-          >
-            <div class="score-tooltip-date">{formatDate(parseKey(tooltip()!.key))}</div>
-            <div class="score-tooltip-pos">+{tooltip()!.pos.toFixed(1)}</div>
-            <div class="score-tooltip-neg">{tooltip()!.neg.toFixed(1)}</div>
-            <div class="score-tooltip-net">net: {tooltip()!.net.toFixed(1)}</div>
-          </div>
-        )}
+        <Show when={tooltip()}>
+          {(tip) => (
+            <div
+              class="score-tooltip"
+              style={{
+                left: `${tip().x}px`,
+                top: `${tip().y - TOOLTIP_OFFSET}px`,
+              }}
+            >
+              <div class="score-tooltip-date">{tip().label}</div>
+              <div class="score-tooltip-pos">+{tip().pos.toFixed(1)}</div>
+              <div class="score-tooltip-neg">{tip().neg.toFixed(1)}</div>
+              <div class="score-tooltip-net">net: {tip().net.toFixed(1)}</div>
+            </div>
+          )}
+        </Show>
       </div>
-      <div class="score-total-label">Total: {total().toFixed(1)}</div>
     </div>
   );
 }
