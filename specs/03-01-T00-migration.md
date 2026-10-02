@@ -4,6 +4,10 @@ Manual suite for `03-01-migrations.md`. Run the cases in order.
 
 Every `STORAGE_VERSION` bump adds a case here: seed the old shape, reload, verify.
 
+The browser tier executes these cases too, in `e2e/migration.e2e.ts` (`05-02-browser-tier.md`). This file stays
+the source of truth: a case is added here first and the tier follows, and walking it by hand remains
+the check on anything a script cannot judge.
+
 ## Preparation
 - Use a browser profile whose storage for this origin can be discarded, or export a backup first.
 - Keep devtools open on Application → Local Storage for the app origin.
@@ -43,14 +47,16 @@ Every `STORAGE_VERSION` bump adds a case here: seed the old shape, reload, verif
 6. Repeat steps 1–5 with `"version":1` and no `theme` key; the theme resolves to `'system'`.
 
 ## Case 3 — version 3
-1. Seed:
+1. Seed, writing `<today>` as the date you run this on, in `YYYY-MM-DD` local time, so the counted
+   day sits inside the chart's trailing 28-day window:
 ```json
 {"version":3,"theme":"light","calendars":[
-  {"id":"v3-a","name":"Pushups","color":"#216e39","days":{"2025-03-01":10},"activityValue":-2.5}
+  {"id":"v3-a","name":"Pushups","color":"#216e39","days":{"<today>":10},"activityValue":-2.5}
 ]}
 ```
 2. Reload.
-3. Verify the activity value reads `-2.5` and the chart shows the day as negative score.
+3. Verify the activity value reads `-2.5`, and that the chart's last bar — today — shows the day as
+   negative score: a negative component of `-25.0`, no positive component, net `-25.0`.
 4. Read back `achievement-calendars`: `version` is `STORAGE_VERSION`, `chartRange` reads `'28d'`,
    and `Pushups` has an `updatedAt`.
 
@@ -118,6 +124,8 @@ Every `STORAGE_VERSION` bump adds a case here: seed the old shape, reload, verif
 6. Obtain the diagnostic from the blocking message, by copy and by download.
 7. Verify it names the stored version, the target version, the phase, the failing step, the issue
    paths and the payload size — and that it contains no calendar name and no day counts.
+   The id-uniqueness check is asserted over the whole envelope, so its issue path is the root `.`,
+   not the offending calendar's index. A root path is the expected reading here.
 8. Reload again and verify the same message, still with the seed intact.
 
 Storage being unavailable or full is not this case: it shows an error banner and keeps running, and

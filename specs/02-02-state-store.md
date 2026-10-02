@@ -13,6 +13,14 @@
 - Every mutator that changes a calendar stamps that calendar's own last-update timestamp; a change
   to one calendar leaves the others' alone. `03-data-model.md` owns the field's meaning.
 
+<!-- OBS: the `state` getter is typed `AppState`, which does not describe what the store holds.
+`AppState.theme` is optional and the state behind the getter has no theme field at all — theme is a
+signal, read through `get theme()` — so `store.state.theme` is permanently `undefined` rather than
+merely possibly absent. `version` and `chartRange` are optional in `AppState` and always set in the
+state, so every reader handles an absence that cannot occur; the browser tier's `storageVersion`
+helper throws on it to stay honest. The getter wants a type describing the state tree, which is not
+the persisted envelope's type even though both are `AppState` today. -->
+
 ## Persistence
 - State persists to `localStorage` under `achievement-calendars`.
 - State migration handles schema upgrades on load.

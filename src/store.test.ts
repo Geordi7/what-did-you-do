@@ -5,7 +5,7 @@ import type { Calendar, ChartRange, ImportRow, RowDisposition, ThemeMode } from 
 /**
  * The store, against a `localStorage` fake with the clock fixed.
  *
- * `specs/05-testing.md` "Automated tier" is authoritative for what is covered here:
+ * `specs/05-01-automated-tier.md` is authoritative for what is covered here:
  * the load path's guards and failure behaviour (`specs/03-01-migrations.md`), the
  * preview/apply split (`specs/03-02-import-export.md`), and the surface,
  * persistence and cross-tab protocol (`specs/02-02-state-store.md`).

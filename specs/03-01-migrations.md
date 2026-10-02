@@ -101,4 +101,4 @@ type MigrationDiagnostic = {
 
 ## Testing
 
-- Every version bump adds a manual test to the migration test suite: seed the old shape in `localStorage`, reload, verify the result.
+- Every version bump adds a case to the migration test suite: seed the old shape in `localStorage`, reload, verify the result. The suite is written for a human and executed by the browser tier, so the case lands in both.
