@@ -25,7 +25,9 @@ An import accepts any of:
 - a bare array of calendars — treated as version 3;
 - a single calendar object — treated as version 3.
 
-A legacy shape is wrapped as `{ version: 3, calendars: [...] }` before migrations run. A migration
+A legacy shape is wrapped as `{ version: 3, calendars: [...] }` before migrations run.
+The version marker is read before that wrapping, so a payload declaring a version newer than the
+current one is refused whatever its shape — wrapping it first would hide the marker. A migration
 step parses a versioned envelope, never a bare array or a lone calendar.
 
 ## Rules

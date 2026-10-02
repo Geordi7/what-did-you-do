@@ -12,8 +12,15 @@
 - Verify theme and responsive layout behaviour.
 
 ## Automated tier
-Vitest over the pure modules only — no DOM, no store, no wall clock. Merge and migration both
-put a user's whole history at risk, so both belong here rather than in manual checks.
+Vitest over the pure modules and the store — no DOM. Merge and migration both put a user's whole
+history at risk, so both belong here rather than in manual checks.
+
+The store is covered too, because the load, save and import paths decide what reaches a user's
+stored data and reading them is not enough. The store is a module-level singleton whose load path
+runs once at import, so a test installs a `localStorage` fake on `globalThis` and fixes the clock
+*before* importing it, and resets the module between scenarios to get a fresh load. That keeps the
+tier DOM-free and needs no production seam. Components stay out — they would need jsdom and a
+testing library, and the manual checks below cover them.
 
 - Migrations — each step in isolation, then a stepwise run from every logged version up to current.
   - The 4 -> 5 step stamps every calendar with the timestamp the caller supplies, whatever dates the
@@ -39,6 +46,19 @@ put a user's whole history at risk, so both belong here rather than in manual ch
     out of trash.
   - Leaving a live calendar untouched is a skipped row, not a merge action; a disposition is store
     behaviour and is checked manually.
+- Store — against a `localStorage` fake, with the clock injected:
+  - Load: a current payload loads; an older one migrates; a newer one neither loads nor saves.
+  - A migration or validation failure leaves the stored string byte-for-byte intact, writes no
+    save, and leaves the previous pre-migration snapshot alone — a failing load must not overwrite
+    the one backup it exists for.
+  - The snapshot is written only when a step actually ran, so a boot that migrates nothing leaves it.
+  - `previewImport` writes nothing, rejects an oversized payload before parsing, and reports each
+    row's event total and whether its id collides.
+  - `applyImport` commits every disposition as one write: skip changes nothing, append lands at the
+    end undeleted, and a merge keeps the live id, index and trash state.
+  - Every mutator stamps only its own calendar's `updatedAt`.
+  - Unavailable or full storage surfaces an error and keeps the in-memory state usable.
+  - A `storage` event from another tab converges without the write loop re-firing.
 - `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at
   25% and 50% of max.

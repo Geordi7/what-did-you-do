@@ -160,6 +160,12 @@ function probe(raw: string): Probe {
   } catch (error) {
     return { kind: 'unparseable', error };
   }
+  // Read the marker BEFORE wrapping. `wrapLegacy` turns any object without a
+  // `calendars` key into a version-3 envelope, which would swallow a newer marker on
+  // a payload like `{"version": 9, ...}` and send data from the future down the
+  // ordinary migration path instead of tripping the guard.
+  const declared = readVersion(parsed);
+  if (declared !== null && isNewer(declared)) return { kind: 'newer', storedVersion: declared };
   const payload = wrapLegacy(parsed);
   const storedVersion = readVersion(payload);
   if (storedVersion !== null && isNewer(storedVersion)) return { kind: 'newer', storedVersion };
