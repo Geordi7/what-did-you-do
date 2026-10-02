@@ -84,5 +84,9 @@ A colliding row that is not rejected merges under one of four actions.
 
 A rejected colliding row leaves the live calendar **wholly** untouched: its days, metadata,
 `deleted` flag, index, and `updatedAt` all stand as they were. Nothing is imported for that row and
-no new calendar appears under a new id. This is why the dropdown offers no keep-the-live-calendar
-action — rejection already is that outcome, and one outcome gets one control.
+no new calendar appears under a new id.
+
+One outcome gets one control, so rejection lives in whichever control the row already has: a
+colliding row is rejected through its dropdown, whose FIRST option skips the row and is the option
+it starts on, and a non-colliding row through its skip checkbox. `04-03-dialogs.md` owns the two
+widgets, `06-accessibility.md` the option order.

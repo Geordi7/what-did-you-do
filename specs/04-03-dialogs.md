@@ -18,7 +18,8 @@ a live calendar, because rejecting a calendar must be possible in both cases.
 - Number of events is the sum of that calendar's day counts — the same total its card shows.
 - Last update is the calendar's stored `updatedAt` timestamp, carried in the payload.
 - A row whose id matches a live calendar is a colliding row and also carries a merge-action
-  dropdown offering `replace`, `merge-by-sum`, `merge-prefer-import`, and `merge-prefer-live`.
+  dropdown whose first option skips the row, followed by `replace`, `merge-by-sum`,
+  `merge-prefer-import`, and `merge-prefer-live`.
   Their day-level and metadata meaning lives in `03-02-import-export.md`.
 - A non-colliding row has no dropdown; importing it appends it to the end of the array, undeleted.
 
