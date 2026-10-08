@@ -10,6 +10,7 @@
 ## Surface
 - The store exposes calendar CRUD, reorder, recover, permanent delete, and day mutation methods.
 - Components read through the store's getters, never through a copy taken before the markup.
+- The `state` getter is typed as the state tree the store holds (`StoreState`), not the persisted envelope (`AppState`).
 - Every mutator that changes a calendar stamps that calendar's own last-update timestamp; a change
   to one calendar leaves the others' alone. `03-data-model.md` owns the field's meaning.
 

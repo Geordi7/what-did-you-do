@@ -75,7 +75,7 @@ function storageMessage(error: unknown): string {
  * preferences rather than part of the state tree, so they are signals; both are
  * folded back into the persisted envelope on write.
  */
-interface StoreState {
+export interface StoreState {
   version: number;
   chartRange: ChartRange;
   calendars: Calendar[];
@@ -462,7 +462,7 @@ export const store = createRoot(() => {
   }
 
   return {
-    get state(): AppState {
+    get state(): StoreState {
       return state;
     },
     get theme(): ThemeMode {

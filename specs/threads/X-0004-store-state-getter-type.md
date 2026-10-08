@@ -15,3 +15,8 @@ links: {}
 > The getter wants a type describing the state tree, which is not the persisted envelope's type even though both are `AppState` today.
 >
 > Q1. Give the `state` getter its own state-tree type, separate from the persisted envelope's `AppState`, and spec that split in `02-02-state-store.md`?
+
+It makes sense that the getter should return StoreState. I don't mind technical discussions in threads, but this seems like minutiae with an obvious correct answer
+
+> Reading: the getter returns `StoreState`, and this should have been fixed directly rather than raised as a thread. Cancelled on that basis, as proposed in chat; the fix is applied in the same commit and `02-02-state-store.md` states the getter's type.
+> The `storageVersion` helper mentioned above no longer exists in `e2e/`, so nothing else depended on the old type.

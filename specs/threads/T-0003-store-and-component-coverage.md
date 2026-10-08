@@ -57,3 +57,6 @@ Reopen if: a component defect escapes the manual checks, or a testing-library de
 > What the tier found on the way, all of it in specs rather than code: the merge dropdown's skip option was missing from four specs that each claimed the dropdown offered four actions; `05-03-manual-checks.md` still said the automated tier excluded the store; and migration Case 3 seeded a 2025 date for a step that reads the 28-day chart, so the case could never have tested its own step by hand either.
 >
 > Two review passes over the tier itself caught worse than the tier caught: eight assertions compared `STORAGE_VERSION` with itself through two paths that both write it from the same constant, and the last-write-wins case could not tell a clobber from a first write that never landed. Both fixed, and both now fail under mutation — I checked rather than assumed.
+
+> Withdrawing the question above: `00-meta.md` lets the agent or the operator run a manual suite, and the browser tier runs every case of both, so option 1 is applied. Option 2 was already applied. A human walk-through of the visual judgements would be a new question in a new thread, not a reopening of this one.
+> Applied and verified. Renamed R → T.
