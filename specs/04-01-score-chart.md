@@ -12,5 +12,10 @@ Combined daily score from all active calendars, shown above the calendar cards.
 - The chart owns its two spans; the calendar grid's 26-week window is independent of them.
 
 ## Bars
-- Bar height is relative to the largest absolute positive or negative score in the range.
+- A zero line runs across the middle of the chart; positive values sit above it, negative below.
+- Each bar is a filled net bar growing from the zero line: green upward for a positive net, red
+  downward for a negative one. The positive and negative components are thin ticks of the same
+  colours at their own heights.
+- Bar height is relative to the largest absolute positive or negative score in the range: that
+  value reaches the chart's edge, and nothing draws outside the chart area.
 - Hovering or focusing a bar shows a tooltip with the date and the positive, negative, and net values.

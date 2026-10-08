@@ -925,6 +925,17 @@ body {
   border-radius: 1px 1px 0 0;
 }
 
+.score-netbar-up {
+  bottom: 50%;
+  background-color: #4caf50;
+}
+
+.score-netbar-down {
+  top: 50%;
+  background-color: #f44336;
+  border-radius: 0 0 1px 1px;
+}
+
 .score-dot {
   position: absolute;
   left: 0;

@@ -6,6 +6,8 @@ import { buildGrid, dateKey, formatDate } from '../utils';
 const DAILY_BARS = 28;
 const WEEKLY_BARS = 26;
 const TOOLTIP_OFFSET = 8;
+/** The zero line sits mid-chart, so a full-scale value spans half the chart's height. */
+const HALF_SCALE = 50;
 
 const RANGES: Array<{ value: ChartRange; label: string }> = [
   { value: '28d', label: 'Last 28 days' },
@@ -134,9 +136,7 @@ export default function ScoreChart(props: { isLight: boolean }) {
         <div class="score-bars">
           <For each={bars()}>
             {(bar) => {
-              const netHeight = () => (Math.abs(bar.net) / maxAbs()) * 100;
-              const posOffset = () => (bar.pos > 0 ? (bar.pos / maxAbs()) * 100 : 0);
-              const negOffset = () => (bar.neg < 0 ? (Math.abs(bar.neg) / maxAbs()) * 100 : 0);
+              const scaled = (value: number) => (Math.abs(value) / maxAbs()) * HALF_SCALE;
 
               return (
                 <div class="score-bar-col">
@@ -148,19 +148,19 @@ export default function ScoreChart(props: { isLight: boolean }) {
                           'score-netbar-up': bar.net >= 0,
                           'score-netbar-down': bar.net < 0,
                         }}
-                        style={{ height: `${netHeight()}%` }}
+                        style={{ height: `${scaled(bar.net)}%` }}
                       />
                     </Show>
                     <Show when={bar.pos > 0}>
                       <div
                         class="score-dot score-dot-pos"
-                        style={{ bottom: `${50 + posOffset() - 2}%` }}
+                        style={{ bottom: `calc(${HALF_SCALE + scaled(bar.pos)}% - 1px)` }}
                       />
                     </Show>
                     <Show when={bar.neg < 0}>
                       <div
                         class="score-dot score-dot-neg"
-                        style={{ top: `${50 + negOffset() - 2}%` }}
+                        style={{ top: `calc(${HALF_SCALE + scaled(bar.neg)}% - 1px)` }}
                       />
                     </Show>
                   </div>
