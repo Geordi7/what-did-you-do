@@ -3,137 +3,139 @@
 *Explanatory document for the use of `specs/`*
 *See `Geordi7/specsify` on github*
 
-`specs/` contains specifications and user test scripts as markdown (`.md`) files.
-- *specifications* describe *intended* behaviour, design decisions, and standards expected to be followed
-- *directives* (like `agents.md` or `claude.md`) describe how to work on the project
+`specs/` contains specifications, manual test suites and decision threads as markdown (`.md`) files.
+- *specifications* are positive declarations of *intended* behaviour, design decisions, and standards expected to be followed
+- *threads* explain specifications: the trail of reasoning behind them, including everything that was ruled out
+- *directives* (like `AGENTS.md` or `CLAUDE.md`) describe how to work on the project
 - *code comments* should be reserved for local non-obvious logic and references to specifications
 
-In these documents an *actor* is either a human or an AI agent.
+In these documents the *agent* is an AI model running in a development harness, and the *operator* is the human directing the work. The agent maintains the specs; the operator directs through chat and threads. This document addresses the agent as *you*.
+
+## Intent and Decisions
+
+Specs state intent; threads tell us how we got there. Every artifact is justified by specs alone: code, tests and specs never cite threads, and a spec must make sense without them. Links run one way, from a thread to the specs it `affects`, so the reasoning can be found when a spec needs to be reconsidered or reinterpreted.
+
+A spec states intent positively: "buttons are red". Only a thread may hold a negative finding: "buttons will not be blue", with its reasoning. A spec may state a constraint the system must satisfy ("credentials are never logged"), because that is intent; it never records an option that was considered and turned down. Specs stay short and current, and nothing rejected is lost:
+- **Read before changing.** Before changing a spec, read the threads that affect it (see [Finding Decisions](#finding-decisions)); the change may already have been ruled out.
+- **Every rejection has a thread.** When a decision rules something out, wherever it was made (including in chat), record it in a thread's `## Outcome` and put only the positive result in specs.
 
 ## Structure
 
-Specs are defined across a tree of files located in this directory. A directory listing (ls) must be sufficient to get a sense of how the project is specified. The goal is to have a coherent traversible set of specifications that an agent can pull from to get the context it needs. Specs are organized into top level 'domains' and 'refinements' and 'test suites' below them.
+Specs form a tree of files in this directory, organized into domains, their refinements, and test suites. `ls specs` alone must give a sense of how the project is specified, so that an agent can pull exactly the context it needs.
 
-**CRITICAL:** Spec files must never exceed 150 lines. Once a domain grows beyond what is manageable in 150 lines, it must be split into refinements.
+**CRITICAL:** Spec files must never exceed 150 lines. Split a domain that outgrows this into refinements.
 
-**CRITICAL:** Root domain specs for refined domains must never exceed 50 lines. A domain with refinements must have inline summaries for the refinements in its root domain file, and leave all detail to the refinements. Keep only *the most critical or globally applicable information* in the root.
+**CRITICAL:** Root files of refined domains must never exceed 50 lines. They hold inline summaries of their refinements plus only the most critical or globally applicable information, and leave all detail to the refinements.
 
-### Base
+### Domains
 
-Specs are defined in terms of domains which are numbered starting at zero. Throughout this document `##` denotes a zero-padded two-digit number (e.g., `02`, `03`). Every domain has a root file and may have refinements, the two required domains are:
+Domains are numbered from zero; `##` denotes a zero-padded two-digit number (e.g., `02`). Every domain has a root file and may have refinements. Two domains are required:
 
 | Domain File | Purpose |
 |-------------|---------|
 | `00-meta.md` | this file, describes how to operate in a specs driven project |
 | `01-requirements.md` | primary design drivers for the project |
 
-### Expansion
-
-Thereon domains are defined as needed using the `##-lower-kebab-case` convention. Most projects will need these:
+Further domains are added as needed, named `##-lower-kebab-case.md`. Most projects need the first two of these:
 
 | Domain File | Purpose |
 |-------------|---------|
 | `02-architecture.md` | technical design and key decisions: components, stacks, interfaces, deployment |
 | `03-data-model.md` | structure of data and key persistence decisions |
+| `##-security-standard.md` | explicit security related constraints or requirements |
+| `##-design.md` | external surface (UI or API) constraints and design |
+| `##-testing.md`| testing strategy and tools (not specific tests) |
+| `##-user-experience.md` | constraints and design for intended user experience |
 
-And other recommended domains are:
-
-| Domain File | Purpose |
-|-------------|---------|
-| `##-security-standard.md` | Capture explicit security related configuration constraints or requirements |
-| `##-design.md` | Capture external surface (UI or API) constraints and design |
-| `##-testing.md`| Capture testing strategy and tools (not for specific tests) |
-| `##-user-experience.md` | Capture constraints and design for intended user experience |
+`specs/threads/` holds decision threads (see [Threads](#threads)). It is not a domain, its files are not specifications, and line limits do not apply to it.
 
 ### Refinement
 
-Once a domain is sufficiently large it should be split into refinements using the `##-##-sub-domain.md` convention. These can be further refined using `##-##-##-sub-sub-domain.md` and so on... Once a domain is refined parent files should become minimal summaries for their refinements so as not to pollute agent contexts. Some examples:
+Refinements are named `##-##-sub-domain.md`, and can be refined further as `##-##-##-sub-sub-domain.md` and so on. For example, `02-architecture.md` might summarize `02-00-modules-components.md`, `02-01-coding-standard.md` and `02-02-persistence-layer.md`.
 
-Given `02-architecture.md` which contains short descriptions of the following:
-- `02-00-modules-components.md`
-- `02-01-coding-standard.md`
-- `02-02-persistence-layer.md`
-- `02-03-application-nodes.md`
+## Testing
 
-### Test Scripts
+### Test Suites
 
-Test scripts follow their own naming convention — see [Test Scripts](#test-scripts) below.
+Any specification may be tested directly against its prose, and an agent should be able to perform most tests just by being prompted with the relevant specifications. Reserve **manual test suites**, run by the agent or the operator, for functionality that is ultra-critical or needs precise actions to test, and use them to complement automated and agent tests, not replace them.
 
-## QA and Observations
+A test suite is named `{}-T##-test-description.md`, where `{}` is the full address of its domain or refinement: `02-01-T00-naming-rules.md` tests `02-01-coding-standard.md`, and `02-T00-smoke-test.md` tests `02-architecture.md`.
 
-QA activities record observations **in-situ** in the relevant specification file using HTML comments. An observation is invisible when the markdown is rendered but greppable in source, so it annotates the spec without disturbing its prose or its block quotes.
+### Automated Tests
 
-Observations are placed **immediately after the section or statement they refer to**, never floating at the top of a file. Multiple observations on the same thing stack in chronological order. Attribution is not needed - git blame is the source of truth.
+Tests at any level — unit, integration, end-to-end — may be written against any part of the project. Whether a given test is warranted is the agent's decision, weighed on risk, complexity, and the criticality of the requirement it serves. Where a test is warranted, it is written before the code that satisfies it.
 
-### Observation conventions
+Every new or changed test must be **seen failing first**. If a test is written against existing functionality, exercise it against a deliberately broken mock of that functionality first, and iterate the mock until every assertion has been shown to fail at least once. The mock lives separately from the real code — a stub, fake, or injected double — and the real code is never edited to produce the failure. Discard the mock once the test is verified; it must never reach a commit.
 
-Two forms, distinguished only by an optional `CR` tag:
+- Write the test, run it, keep the failure output.
+- The failure must be the *intended* one — an assertion on real behaviour, not an import, syntax, collection, or fixture error. Those mean the test is broken.
+- A test that never fails proves nothing. Fix the test, not the code.
+- Then implement (or point the test back at the real code), re-run, confirm it passes and breaks nothing else.
+- Bug fixes start with a test that reproduces the bug.
 
-Plain observation - anything an implementer should look at (works but awkward, doesn't work, a question, a comment). Resolve by fixing the code, or the spec, as appropriate:
+State the observed failure and the subsequent pass when reporting verification. An agent that cannot show a test failing has not tested it.
 
-  <!-- OBS: ...observations -->
+## Threads
 
-Change Request - the *intended* behaviour is wrong; the spec itself must change first:
+When a change needs clarification or discussion, the agent opens a thread instead of asking the operator directly, tells the operator in chat which threads need attention, and continues with work that doesn't depend on them. `specs/threads/T-0001-thread-format-example.md` is the reference example of the format; read it before writing your first thread.
 
-  <!-- OBS CR: ...observations -->
+### Files
 
-*The examples above are INDENTED so that they do not show up in searches for observations, which anchor the marker to the start of the line. Natural observations MUST NOT be indented.*
+Each thread is `specs/threads/<S>-<NNNN>-<slug>.md`. `NNNN` is a stable ID, never reused; cite threads by ID (`thread 0029`), never by filename. A new thread takes one above the highest ID in use (`ls specs/threads | cut -d- -f2 | sort -n | tail -n1`). If a merge yields two threads with one ID, the thread created first keeps it and the other takes the next free ID; whoever merges updates every `links` entry and citation that meant the renumbered thread.
 
-### Resolution
+`S` is the state, changed only by `git mv`:
 
-Implementing actors search for observations and resolve each by fixing the source, then deleting the comment. No audit trail is kept in the specification files - git history is authoritative.
+| S | State | Meaning |
+|---|-------|---------|
+| `A` | Active | under discussion |
+| `D` | Deferred | parked by the operator |
+| `R` | Resolved | decided by the operator, not yet applied |
+| `T` | Terminal | applied to specs, implemented and verified |
+| `X` | Cancelled | withdrawn or superseded |
 
-- **CR** - update the spec (and tests where applicable) to reflect the new intent, then update the code to match, then delete the observation.
-- **plain** - fix the issue in code or spec as appropriate, then delete the observation.
+### Rules
 
-If testing outside the context of a change, add a commit containing only the observations made by the testing actor.
+- One question starts each thread. Facts go into specs or `docs/`, not threads.
+- A thread is frontmatter (`id`, `affects`, `tags`, `links`), then `## Outcome`, then `## Thread`, which is always last. `affects` lists the specs and paths the decision touches; it is how the thread is found later.
+- `## Outcome` is written when the thread becomes `R`; `A` and `D` threads have none. It is self-contained: the decision, each rejected alternative with its reason, and when to reopen. An agent must be able to apply it to specs without reading the thread.
+- In `## Thread`, agent turns are `>` blockquotes and operator turns are plain text. Never edit operator text; only append.
+- Answer every operator turn with a quoted block, even if only to say you are holding.
+- State your reading of a terse or ambiguous answer and get it confirmed before applying it.
+- Only the operator decides, defers or cancels, and does so explicitly ("decided", "defer", "cancel"), in the thread or in chat. Confirming your reading of an answer is not a decision; if unsure whether one was made, ask. Rename to match, and record a decision made in chat as a quoted turn.
+- Threads are versioned in every state: commit a thread whenever you create, answer or rename it, on its own or with the change it belongs to.
+- Before opening a thread, search existing threads and cite one instead of re-asking. To revisit an `R`, `T` or `X` thread, open a new one with `links: {supersedes: NNNN}`.
 
-## Test Suites
+### Finding Decisions
 
-Any specification may be tested and have observations added as above. Additionally, specific **manual test suites** for test actors may be added using the convention `{}-T##-test-description.md`, where `{}` is the full address of the corresponding domain or refinement. For example, a test suite for `02-01-coding-standard.md` would be `02-01-T00-naming-rules.md`, and for the root `02-architecture.md` it would be `02-T00-smoke-test.md`. These should complement automated and agent tests, not replace them.
+List threads whose header or outcome mention a spec, path or tag, then read just that part:
+- `for f in specs/threads/*.md; do awk '/^## Thread/{exit} 1' "$f" | grep -q '<term>' && echo "$f"; done`
+- `awk '/^## Thread/{exit} 1' <file>`
 
-Do not liberally create test suites, expect that testers can perform most tests just by being prompted with the relevant specifications. Test suites are intended for functionality which is ultra-critical or requires precise actions in order to properly test.
+### Sweep
+
+At session start, and whenever the operator says threads are updated:
+
+1. List threads awaiting a response (last non-blank line is operator text):
+   `for f in specs/threads/*.md; do l=$(grep -v '^[[:space:]]*$' "$f" | tail -n1); case $l in '>'*|'## Thread') ;; *) echo "$f";; esac; done`
+2. Respond to each, and rename as the operator decided.
+3. Apply each `R` thread through the change process.
+4. Report in chat: threads handled, and threads awaiting the operator.
 
 ## Operations
 
-Agents operating in this project should always include this document in its entirety in their context window. Add relevant include-directives in AGENTS.md or equivalent. Agents can use the following tools to better navigate the specs:
+Agents keep this entire document in their context window, via an include directive in `AGENTS.md` or equivalent, so they never need to re-read it. Never change `00-meta.md` without explicit instruction; if you find it problematic, open a thread.
 
-### Specification Review
-
-Use `ls specs` to get an map of the specification domains, those documents represent the intent of the project. Do not review `00-meta.md`, its contents should already be represented in your context. Never change `00-meta.md`, if you find it problematic discuss potential changes with a human operator.
+Use `ls specs` to map the domains, then implement from the relevant specs.
 
 ### Change Process
 
-Before starting, scope the work: if the change touches more than one separable concern,
-divide it into independent activities now — splitting at commit time is too late.
+Before starting, scope the work: if the change touches more than one separable concern, divide it into independent activities now — splitting at commit time is too late. If scoping raises questions for the operator, open threads.
 
 For each activity:
 
 - Review relevant specifications to form an implementation plan.
-- Determine which specifications need to change — always consider requirements first.
-- Update specifications as needed. Refine domains that exceed 150 lines; pare parent
-  files to < 50 lines once refined.
+- Determine which specifications need to change — always consider requirements first — and read the threads that affect them.
+- Update specifications as positive statements of intent, within the [line limits](#structure). When a spec is renamed, split or refined, update `affects` in every thread that lists it.
 - Make changes to project files.
-- Verify (automated tests, agent tests, UAT, etc.) and correct as needed.
-- Commit specs and project files together. The commit message is a label — one short
-  sentence, no rationale. The rationale lives in the spec changes. If you cannot
-  label the commit in one sentence, the spec changes are not clear enough yet; clarify
-  them before committing. A change is not complete until it is committed.
-
-### Operational Tools
-
-Collect all observations using this command:
-
-`grep -RIn --include='*.md' -E '^<!-- OBS' specs/`
-
-Collect all observations WITH context using this command:
-
-`grep -RIn -C 10 --include='*.md' -E '^<!-- OBS' specs/`
-
-Collect only Change Requests using this command:
-
-`grep -RIn --include='*.md' -E '^<!-- OBS CR' specs/`
-
-Surface incorrectly indented observations using this command: (this will also show the examples in this file)
-
-`grep -RIn --include='*.md' -E '<!-- OBS' specs/`
+- Verify (automated tests — see [Automated Tests](#automated-tests) — agent tests, UAT, etc.) and correct as needed.
+- Commit specs, project files and any thread the change applies (renamed to `T`) together. The commit message is a label — one short sentence, no rationale; the rationale lives in the spec changes and the thread. If you cannot label the commit in one sentence, the spec changes are not clear enough yet; clarify them before committing. A change is not complete until it is committed.
