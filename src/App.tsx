@@ -7,7 +7,7 @@ import CalendarNameInput from './components/CalendarNameInput';
 import BackupBanner from './components/BackupBanner';
 import ImportReviewModal from './components/ImportReviewModal';
 import BlockingMessage from './components/BlockingMessage';
-import { totalActivities, hexToRgb, downloadFile, onClickOutside } from './utils';
+import { totalActivities, hexToRgb, downloadFile, exportFilename, onClickOutside } from './utils';
 import type { ImportRow, ThemeMode } from './types';
 import './App.css';
 
@@ -118,8 +118,7 @@ function App() {
     const contents = store.exportAll();
     if (contents) {
       store.setLastExport();
-      const ts = new Date().toISOString().slice(0, 10);
-      downloadFile(`calendars_${ts}.json`, contents);
+      downloadFile(exportFilename(new Date()), contents);
     }
   }
 

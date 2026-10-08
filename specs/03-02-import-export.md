@@ -14,6 +14,8 @@ interface ExportEnvelope {
 
 - The payload is plain JSON. It is never base64-encoded.
 - Export-all covers every calendar, trashed ones included — a backup is complete.
+- A full export downloads as `calendars_YYYY-MM-DD_HH-mm-ss.json`, stamped in local time to the
+  second.
 - A full export records its timestamp under `achievement-calendars-last-export`.
 - Each calendar carries its own `updatedAt`, being part of `Calendar`.
 

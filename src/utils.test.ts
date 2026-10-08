@@ -4,6 +4,7 @@ import {
   buildGrid,
   cellColor,
   dateKey,
+  exportFilename,
   formatDate,
   newId,
   startOfWeek,
@@ -228,5 +229,19 @@ describe('formatDate', () => {
 
   it('does not zero-pad a single-digit day', () => {
     expect(formatDate(new Date(2025, 2, 2))).toBe('Sun, Mar 2, 2025');
+  });
+});
+
+describe('exportFilename', () => {
+  it('stamps local date and time to the second', () => {
+    expect(exportFilename(new Date(2025, 2, 12, 21, 47, 38))).toBe('calendars_2025-03-12_21-47-38.json');
+  });
+
+  it('zero-pads every field', () => {
+    expect(exportFilename(new Date(2025, 0, 2, 3, 4, 5))).toBe('calendars_2025-01-02_03-04-05.json');
+  });
+
+  it('ignores milliseconds', () => {
+    expect(exportFilename(new Date(2025, 0, 2, 3, 4, 5, 999))).toBe('calendars_2025-01-02_03-04-05.json');
   });
 });

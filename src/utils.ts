@@ -139,6 +139,12 @@ export function formatDate(d: Date): string {
   return d.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+/** Local wall-clock time to the second; dashes, since colons are not filename-safe everywhere. */
+export function exportFilename(d: Date): string {
+  const time = [d.getHours(), d.getMinutes(), d.getSeconds()].map(n => String(n).padStart(2, '0')).join('-');
+  return `calendars_${dateKey(d)}_${time}.json`;
+}
+
 export function downloadFile(filename: string, contents: string, mime = 'application/json'): void {
   const blob = new Blob([contents], { type: mime });
   const url = URL.createObjectURL(blob);
