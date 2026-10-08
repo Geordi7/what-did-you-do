@@ -891,6 +891,7 @@ body {
 }
 
 .score-bar-wrap {
+  --score-marker: 6px;
   position: relative;
   height: 80px;
 }
@@ -910,10 +911,10 @@ body {
   position: relative;
 }
 
+/* Inset so a marker centred on a full-scale value stays inside the chart. */
 .score-bar-inner {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  position: absolute;
+  inset: 5px 0;
 }
 
 /* Only height and the positive/negative side stay inline; the rest is static. */
@@ -921,7 +922,9 @@ body {
   position: absolute;
   left: 0;
   right: 0;
+  margin-inline: auto;
   width: 100%;
+  max-width: 12px;
   border-radius: 1px 1px 0 0;
 }
 
@@ -936,12 +939,17 @@ body {
   border-radius: 0 0 1px 1px;
 }
 
+/* Component markers: diamonds, ringed in the card colour so they read over a same-colour bar. */
 .score-dot {
   position: absolute;
   left: 0;
   right: 0;
-  width: 100%;
-  height: 1px;
+  margin-inline: auto;
+  width: var(--score-marker);
+  height: var(--score-marker);
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 1px var(--bg-secondary);
+  z-index: 1;
 }
 
 .score-dot-pos {

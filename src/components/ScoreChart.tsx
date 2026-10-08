@@ -154,13 +154,13 @@ export default function ScoreChart(props: { isLight: boolean }) {
                     <Show when={bar.pos > 0}>
                       <div
                         class="score-dot score-dot-pos"
-                        style={{ bottom: `calc(${HALF_SCALE + scaled(bar.pos)}% - 1px)` }}
+                        style={{ bottom: `calc(${HALF_SCALE + scaled(bar.pos)}% - var(--score-marker) / 2)` }}
                       />
                     </Show>
                     <Show when={bar.neg < 0}>
                       <div
                         class="score-dot score-dot-neg"
-                        style={{ top: `calc(${HALF_SCALE + scaled(bar.neg)}% - 1px)` }}
+                        style={{ top: `calc(${HALF_SCALE + scaled(bar.neg)}% - var(--score-marker) / 2)` }}
                       />
                     </Show>
                   </div>

@@ -1,8 +1,9 @@
 /**
  * The score chart rendering case of `specs/05-02-browser-tier.md` "Scope", asserting the bar
- * geometry `specs/04-01-score-chart.md` "Bars" states: each net bar is filled and grows from the
- * zero line on its own side, and every mark stays inside the chart area. Whether the fill reads as
- * green or red stays a manual judgement; this asserts only that there is one.
+ * geometry `specs/04-01-score-chart.md` "Bars" states: each net bar is filled, at most 12px wide,
+ * centred in its column and grows from the zero line on its own side; each component marker is a
+ * diamond centred on its value; and every mark stays inside the chart area. Whether the fill reads
+ * as green or red, and whether a marker reads as a diamond, stay manual judgements.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { open, seedState } from './harness';
@@ -11,6 +12,14 @@ const SEED_VERSION = 5;
 
 /** Sub-pixel rounding allowance on box edges. */
 const EPSILON = 1;
+
+const MAX_BAR_WIDTH = 12;
+
+/** A marker smaller than this is a tick, not a diamond. */
+const MIN_MARKER_SIZE = 6;
+
+/** How far short of the chart's edge a full-scale value may stop, to leave room for its marker. */
+const MARKER_INSET = 5;
 
 function dayKey(offset: number): string {
   const d = new Date();
@@ -69,6 +78,10 @@ async function expectBarGeometry(page: Page) {
     const bar = bars.nth(i);
     const b = await box(bar);
     expect(b.height).toBeGreaterThan(0);
+    expect(b.width).toBeLessThanOrEqual(MAX_BAR_WIDTH + EPSILON);
+
+    const column = await box(bar.locator('xpath=ancestor::*[contains(@class, "score-bar-col")]'));
+    expect(Math.abs(b.x + b.width / 2 - (column.x + column.width / 2))).toBeLessThanOrEqual(EPSILON);
 
     const fill = await bar.evaluate(el => getComputedStyle(el).backgroundColor);
     expect(fill).not.toBe('rgba(0, 0, 0, 0)');
@@ -79,6 +92,12 @@ async function expectBarGeometry(page: Page) {
     } else {
       expect(Math.abs(b.y - zero)).toBeLessThanOrEqual(EPSILON);
     }
+  }
+
+  const markers = page.locator('.score-dot');
+  for (let i = 0; i < (await markers.count()); i++) {
+    const b = await box(markers.nth(i));
+    expect(b.height).toBeGreaterThanOrEqual(MIN_MARKER_SIZE);
   }
 
   const marks = page.locator('.score-netbar, .score-dot');
@@ -101,10 +120,18 @@ test('28-day net bars are filled, anchored on the zero line, and inside the char
 
   await expectBarGeometry(page);
 
-  // The full-scale bar reaches the chart's bottom edge.
+  // The full-scale bar reaches the chart's bottom edge, short only of room for its marker.
   const wrap = await box(page.locator('.score-bar-wrap'));
   const full = await box(columns.nth(25).locator('.score-netbar-down'));
-  expect(Math.abs(full.y + full.height - (wrap.y + wrap.height))).toBeLessThanOrEqual(EPSILON);
+  const fullEnd = full.y + full.height;
+  expect(wrap.y + wrap.height - fullEnd).toBeLessThanOrEqual(MARKER_INSET);
+
+  // A marker is centred on its value: where a component equals the net, on the bar's end.
+  const negMarker = await box(columns.nth(25).locator('.score-dot-neg'));
+  expect(Math.abs(negMarker.y + negMarker.height / 2 - fullEnd)).toBeLessThanOrEqual(EPSILON);
+  const up = await box(columns.nth(26).locator('.score-netbar-up'));
+  const posMarker = await box(columns.nth(26).locator('.score-dot-pos'));
+  expect(Math.abs(posMarker.y + posMarker.height / 2 - up.y)).toBeLessThanOrEqual(EPSILON);
 });
 
 test('26-week net bars are filled, anchored on the zero line, and inside the chart', async ({ page }) => {
