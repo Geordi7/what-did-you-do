@@ -56,3 +56,24 @@ links: {related: [0002, 0003, 0004]}
 > **Suggested sequence and scope.** Implement 1–3 as separate correctness activities, then 4–5 as input-boundary activities. Do 6 once behavior is protected, 7 after measurements, and 8 as independent maintenance. Retain local-first storage, immediate saves, per-item trash confirmation, existing UI semantics, and the explicit deployment deferral. A framework rewrite, server, sync service, or generalized repository abstraction has no demonstrated benefit here.
 >
 > **Verification and limits.** Existing checks run for this review: `npm test` — 168 tests pass; `npm run test:e2e` — 32 Chromium tests pass; `npm run build -- --outDir /private/tmp/zed-architecture-review-build` — TypeScript and production bundling pass. Browser execution required approval to start the local server outside the sandbox. Production output was directed outside the repository. No tests or production code were changed; findings above come from code inspection, and the proposed edge cases were not reproduced by new regression tests in this review. Passing current checks does not cover those cases. No human visual/screen-reader audit, dependency vulnerability audit, or performance benchmark was performed. The pre-existing modifications to `CLAUDE.md` and dependency metadata are outside this review.
+
+1: Accepted
+2: Accepted
+3: Accepted
+4:
+- Seems like we're talking about huge values here... any normal usage will be far far below this.
+- agree on validating dates
+5: Accepted
+6: Accepted
+7: Taking the max over the visible days is acceptable
+8: There was a mistake during initial setup that caused these files to be checked in. If we can expunge them we should.
+
+> Reading your response:
+> - 1, 2, 3, 5, and 6: accepted as proposed, as separate activities in that order, with tests before implementation and specs updated first.
+> - 4: validate real calendar dates; omit new numeric limits and overflow-handling work because the problematic values are far beyond normal usage. Before tightening stored-date validation, specify how previously accepted invalid dates remain recoverable.
+> - 7: use only the visible grid window for the heatmap maximum, so old peaks no longer dim current activity. Bound chart aggregation to its selected window as proposed. Retain all stored history and full-history activity totals.
+> - 8: remove `node_modules/` from the current Git index while retaining the installed files locally, `.gitignore`, and the lockfile. This prevents future dependency churn but leaves those files in old commits. Erasing them from all Git history would require a separate history rewrite and could disrupt other clones, so I have not interpreted “expunge” as authorizing that. I also have not assumed acceptance of the separate CI/check-command, production-CSP smoke-check, or backup-boundary proposals bundled into item 8.
+>
+> Please confirm this reading and mark it “decided” to resolve the thread. For item 8, specify whether you want current-index cleanup only or removal from all Git history, and whether to include the remaining verification/backup-boundary proposals. If you want numeric overflow safeguards despite excluding new limits, say so under item 4.
+>
+> Holding implementation until that clarification: `00-meta.md` requires confirmation of terse or ambiguous answers before applying them, and an explicit operator decision before moving A → R. No other thread needs a response or has a resolved decision awaiting application; thread 0002 remains deferred.
