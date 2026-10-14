@@ -34,7 +34,7 @@ Every import opens the review modal, so each case below reaches the store only v
 2. Verify the file contains the name `😱 Wins` intact, and records `Skipped` with
    `"activityValue":-2.5`.
 3. Import the file into an empty app and Apply.
-4. Verify `😱 Wins` renders identically, emoji included, in the modal row and on its card.
+4. Verify `😱 Wins` renders identically, emoji included, in the modal row and on its section.
 5. Verify the activity-value input for `Skipped` reads `-2.5`, unchanged in sign and precision.
 6. Verify the score chart shows `Skipped`'s day in the negative split, and the net bar reflects it
    against `😱 Wins`.

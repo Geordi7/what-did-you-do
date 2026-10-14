@@ -44,7 +44,7 @@ user applies it.
 
 - The modal lists **every** calendar in the payload, colliding or not, one row each.
 - A row shows the calendar's name, its number of events, and its last update.
-- Number of events is the sum of all its day counts — the same number a calendar card shows.
+- Number of events is the sum of all its day counts — the same number a calendar section shows.
 - Last update is the calendar's `updatedAt` as it arrives in the payload.
 - A row whose `id` collides with a live calendar also carries a dropdown of merge actions.
 - Any row can be rejected, colliding or not. A rejected row is not imported.

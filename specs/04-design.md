@@ -8,11 +8,11 @@
 ## Visual style
 - Light, dark, and system themes, selectable from the header. `system` is the default.
 - GitHub-like palette for the heatmap in both themes.
-- Compact card layout for each calendar.
+- Each calendar is a flat section, separated from the next by a thin rule and a small margin;
+  vertical space is kept to a minimum.
 - Heatmap grid with color intensity based on activity count.
 - Clear hover, focus, and today outlines.
 - Heatmap zero-activity cell color adapts to the resolved theme (light or dark).
-- Each grid carries a Less-to-More legend of five swatches sampled from the calendar color.
 
 ## Heatmap intensity curve
 - Intensity is relative to each calendar's own maximum count, never a scale shared across calendars.
@@ -28,9 +28,10 @@
 ## Layout
 - Header contains title, subtitle, theme selector, create toggle, and import/export icon buttons.
 - Banner region sits directly below the header and carries all app notifications.
-- Score chart above the calendar cards.
-- Collapsible create bar, calendar cards, hint, trash section.
-- Calendar card header contains name, total, and a "…" overflow menu.
+- Score chart above the calendar sections.
+- Collapsible create bar, calendar sections, hint, trash section.
+- Calendar section header is one row: name on the left; total in small dim text and a "…"
+  overflow menu on the right.
 - Grid and detail panel sit side by side on desktop.
 - Grid and detail stack on mobile.
 - Detail panel shows the day's date, a "Today" badge, and `count × activityValue = score`;

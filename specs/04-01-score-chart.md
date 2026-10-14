@@ -1,6 +1,6 @@
 # Score Chart
 
-Combined daily score from all active calendars, shown above the calendar cards.
+Combined daily score from all active calendars, shown above the calendar sections.
 
 ## Ranges
 - **Last 28 days** — one bar per day, 28 bars.

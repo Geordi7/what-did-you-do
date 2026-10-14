@@ -185,16 +185,6 @@ function CalendarGrid(props: Props) {
             )}
           </For>
         </div>
-
-        <div class="legend">
-          <span>Less</span>
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0, props.isLight) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.25, props.isLight) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.5, props.isLight) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 0.75, props.isLight) }} />
-          <span class="legend-cell" style={{ background: cellColor(props.calendar.color, 1, props.isLight) }} />
-          <span>More</span>
-        </div>
       </div>
 
       <div class="day-detail">

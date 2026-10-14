@@ -21,7 +21,7 @@ tester's reach.
   the import modal's last-update column, which is the only place a user sees it.
 - Export all calendars to a file, then import that file back.
 - Import review modal: every calendar in the payload gets a row, colliding or not, and the event
-  sum and last-update columns match what each calendar card shows.
+  sum and last-update columns match what each calendar section shows.
 - Import review modal by keyboard alone: focus enters on the first row's control, Tab reaches one
   control per row in payload order with none disabled, the dropdown opens and commits with the
   keyboard, focus is trapped while open, and Escape cancels and returns focus to the import control.

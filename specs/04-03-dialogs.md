@@ -15,7 +15,7 @@ a live calendar, because rejecting a calendar must be possible in both cases.
 ### Rows
 - One row per calendar in the payload, in payload order. Nothing is filtered out.
 - Each row shows the calendar's name, its number of events, and its last update.
-- Number of events is the sum of that calendar's day counts — the same total its card shows.
+- Number of events is the sum of that calendar's day counts — the same total its section shows.
 - Last update is the calendar's stored `updatedAt` timestamp, carried in the payload.
 - A row whose id matches a live calendar is a colliding row and also carries a merge-action
   dropdown whose first option skips the row, followed by `replace`, `merge-by-sum`,

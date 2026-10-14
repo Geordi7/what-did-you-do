@@ -351,25 +351,22 @@ body {
 }
 
 .cal-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .cal-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
   gap: 1rem;
 }
 
 .cal-info {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  align-items: baseline;
+  gap: 0.5rem;
   min-width: 0;
   flex: 1;
 }
@@ -379,9 +376,9 @@ body {
   border: 1px solid transparent;
   border-radius: 4px;
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  padding: 0.15rem 0.35rem;
+  padding: 0.1rem 0.35rem;
   outline: none;
   max-width: 100%;
   transition: border-color 0.15s, background 0.15s;
@@ -398,7 +395,9 @@ body {
 
 .cal-stat {
   color: var(--text-dim);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  margin-left: auto;
 }
 
 .header-icon-btn {
@@ -704,22 +703,6 @@ body {
 .detail-label {
   font-size: 0.85rem;
   color: var(--text-dim);
-}
-
-.legend {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  justify-content: flex-end;
-  margin-top: 0.75rem;
-  font-size: 0.7rem;
-  color: var(--text-dim);
-
-  .legend-cell {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-  }
 }
 
 .recover-section {
@@ -1483,10 +1466,6 @@ button.blocking-diagnostic {
       max-width: 100%;
       min-width: 0;
     }
-  }
-
-  .cal-card {
-    padding: 0.75rem 0.75rem;
   }
 
   .month-labels {

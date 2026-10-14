@@ -54,7 +54,7 @@ Cases 4–9 all start from the same two states. Rebuild both before each case.
 ## Case 9 — row columns
 1. Import the payload. Verify the row names the imported calendar `Imported Wins`.
 2. Verify its event count reads `7` — the sum of all day counts, `5` plus `2`, the same number its
-   card would show.
+   section would show.
 3. Verify its last-update column reflects the payload's `updatedAt` of `2025-06-01`.
 4. Cancel, then import a payload whose calendar has no counted days: the row reads `0` events.
 
