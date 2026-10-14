@@ -646,12 +646,9 @@ body {
 .day-detail {
   flex: 1;
   min-width: 0;
-  margin-top: 22px;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  min-height: 90px;
+  /* Month labels (14px + 4px + 2px) sit above the cells; stretch to the cells' span. */
+  align-self: stretch;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1452,11 +1449,14 @@ button.blocking-diagnostic {
   .grid-with-detail {
     flex-direction: column;
     align-items: stretch;
+    gap: 0;
   }
 
   .day-detail {
-    margin-top: 0.75rem;
-    min-height: 70px;
+    margin-top: 0.5rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .new-cal-bar {

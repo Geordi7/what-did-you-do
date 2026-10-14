@@ -33,7 +33,8 @@
 - Calendar section header is one row: name on the left; total in small dim text and a "…"
   overflow menu on the right.
 - Grid and detail panel sit side by side on desktop.
-- Grid and detail stack on mobile.
+- Grid and detail stack on mobile, the detail's date, badge and score on one line.
+- Detail panel is unboxed text, vertically centred on the grid's cells.
 - Detail panel shows the day's date, a "Today" badge, and `count × activityValue = score`;
   with no day highlighted it invites the user to select one.
 
