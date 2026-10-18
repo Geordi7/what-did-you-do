@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, Show } from 'solid-js';
 import type { ChartRange } from '../types';
 import { store } from '../store';
 import { scoreBars, type ScoreBar as Bar } from '../scores';
@@ -23,21 +23,35 @@ export default function ScoreChart(props: { isLight: boolean; now: () => Date })
     return max || 1;
   });
 
-  const [tooltip, setTooltip] = createSignal<Bar & { x: number; y: number } | null>(null);
+  /** Positions are relative to the bar wrap the tooltip lives in; `minX`/`maxX` are the card's edges. */
+  const [tooltip, setTooltip] = createSignal<Bar & { x: number; y: number; minX: number; maxX: number } | null>(null);
+  const [tooltipLeft, setTooltipLeft] = createSignal(0);
+  let tooltipEl: HTMLDivElement | undefined;
 
-  /** Places the tooltip below the chart card, centred on the column; the tooltip lives in the bar wrap. */
+  /** Places the tooltip below the chart card, centred on the column. */
   function showTooltip(target: HTMLElement, bar: Bar) {
     const chart = target.closest('.score-chart');
     const wrap = target.closest('.score-bar-wrap');
     if (!chart || !wrap) return;
     const rect = target.getBoundingClientRect();
     const origin = wrap.getBoundingClientRect();
+    const card = chart.getBoundingClientRect();
     setTooltip({
       ...bar,
       x: rect.left - origin.left + rect.width / 2,
-      y: chart.getBoundingClientRect().bottom - origin.top,
+      y: card.bottom - origin.top,
+      minX: card.left - origin.left,
+      maxX: card.right - origin.left,
     });
   }
+
+  // Once rendered, the tooltip's width is known: shift it inward to stay within the card.
+  createEffect(() => {
+    const tip = tooltip();
+    if (!tip || !tooltipEl) return;
+    const width = tooltipEl.offsetWidth;
+    setTooltipLeft(Math.max(tip.minX, Math.min(tip.x - width / 2, tip.maxX - width)));
+  });
 
   return (
     <div class="score-chart">
@@ -107,9 +121,10 @@ export default function ScoreChart(props: { isLight: boolean; now: () => Date })
         <Show when={tooltip()}>
           {(tip) => (
             <div
+              ref={tooltipEl}
               class="score-tooltip"
               style={{
-                left: `${tip().x}px`,
+                left: `${tooltipLeft()}px`,
                 top: `${tip().y + TOOLTIP_OFFSET}px`,
               }}
             >

@@ -25,4 +25,5 @@ Combined daily score from all active calendars, shown above the calendar section
   value reaches the chart's edge, short only of room for a diamond, and nothing draws outside
   the chart area.
 - Hovering or focusing a column shows a tooltip with the date and the positive, negative, and net
-  values. It sits wholly below the chart card, horizontally centred on its column.
+  values. It sits wholly below the chart card, horizontally centred on its column, except that it
+  shifts inward as far as needed to stay within the card's width.

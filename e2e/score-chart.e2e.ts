@@ -4,7 +4,7 @@
  * 2px left of its column's centre and grows from the zero line on its own side; each net diamond
  * sits 2px right of its column's centre, is centred on its value and is classed gold, up or down
  * by its net; every mark stays inside the chart area; and a column's tooltip sits wholly below the
- * chart card, centred on the column. Whether the fills read as green, red or gold, and whether a
+ * chart card, centred on the column, shifting inward to stay within the card's width. Whether the fills read as green, red or gold, and whether a
  * marker reads as a diamond, stay manual judgements.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -176,12 +176,28 @@ test('a hovered column shows its tooltip below the chart card, centred on the co
   await open(page);
 
   const card = await box(page.locator('.score-chart'));
-  for (const i of [0, 27]) {
+  for (const i of [10, 17]) {
     const hit = page.locator('.score-bar-col').nth(i).locator('.score-bar-hit');
     await hit.hover();
     const tip = await box(page.locator('.score-tooltip'));
     expect(tip.y).toBeGreaterThanOrEqual(card.y + card.height);
     const column = await box(hit);
     expect(Math.abs(tip.x + tip.width / 2 - (column.x + column.width / 2))).toBeLessThanOrEqual(EPSILON);
+  }
+});
+
+test('on a narrow viewport an edge column\'s tooltip stays within the chart card', async ({ page }) => {
+  const width = 375;
+  await page.setViewportSize({ width, height: 700 });
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  const card = await box(page.locator('.score-chart'));
+  for (const i of [0, 27]) {
+    await page.locator('.score-bar-col').nth(i).locator('.score-bar-hit').hover();
+    const tip = await box(page.locator('.score-tooltip'));
+    expect(tip.x).toBeGreaterThanOrEqual(card.x - EPSILON);
+    expect(tip.x + tip.width).toBeLessThanOrEqual(card.x + card.width + EPSILON);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
 });
