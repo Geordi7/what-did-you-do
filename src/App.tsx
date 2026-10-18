@@ -362,7 +362,7 @@ function App() {
           diagnostic, the newer-version guard of specs/03-01-migrations.md
           carries none but must still block. */}
       <Show when={store.blocked}>
-        <BlockingMessage diagnostic={store.diagnostic} />
+        <BlockingMessage diagnostic={store.diagnostic} recoveryPayload={store.recoveryPayload} />
       </Show>
     </>
   );

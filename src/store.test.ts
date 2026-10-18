@@ -883,3 +883,11 @@ describe('selective persistence failures', () => {
     expect(store.calendars.length).toBe(2);
   });
 });
+
+it('protects a previously accepted impossible-date history', async () => {
+  const raw = exportEnvelope([{ id: 'bad-date', days: { '2026-02-30': 4 } }]);
+  const { store, storage } = await boot({ [STORAGE_KEY]: raw });
+  expect(store.blocked).toBe(true);
+  expect(storage.getItem(STORAGE_KEY)).toBe(raw);
+  expect(store.previewImport(raw).ok).toBe(false);
+});

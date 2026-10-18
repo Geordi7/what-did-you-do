@@ -24,6 +24,14 @@ const validCalendar = () => ({
   updatedAt: '2025-01-05T10:20:30.400Z',
 });
 
+describe('real day dates', () => {
+  for (const key of ['2026-02-30', '2026-99-99', '2025-02-29', '1900-02-29', '2026-04-31']) {
+    it(`rejects ${key}`, () => {
+      expect(() => parseCurrentCalendar({ ...validCalendar(), days: { [key]: 1 } })).toThrow();
+    });
+  }
+});
+
 describe('defaults', () => {
   it('names the model defaults once', () => {
     expect(DEFAULT_THEME).toBe('system');

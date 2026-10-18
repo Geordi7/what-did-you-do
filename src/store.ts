@@ -507,6 +507,9 @@ export const store = createRoot(() => {
     get diagnostic(): Diagnostic | null {
       return diagnostic;
     },
+    get recoveryPayload(): string | null {
+      return blocked && diagnostic !== null ? rawState : null;
+    },
 
     setTheme(mode: ThemeMode) {
       setThemeSignal(mode);

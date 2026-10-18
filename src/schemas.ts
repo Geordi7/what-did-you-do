@@ -25,6 +25,16 @@ export const DEFAULT_CHART_RANGE = '28d';
 /** `YYYY-MM-DD`, the only shape a `days` key ever takes. */
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
+export function isCalendarDate(value: string): boolean {
+  if (!DATE_KEY.test(value)) return false;
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  const probe = new Date(0);
+  probe.setUTCFullYear(year, month - 1, day);
+  return probe.getUTCFullYear() === year && probe.getUTCMonth() === month - 1 && probe.getUTCDate() === day;
+}
+
 /** `#rrggbb`; `parseHex` produces NaN channels for anything else. */
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -49,18 +59,7 @@ const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}
 export function isIsoInstant(value: unknown): value is string {
   if (typeof value !== 'string' || !ISO_INSTANT.test(value)) return false;
   if (!Number.isFinite(Date.parse(value))) return false;
-  const year = Number(value.slice(0, 4));
-  const month = Number(value.slice(5, 7));
-  const day = Number(value.slice(8, 10));
-  // Not Date.UTC: it remaps a year in 0-99 to 1900 + year, which would reject a
-  // perfectly valid instant in years 0000-0099.
-  const probe = new Date(0);
-  probe.setUTCFullYear(year, month - 1, day);
-  return (
-    probe.getUTCFullYear() === year &&
-    probe.getUTCMonth() === month - 1 &&
-    probe.getUTCDate() === day
-  );
+  return isCalendarDate(value.slice(0, 10));
 }
 
 const calendarId = v.string().assert(s => s.length > 0, 'expected a non-empty id');
@@ -76,7 +75,7 @@ const dayCount = v
 
 const days = v
   .record(dayCount)
-  .assert(d => Object.keys(d).every(k => DATE_KEY.test(k)), 'expected YYYY-MM-DD day keys');
+  .assert(d => Object.keys(d).every(isCalendarDate), 'expected real YYYY-MM-DD calendar dates');
 
 /** A finite float of any sign: negative weights are intended. */
 const activityValue = v.number().assert(Number.isFinite, 'expected a finite activity value');

@@ -59,3 +59,4 @@ have to agree with each other.
   pre-migration backup are left byte-intact; nothing is written.
 - Offers the structured diagnostic two ways: copy it to the clipboard, or download it as a file.
 - Both carry the same payload. Its shape lives in `03-01-migrations.md`.
+- A failed load also offers Download saved data, containing the original raw JSON for recovery. It explains preserving a copy, repairing dates, then clearing the invalid local state and importing the repaired file.

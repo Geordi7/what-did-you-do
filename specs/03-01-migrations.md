@@ -66,6 +66,7 @@ date the user entered, not a time the calendar was edited.
   parseable ISO 8601 instant.
 - The current-version schema asserts that calendar ids are unique. The data model requires unique ids,
   so a duplicate is a defect and takes the failure path below.
+- Day keys are validated as real dates in every version. Previously accepted impossible dates take the protected failure path: the original remains byte-intact, and Download saved data offers the raw JSON for repair and re-import after preserving a copy and clearing the invalid local state.
 
 ## Guards
 

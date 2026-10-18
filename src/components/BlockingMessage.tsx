@@ -16,7 +16,7 @@ import { guardModalFocus } from '../modal-focus';
  * The diagnostic is offered both ways — clipboard and file — from the one
  * `formatDiagnostic` payload, which carries no calendar names and no day counts.
  */
-export default function BlockingMessage(props: { diagnostic: Diagnostic | null }) {
+export default function BlockingMessage(props: { diagnostic: Diagnostic | null; recoveryPayload?: string | null }) {
   const [copied, setCopied] = createSignal<string | null>(null);
 
   // `null` is the newer-version guard of `specs/03-01-migrations.md`: the stored
@@ -121,7 +121,19 @@ export default function BlockingMessage(props: { diagnostic: Diagnostic | null }
             <button type="button" class="blocking-btn blocking-download" onClick={download}>
               Download diagnostic
             </button>
+            <Show when={props.recoveryPayload != null}>
+              <button type="button" class="blocking-btn" onClick={() => downloadFile('calendar-recovery.json', props.recoveryPayload ?? '')}>
+                Download saved data
+              </button>
+            </Show>
           </div>
+          <Show when={props.recoveryPayload != null}>
+            <p class="blocking-body">
+              Download saved data keeps the original calendars. Keep a copy, repair invalid dates
+              in the JSON file, then clear this site's saved state in browser settings and import
+              the repaired file. A developer can help with other validation failures.
+            </p>
+          </Show>
           <Show when={copied()}>
             <p class="blocking-copy-status" role="status">
               {copied()}

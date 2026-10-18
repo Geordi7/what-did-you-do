@@ -14,6 +14,7 @@ interface Calendar {
 ```
 
 - Counts in `days` are finite integers `>= 0`; an absent key reads as zero, and resetting a day deletes its key rather than storing `0`. A calendar's total activities is the sum of its `days` values.
+- Day keys are real Gregorian calendar dates in `YYYY-MM-DD` form, including valid leap days.
 - `activityValue` is a finite float of any sign, default `1.0`. Negative weights are intended — the chart's positive/negative/net split depends on them.
 - `updatedAt` is an ISO 8601 instant (`YYYY-MM-DDTHH:mm:ss.sssZ`, UTC) recording when the calendar was last changed, restamped on a day count, rename, colour, activity value, soft delete, recover, or a merge that alters it. It is a wall-clock time, unrelated to which dates the calendar holds. A change to another calendar leaves it alone.
 

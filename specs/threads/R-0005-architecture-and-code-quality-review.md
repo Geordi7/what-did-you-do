@@ -1,7 +1,7 @@
 ---
 id: 0005
 affects:
-  specs: [01-requirements.md, 02-architecture.md, 02-01-coding-standard.md, 02-02-state-store.md, 03-data-model.md, 03-01-migrations.md, 03-02-import-export.md, 04-02-copy.md, 05-testing.md, 05-01-automated-tier.md, 05-02-browser-tier.md, 06-accessibility.md, 07-security-standard.md]
+  specs: [01-requirements.md, 02-architecture.md, 02-01-coding-standard.md, 02-02-state-store.md, 03-data-model.md, 03-01-migrations.md, 03-02-import-export.md, 04-design.md, 04-01-score-chart.md, 04-02-copy.md, 04-03-dialogs.md, 05-testing.md, 05-01-automated-tier.md, 05-02-browser-tier.md, 06-accessibility.md, 07-security-standard.md]
   paths: [src/store.ts, src/store.test.ts, src/migrations.ts, src/schemas.ts, src/types.ts, src/merge.ts, src/utils.ts, src/App.tsx, src/components/, e2e/, package.json, package-lock.json, .gitignore, node_modules/]
 tags: [architecture, code-quality, review, persistence, lifecycle, accessibility, testing]
 links: {related: [0002, 0003, 0004]}
