@@ -10,6 +10,7 @@ Combined daily score from all active calendars, shown above the calendar section
 - Default range is last 28 days on first run. The selected range persists.
 - A range toggle in the chart header selects the range. The chart carries no total label.
 - The chart owns its two spans; the calendar grid's 26-week window is independent of them.
+- Aggregation queries only dates in the selected span. All stored history remains available and calendar totals cover full history.
 
 ## Bars
 - A zero line runs across the middle of the chart; positive values sit above it, negative below.

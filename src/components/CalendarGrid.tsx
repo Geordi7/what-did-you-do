@@ -1,7 +1,8 @@
-import { createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
+import { createMemo, For, onCleanup, Show } from 'solid-js';
 import type { Calendar } from '../types';
 import { store } from '../store';
 import { buildGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
+import { visibleMaximum } from '../scores';
 
 const WEEKS = 26;
 const CELL_PX = 12;
@@ -64,11 +65,8 @@ function CalendarGrid(props: Props) {
     longPressFired = false;
   }
 
-  const maxVal = createMemo(() => {
-    const vals = Object.values(props.calendar.days);
-    if (vals.length === 0) return 1;
-    return Math.max(...vals, 1);
-  });
+  const visibleKeys = createMemo(() => weeks().flat().map(dateKey));
+  const maxVal = createMemo(() => visibleMaximum(props.calendar.days, visibleKeys()));
 
   const highlighted = createMemo(() => {
     const hk = store.highlightedKey;

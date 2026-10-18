@@ -15,7 +15,7 @@
 - Heatmap zero-activity cell color adapts to the resolved theme (light or dark).
 
 ## Heatmap intensity curve
-- Intensity is relative to each calendar's own maximum count, never a scale shared across calendars.
+- Intensity is relative to each calendar's maximum count over its visible 26-week grid, with a minimum scale of one; dates outside that window do not affect intensity.
 - The curve is `t = (val / max) ** EXPONENT`, with the exponent a named constant of `0.5`.
 - At 50% of max that yields 71% intensity; at 25%, 50%. A value at max is unaffected.
 - Zero stays zero: intensity at or below zero renders the zero-activity cell color.

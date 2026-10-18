@@ -1,10 +1,8 @@
-import { createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
+import { createMemo, createSignal, For, Show } from 'solid-js';
 import type { ChartRange } from '../types';
 import { store } from '../store';
-import { buildGrid, dateKey, formatDate } from '../utils';
+import { scoreBars, type ScoreBar as Bar } from '../scores';
 
-const DAILY_BARS = 28;
-const WEEKLY_BARS = 26;
 const TOOLTIP_OFFSET = 8;
 /** The zero line sits mid-chart, so a full-scale value spans half the chart's height. */
 const HALF_SCALE = 50;
@@ -14,66 +12,8 @@ const RANGES: Array<{ value: ChartRange; label: string }> = [
   { value: '26w', label: 'Last 26 weeks' },
 ];
 
-interface Bar {
-  key: string;
-  label: string;
-  pos: number;
-  neg: number;
-  net: number;
-}
-
 export default function ScoreChart(props: { isLight: boolean; now: () => Date }) {
-
-  const dayScores = createMemo(() => {
-    const posMap: Record<string, number> = {};
-    const negMap: Record<string, number> = {};
-    const active = store.activeCalendars;
-    for (const cal of active) {
-      for (const [key, count] of Object.entries(cal.days)) {
-        const contrib = count * cal.activityValue;
-        if (contrib > 0) {
-          posMap[key] = (posMap[key] ?? 0) + contrib;
-        } else if (contrib < 0) {
-          negMap[key] = (negMap[key] ?? 0) + contrib;
-        }
-      }
-    }
-    return { pos: posMap, neg: negMap };
-  });
-
-  const bars = createMemo<Bar[]>(() => {
-    const scores = dayScores();
-    const today = props.now();
-
-    if (store.chartRange === '26w') {
-      return buildGrid(today, WEEKLY_BARS).map((week) => {
-        let pos = 0;
-        let neg = 0;
-        for (const date of week) {
-          const key = dateKey(date);
-          pos += scores.pos[key] ?? 0;
-          neg += scores.neg[key] ?? 0;
-        }
-        return {
-          key: dateKey(week[0]),
-          label: `Week of ${formatDate(week[0])}`,
-          pos,
-          neg,
-          net: pos + neg,
-        };
-      });
-    }
-
-    const out: Bar[] = [];
-    for (let i = DAILY_BARS - 1; i >= 0; i--) {
-      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
-      const key = dateKey(date);
-      const pos = scores.pos[key] ?? 0;
-      const neg = scores.neg[key] ?? 0;
-      out.push({ key, label: formatDate(date), pos, neg, net: pos + neg });
-    }
-    return out;
-  });
+  const bars = createMemo(() => scoreBars(store.calendars, props.now(), store.chartRange));
 
   const maxAbs = createMemo(() => {
     let max = 0;
