@@ -18,6 +18,7 @@ SolidJS single-page app with Vite build.
 
 ## Clock
 - One shared midnight clock drives every current-day and trailing-window derivation, grid and chart alike.
+- App owns the clock and passes its reactive getter to chart and grids. The clock cancels its latest timer on disposal and refreshes when the tab becomes visible.
 
 ## Build
 - `vite.config.ts` pins `build.target` to `es2020, edge88, firefox78, chrome87, safari14` —

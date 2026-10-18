@@ -8,29 +8,15 @@ const CELL_PX = 12;
 const GAP_PX = 2;
 const STEP = CELL_PX + GAP_PX;
 
-function useNow(): () => Date {
-  const [now, setNow] = createSignal(new Date());
-  const tick = () => {
-    const next = new Date();
-    setNow(next);
-    const msToMidnight =
-      new Date(next.getFullYear(), next.getMonth(), next.getDate() + 1, 0, 0, 0, 0).getTime() - next.getTime() + 1000;
-    return setTimeout(tick, msToMidnight);
-  };
-  const id = tick();
-  onCleanup(() => clearTimeout(id));
-  return now;
-}
-
 interface Props {
   calendar: Calendar;
   isLight: boolean;
+  now: () => Date;
 }
 
 function CalendarGrid(props: Props) {
-  const now = useNow();
-  const weeks = createMemo(() => buildGrid(now(), WEEKS));
-  const todayKey = createMemo(() => dateKey(now()));
+  const weeks = createMemo(() => buildGrid(props.now(), WEEKS));
+  const todayKey = createMemo(() => dateKey(props.now()));
 
   let pressTimer: ReturnType<typeof setTimeout> | null = null;
   let pressedKey = '';

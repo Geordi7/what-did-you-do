@@ -1,5 +1,6 @@
 import { Show, For, createSignal, createMemo, createEffect, onCleanup, onMount } from 'solid-js';
 import { store } from './store';
+import { createDayClock } from './day-clock';
 import CalendarGrid from './components/CalendarGrid';
 import CalendarMenu from './components/CalendarMenu';
 import ScoreChart from './components/ScoreChart';
@@ -31,6 +32,7 @@ const STATUS_CLEAR_MS = 5000;
 type ImportStatus = { kind: 'success' | 'failure'; text: string };
 
 function App() {
+  const now = createDayClock();
   const [newName, setNewName] = createSignal('');
   const [showNewCal, setShowNewCal] = createSignal(false);
   const [showRecover, setShowRecover] = createSignal(false);
@@ -284,7 +286,7 @@ function App() {
           </Show>
         </div>
 
-        <ScoreChart isLight={isLight()} />
+        <ScoreChart isLight={isLight()} now={now} />
 
         <Show when={showNewCal()}>
           <form class="new-cal-bar" onSubmit={handleCreate}>
@@ -313,7 +315,7 @@ function App() {
                 </div>
                 <CalendarMenu cal={cal} idx={idx()} total={store.activeCalendars.length} />
               </div>
-              <CalendarGrid calendar={cal} isLight={isLight()} />
+              <CalendarGrid calendar={cal} isLight={isLight()} now={now} />
             </div>
           )}
         </For>

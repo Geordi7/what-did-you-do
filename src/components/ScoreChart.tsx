@@ -22,22 +22,7 @@ interface Bar {
   net: number;
 }
 
-function useNow(): () => Date {
-  const [now, setNow] = createSignal(new Date());
-  const tick = () => {
-    const next = new Date();
-    setNow(next);
-    const msToMidnight =
-      new Date(next.getFullYear(), next.getMonth(), next.getDate() + 1, 0, 0, 0, 0).getTime() - next.getTime() + 1000;
-    return setTimeout(tick, msToMidnight);
-  };
-  const id = tick();
-  onCleanup(() => clearTimeout(id));
-  return now;
-}
-
-export default function ScoreChart(props: { isLight: boolean }) {
-  const now = useNow();
+export default function ScoreChart(props: { isLight: boolean; now: () => Date }) {
 
   const dayScores = createMemo(() => {
     const posMap: Record<string, number> = {};
@@ -58,7 +43,7 @@ export default function ScoreChart(props: { isLight: boolean }) {
 
   const bars = createMemo<Bar[]>(() => {
     const scores = dayScores();
-    const today = now();
+    const today = props.now();
 
     if (store.chartRange === '26w') {
       return buildGrid(today, WEEKLY_BARS).map((week) => {
