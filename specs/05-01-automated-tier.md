@@ -53,6 +53,7 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
   - A `storage` event from another tab converges without the write loop re-firing.
 - `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels.
 - Shared day clock — repeated midnight ticks and cancellation of the latest timer on disposal.
+- Score computation — both ranges match an independent full-history reference with positive, negative, zero and deleted calendars; heatmap maxima use visible dates even with a 200,000-day history.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at
   25% and 50% of max.
 

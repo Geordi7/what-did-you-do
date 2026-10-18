@@ -49,7 +49,7 @@ export default function BlockingMessage(props: { diagnostic: Diagnostic | null; 
   guardModalFocus(() => dialogEl);
 
   // The trap holds for the life of the page: there is no safe state to dismiss
-  // to, so Tab cycles between the two diagnostic controls and nothing else.
+  // to, so Tab cycles through the diagnostic and recovery controls.
   function onKeyDown(e: KeyboardEvent) {
     if (e.key !== 'Tab' || dialogEl === undefined) return;
     const stops = Array.from(dialogEl.querySelectorAll<HTMLElement>('button'));

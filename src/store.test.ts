@@ -853,7 +853,12 @@ describe('selective persistence failures', () => {
     });
     let loaded: Store | undefined;
     let failure: unknown = null;
-    try { loaded = (await import('./store')).createAppStore(); instances.push(loaded); } catch (error) { failure = error; }
+    try {
+      const mod = await import('./store');
+      mod.store.dispose();
+      loaded = mod.createAppStore();
+      instances.push(loaded);
+    } catch (error) { failure = error; }
     expect(failure).toBeNull();
     expect(loaded?.storageError).toMatch(/unavailable/);
     loaded?.addCalendar('Memory');

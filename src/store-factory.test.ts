@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
-import { createAppStore } from './store';
+import { createAppStore, store as productionStore } from './store';
+
+productionStore.dispose();
 
 it('creates independent stores with injected storage and clock', () => {
   const a = new Map<string, string>();
