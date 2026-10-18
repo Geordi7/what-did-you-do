@@ -21,6 +21,7 @@ SolidJS single-page app with Vite build.
 - App owns the clock and passes its reactive getter to chart and grids. The clock cancels its latest timer on disposal and refreshes when the tab becomes visible.
 
 ## Build
+- Dependency installs are reproduced with `npm ci` from the committed lockfile; generated `node_modules/` files stay local and are ignored by Git.
 - `vite.config.ts` pins `build.target` to `es2020, edge88, firefox78, chrome87, safari14` —
   Vite's `'modules'` default written out. That target is the browser baseline.
 
