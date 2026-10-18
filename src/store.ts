@@ -19,6 +19,7 @@ import {
 import { buildDiagnostic } from './diagnostic';
 import { mergeCalendars } from './merge';
 import { newId, randomColor, totalActivities } from './utils';
+import { MAX_IMPORT_BYTES } from './persistence-contract';
 
 /**
  * The single owner of app state and of every mutation of it.
@@ -46,7 +47,6 @@ const THEME_KEY = 'achievement-calendars-theme';
 const EXPORT_KEY = 'achievement-calendars-last-export';
 
 /** `specs/07-security-standard.md`: an oversized payload is rejected unparsed. */
-const MAX_IMPORT_BYTES = 50 * 1024 * 1024;
 
 /**
  * `specs/03-02-import-export.md` "Accepted input": a bare calendar array or a

@@ -35,6 +35,7 @@ step parses a versioned envelope, never a bare array or a lone calendar.
 ## Rules
 
 - An oversized payload is rejected before it is parsed. `07-security-standard.md` owns the cap.
+- Only the latest file selection can supply an import preview or failure; obsolete reads are cancelled and stale callbacks ignored. Disposal cancels the current read.
 - Imported data is untrusted: it is migrated and then parsed with the current-version schema before anything is stored, the same path a load takes.
 
 ## Review

@@ -1,6 +1,7 @@
 import { Show, For, createSignal, createMemo, createEffect, onCleanup, onMount } from 'solid-js';
 import { store } from './store';
 import { createDayClock } from './day-clock';
+import { MAX_IMPORT_BYTES } from './persistence-contract';
 import CalendarGrid from './components/CalendarGrid';
 import CalendarMenu from './components/CalendarMenu';
 import ScoreChart from './components/ScoreChart';
@@ -50,6 +51,9 @@ function App() {
   let importBtn: HTMLButtonElement | undefined;
   let newNameInput: HTMLInputElement | undefined;
   let themeRoot: HTMLDivElement | undefined;
+  let activeReader: FileReader | undefined;
+  let fileSelection = 0;
+  onCleanup(() => { fileSelection++; activeReader?.abort(); });
 
   onMount(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -133,8 +137,19 @@ function App() {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
+    const selection = ++fileSelection;
+    activeReader?.abort();
+    activeReader = undefined;
+    setImportRows(null);
+    if (file.size > MAX_IMPORT_BYTES) {
+      setImportStatus({ kind: 'failure', text: 'That file is too large to import.' });
+      return;
+    }
     const reader = new FileReader();
+    activeReader = reader;
     reader.onload = () => {
+      if (selection !== fileSelection) return;
+      activeReader = undefined;
       const text = typeof reader.result === 'string' ? reader.result : '';
       const preview = store.previewImport(text);
       if (!preview.ok) {
@@ -147,6 +162,8 @@ function App() {
       setImportRows(preview.rows);
     };
     reader.onerror = () => {
+      if (selection !== fileSelection) return;
+      activeReader = undefined;
       setImportStatus({ kind: 'failure', text: 'That file could not be read.' });
     };
     reader.readAsText(file);

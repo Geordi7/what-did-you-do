@@ -48,7 +48,7 @@ belongs to hosting.
 - Validation is schema parsing, one schema per storage version. A migration step validates its
   input with the schema for the version it reads; the current-version schema also supplies
   defaults. No hand-rolled coercion and no `as any` casts sit alongside it.
-- Imported payloads are capped at 50 MB. A file over the cap is rejected before it is parsed, and
+- Imported payloads are capped at 50 MB. A selected file over the cap is rejected using its byte size before reading; string callers are checked before parsing. The shared cap is exported from the persistence contract. The
   the rejection surfaces on the inline status line. The cap is a parse-time guard against a hostile
   or absurd file, not a promise that anything under it persists: `localStorage`'s own quota is
   roughly 5-10 MB per origin, so a payload near the cap can be parsed and still never be saved.
