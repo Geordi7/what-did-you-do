@@ -4,10 +4,9 @@ Vitest over the pure modules and the store — no DOM. Merge and migration both 
 history at risk, so both belong here rather than in manual checks.
 
 The store is covered too, because the load, save and import paths decide what reaches a user's
-stored data and reading them is not enough. The store is a module-level singleton whose load path
-runs once at import, so a test installs a `localStorage` fake on `globalThis` and fixes the clock
-*before* importing it, and resets the module between scenarios to get a fresh load. That keeps the
-tier DOM-free and needs no production seam. Components stay out — they would need jsdom and a
+stored data and reading them is not enough. Tests create disposable factory instances with storage,
+clock and storage-event dependencies. Independent instances and listener cleanup are covered.
+The tier stays DOM-free. Components stay out — they would need jsdom and a
 testing library. The browser tier reaches the import modal and the load paths in a real browser
 instead; keyboard accessibility and midnight rollover are also exercised there. Visual judgements stay with `05-03-manual-checks.md`.
 
@@ -57,9 +56,5 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at
   25% and 50% of max.
 
-## Known gaps
-- `MAX_IMPORT_BYTES` and the three storage key names are mirrored as literals in `store.test.ts`,
-  and the state, theme and last-export keys again in `e2e/harness.ts`, because `store.ts` exports
-  none of them. A rename would not break either, it would make them silently assert the wrong key.
-  Closing that needs a production change. `BACKUP_KEY` is the exception: `migrations.ts` exports it,
-  so it is imported rather than restated.
+## Persistence compatibility
+- Both tiers import keys and the import cap from the persistence contract. A small independent assertion fixes the stable literal key names so a protocol rename cannot silently change every expectation.

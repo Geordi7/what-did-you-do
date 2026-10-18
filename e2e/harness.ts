@@ -8,12 +8,8 @@
  */
 import type { Page } from '@playwright/test';
 
-export { BACKUP_KEY } from '../src/migrations';
-
-/** Mirrors the keys `store.ts` holds privately. `05-01-automated-tier.md` records the gap. */
-export const STORAGE_KEY = 'achievement-calendars';
-export const THEME_KEY = 'achievement-calendars-theme';
-export const EXPORT_KEY = 'achievement-calendars-last-export';
+import { STORAGE_KEY } from '../src/persistence-contract';
+export { BACKUP_KEY, STORAGE_KEY, THEME_KEY, EXPORT_KEY } from '../src/persistence-contract';
 
 /**
  * The current version, as the version log in `03-01-migrations.md` states it.

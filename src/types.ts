@@ -14,8 +14,8 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type ChartRange = '28d' | '26w';
 
 export interface AppState {
-  version?: number;
-  theme?: ThemeMode;
+  version: number;
+  theme: ThemeMode;
   calendars: Calendar[];
   chartRange?: ChartRange;
 }

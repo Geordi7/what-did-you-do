@@ -10,21 +10,10 @@ import type { Calendar, ChartRange, ImportRow, RowDisposition, ThemeMode } from 
  * preview/apply split (`specs/03-02-import-export.md`), and the surface,
  * persistence and cross-tab protocol (`specs/02-02-state-store.md`).
  *
- * `src/store.ts` is a module-level `createRoot` singleton whose load path runs once
- * at import, reading global `localStorage` and `new Date()` with no injection seam.
- * So every scenario installs the fake and fixes the clock *before* importing it, and
- * `vi.resetModules()` gets a fresh load against freshly seeded storage. That keeps
- * this tier DOM-free and needs no production change.
+ * Each scenario creates an injected factory instance and disposes it on teardown.
  */
 
-/* ── keys, mirrored from the store ───────────────────────────────────────── */
-
-const STORAGE_KEY = 'achievement-calendars';
-const THEME_KEY = 'achievement-calendars-theme';
-const EXPORT_KEY = 'achievement-calendars-last-export';
-
-/** `specs/07-security-standard.md`'s import cap, mirrored: the store does not export it. */
-const MAX_IMPORT_BYTES = 50 * 1024 * 1024;
+import { STORAGE_KEY, THEME_KEY, EXPORT_KEY, MAX_IMPORT_BYTES } from './persistence-contract';
 
 /* ── the fakes ───────────────────────────────────────────────────────────── */
 
@@ -108,9 +97,10 @@ function installWindow(): StorageHandler[] {
   return handlers;
 }
 
-/* ── booting the singleton ───────────────────────────────────────────────── */
+/* ── booting a factory instance ───────────────────────────────────────────────── */
 
 type Store = (typeof import('./store'))['store'];
+const instances: Store[] = [];
 
 interface Booted {
   store: Store;
@@ -123,13 +113,19 @@ async function boot(
   seed: Record<string, string> = {},
   options: { storage?: boolean; prepare?: (storage: FakeStorage) => void } = {},
 ): Promise<Booted> {
-  vi.resetModules();
   const storage = new FakeStorage(seed);
   options.prepare?.(storage);
   installStorage(options.storage === false ? null : storage);
   const handlers = installWindow();
   const mod = await import('./store');
-  return { store: mod.store, storage, handlers };
+  mod.store.dispose();
+  const instance = mod.createAppStore({
+    storage: () => options.storage === false ? undefined : storage,
+    now: () => new Date(),
+    events: window,
+  });
+  instances.push(instance);
+  return { store: instance, storage, handlers };
 }
 
 function fire(handlers: StorageHandler[], key: string | null, newValue: string | null): void {
@@ -251,6 +247,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  instances.splice(0).forEach(instance => instance.dispose());
   vi.useRealTimers();
   installStorage(null);
   delete globals().window;
@@ -856,7 +853,7 @@ describe('selective persistence failures', () => {
     });
     let loaded: Store | undefined;
     let failure: unknown = null;
-    try { loaded = (await import('./store')).store; } catch (error) { failure = error; }
+    try { loaded = (await import('./store')).createAppStore(); instances.push(loaded); } catch (error) { failure = error; }
     expect(failure).toBeNull();
     expect(loaded?.storageError).toMatch(/unavailable/);
     loaded?.addCalendar('Memory');

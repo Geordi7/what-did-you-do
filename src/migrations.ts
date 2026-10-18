@@ -25,9 +25,9 @@ export const STORAGE_VERSION = 5;
 
 /**
  * Single key holding the raw pre-migration string, overwritten on each
- * migration. The load path snapshots into it before calling `migrate`.
+ * successful migration, before the result can overwrite the original state.
  */
-export const BACKUP_KEY = 'achievement-calendars-backup';
+export { BACKUP_KEY } from './persistence-contract';
 
 /**
  * Supplied by the caller, so the module reads no clock of its own and every
@@ -141,10 +141,20 @@ function firstStepVersion(fromVersion: number): number {
  * Refusing to load or save newer data is the load path's job, not this one's.
  */
 export function migrate(state: unknown, fromVersion: number, ctx: MigrationContext): unknown {
+  const result = runMigrations(state, fromVersion, ctx);
+  if (!result.ok) throw result.error;
+  return result.state;
+}
+
+export function runMigrations(state: unknown, fromVersion: number, ctx: MigrationContext):
+  | { ok: true; state: unknown }
+  | { ok: false; failingStep: string; error: unknown } {
   let current = state;
   for (let from = firstStepVersion(fromVersion); from < STORAGE_VERSION; from++) {
     const step: Migration | undefined = MIGRATIONS[from];
-    if (step !== undefined) current = step(current, ctx);
+    if (step === undefined) continue;
+    try { current = step(current, ctx); }
+    catch (error) { return { ok: false, failingStep: `${from} -> ${from + 1}`, error }; }
   }
-  return current;
+  return { ok: true, state: current };
 }

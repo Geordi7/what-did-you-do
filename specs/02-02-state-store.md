@@ -4,6 +4,8 @@
 
 ## Container
 - State lives in a `createStore` store from `solid-js/store`, not in a signal holding the whole state object.
+- `createAppStore` accepts storage access, clock, and storage-event source dependencies, and exposes an idempotent disposer. Production creates one instance; tests dispose every instance.
+- Pure payload probing, migration interpretation and canonical serialization live in `src/payload.ts`. One migration runner reports named-step failures for every caller.
 - A mutation targets the touched calendar and the touched day. It does not spread or replace the calendar array to change one day.
 - Standalone preference values that are not part of the state tree — theme, last export — stay signals.
 
@@ -16,6 +18,7 @@
 
 ## Persistence
 - State persists to `localStorage` under `achievement-calendars`.
+- Persisted key names and the import byte cap are exported by `src/persistence-contract.ts` for the app and both test tiers.
 - State migration handles schema upgrades on load.
 - Storage access, including obtaining the browser storage object, is guarded. Failures are tracked per key; successful preference writes clear only their own failures.
 
