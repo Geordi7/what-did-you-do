@@ -66,26 +66,23 @@ export default function ScoreChart(props: { isLight: boolean; now: () => Date })
               return (
                 <div class="score-bar-col">
                   <div class="score-bar-inner">
-                    <Show when={bar.net !== 0}>
-                      <div
-                        class="score-netbar"
-                        classList={{
-                          'score-netbar-up': bar.net >= 0,
-                          'score-netbar-down': bar.net < 0,
-                        }}
-                        style={{ height: `${scaled(bar.net)}%` }}
-                      />
-                    </Show>
                     <Show when={bar.pos > 0}>
-                      <div
-                        class="score-dot score-dot-pos"
-                        style={{ bottom: `calc(${HALF_SCALE + scaled(bar.pos)}% - var(--score-marker) / 2)` }}
-                      />
+                      <div class="score-total score-total-pos" style={{ height: `${scaled(bar.pos)}%` }} />
                     </Show>
                     <Show when={bar.neg < 0}>
+                      <div class="score-total score-total-neg" style={{ height: `${scaled(bar.neg)}%` }} />
+                    </Show>
+                    <Show when={bar.net !== 0}>
                       <div
-                        class="score-dot score-dot-neg"
-                        style={{ top: `calc(${HALF_SCALE + scaled(bar.neg)}% - var(--score-marker) / 2)` }}
+                        class="score-net"
+                        classList={{
+                          'score-net-gold': bar.neg === 0,
+                          'score-net-up': bar.neg !== 0 && bar.net > 0,
+                          'score-net-down': bar.net < 0,
+                        }}
+                        style={{
+                          bottom: `calc(${HALF_SCALE + Math.sign(bar.net) * scaled(bar.net)}% - var(--score-marker) / 2)`,
+                        }}
                       />
                     </Show>
                   </div>

@@ -259,13 +259,13 @@ test('Case 2 — emoji names and negative activity values survive a round trip',
   await skippedCard.getByRole('button', { name: 'Calendar actions' }).click();
   await expect(skippedCard.locator('.value-input')).toHaveValue('-2.5');
 
-  // Step 6: today's bar carries `😱 Wins`'s +2.0 against `Skipped`'s -2.5.
+  // Step 6: today's column carries `😱 Wins`'s +2.0 against `Skipped`'s -2.5.
   const todayColumn = page.locator('.score-bar-col').last();
   await expect(todayColumn.locator('.score-bar-hit')).toHaveAttribute(
     'aria-label',
     /\+2\.0 -2\.5 → net -0\.5$/,
   );
-  await expect(todayColumn.locator('.score-dot-neg')).toBeVisible();
+  await expect(todayColumn.locator('.score-total-neg')).toBeVisible();
   expect(nativeDialogs).toEqual([]);
 });
 

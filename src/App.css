@@ -891,36 +891,36 @@ body {
   position: relative;
 }
 
-/* Inset so a marker centred on a full-scale value stays inside the chart. */
+/* Inset so a diamond centred on a full-scale value stays inside the chart. */
 .score-bar-inner {
   position: absolute;
   inset: 5px 0;
 }
 
-/* Only height and the positive/negative side stay inline; the rest is static. */
-.score-netbar {
+/* Only height stays inline; the rest is static. */
+.score-total {
   position: absolute;
   left: 0;
   right: 0;
   margin-inline: auto;
   width: 100%;
-  max-width: 12px;
+  max-width: 8px;
+}
+
+.score-total-pos {
+  bottom: 50%;
+  background-color: #4caf50;
   border-radius: 1px 1px 0 0;
 }
 
-.score-netbar-up {
-  bottom: 50%;
-  background-color: #4caf50;
-}
-
-.score-netbar-down {
+.score-total-neg {
   top: 50%;
   background-color: #f44336;
   border-radius: 0 0 1px 1px;
 }
 
-/* Component markers: diamonds, ringed in the card colour so they read over a same-colour bar. */
-.score-dot {
+/* Net marker: a diamond, ringed in the card colour so it reads over a same-colour bar. */
+.score-net {
   position: absolute;
   left: 0;
   right: 0;
@@ -932,12 +932,16 @@ body {
   z-index: 1;
 }
 
-.score-dot-pos {
+.score-net-up {
   background-color: #4caf50;
 }
 
-.score-dot-neg {
+.score-net-down {
   background-color: #f44336;
+}
+
+.score-net-gold {
+  background-color: #e3b341;
 }
 
 .score-bar-hit {

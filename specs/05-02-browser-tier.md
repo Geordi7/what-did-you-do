@@ -34,10 +34,11 @@ file that restates them goes stale the moment a case is added.
   - A count change, a theme change and an export in one page land in a second page on the same
     origin, driven by real `storage` events between two pages.
   - Two pages writing in the same turn resolve last-write-wins.
-- Score chart geometry, in `e2e/score-chart.e2e.ts`, in both ranges: each net bar is filled,
-  width-capped, centred and anchored on the zero line on its own side; each diamond is
-  marker-sized and centred on its value; the full-scale bar reaches the chart's edge; and no mark
-  draws outside the chart area. Whether colours and shapes read right stays manual.
+- Score chart geometry, in `e2e/score-chart.e2e.ts`, in both ranges: each total bar is filled,
+  width-capped, centred and anchored on the zero line on its own side; each net diamond is
+  marker-sized, centred on its value and classed gold, up or down by its net; the full-scale bar
+  reaches the chart's edge; and no mark draws outside the chart area. Whether colours and shapes
+  read right stays manual.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
   pointer timing rather than a faked timer.
 - Midnight rollover, in `e2e/day-clock.e2e.ts`: grid and chart advance together under a controlled browser clock.

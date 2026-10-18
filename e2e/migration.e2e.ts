@@ -232,9 +232,9 @@ test('Case 3: a version-3 payload keeps a negative activity value', async ({ pag
     'aria-label',
     /\+0\.0 -25\.0 → net -25\.0$/,
   );
-  await expect(todayColumn.locator('.score-dot-neg')).toBeVisible();
-  await expect(todayColumn.locator('.score-dot-pos')).toHaveCount(0);
-  await expect(todayColumn.locator('.score-netbar-down')).toBeVisible();
+  await expect(todayColumn.locator('.score-total-neg')).toBeVisible();
+  await expect(todayColumn.locator('.score-total-pos')).toHaveCount(0);
+  await expect(todayColumn.locator('.score-net-down')).toBeVisible();
 
   // Step 4.
   const stored = await readState(page);

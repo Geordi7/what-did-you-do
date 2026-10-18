@@ -1,9 +1,10 @@
 /**
- * The score chart rendering case of `specs/05-02-browser-tier.md` "Scope", asserting the bar
- * geometry `specs/04-01-score-chart.md` "Bars" states: each net bar is filled, at most 12px wide,
- * centred in its column and grows from the zero line on its own side; each component marker is a
- * diamond centred on its value; and every mark stays inside the chart area. Whether the fill reads
- * as green or red, and whether a marker reads as a diamond, stay manual judgements.
+ * The score chart rendering case of `specs/05-02-browser-tier.md` "Scope", asserting the mark
+ * geometry `specs/04-01-score-chart.md` "Marks" states: each total bar is filled, at most 8px wide,
+ * centred in its column and grows from the zero line on its own side; each net diamond is centred
+ * on its value and classed gold, up or down by its net; and every mark stays inside the chart
+ * area. Whether the fills read as green, red or gold, and whether a marker reads as a diamond,
+ * stay manual judgements.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { open, seedState } from './harness';
@@ -13,7 +14,7 @@ const SEED_VERSION = 5;
 /** Sub-pixel rounding allowance on box edges. */
 const EPSILON = 1;
 
-const MAX_BAR_WIDTH = 12;
+const MAX_BAR_WIDTH = 8;
 
 /** A marker smaller than this is a tick, not a diamond. */
 const MIN_MARKER_SIZE = 6;
@@ -30,8 +31,9 @@ function dayKey(offset: number): string {
 }
 
 /**
- * Today nets +3 out of +4 and -1, yesterday nets +2, and the day before nets -4: the largest
- * absolute value in the range, so that day's bar is full scale.
+ * Today nets +3 out of +4 and -1, so its diamond is up; yesterday nets +2 with no negatives, so its
+ * diamond is gold; the day before nets -4, down. +4 and -4 are the largest absolute values in the
+ * range, so today's positive bar and the day before's negative bar are full scale.
  */
 function chartState(chartRange: '28d' | '26w') {
   return {
@@ -65,12 +67,12 @@ async function box(locator: Locator) {
   return b;
 }
 
-/** Every net bar is filled, anchored on the zero line on its own side, and inside the chart. */
+/** Every total bar is filled, anchored on the zero line on its own side, and inside the chart. */
 async function expectBarGeometry(page: Page) {
   const wrap = await box(page.locator('.score-bar-wrap'));
   const zero = wrap.y + wrap.height / 2;
 
-  const bars = page.locator('.score-netbar');
+  const bars = page.locator('.score-total');
   const count = await bars.count();
   expect(count).toBeGreaterThan(0);
 
@@ -86,7 +88,7 @@ async function expectBarGeometry(page: Page) {
     const fill = await bar.evaluate(el => getComputedStyle(el).backgroundColor);
     expect(fill).not.toBe('rgba(0, 0, 0, 0)');
 
-    const up = await bar.evaluate(el => el.classList.contains('score-netbar-up'));
+    const up = await bar.evaluate(el => el.classList.contains('score-total-pos'));
     if (up) {
       expect(Math.abs(b.y + b.height - zero)).toBeLessThanOrEqual(EPSILON);
     } else {
@@ -94,13 +96,13 @@ async function expectBarGeometry(page: Page) {
     }
   }
 
-  const markers = page.locator('.score-dot');
+  const markers = page.locator('.score-net');
   for (let i = 0; i < (await markers.count()); i++) {
     const b = await box(markers.nth(i));
     expect(b.height).toBeGreaterThanOrEqual(MIN_MARKER_SIZE);
   }
 
-  const marks = page.locator('.score-netbar, .score-dot');
+  const marks = page.locator('.score-total, .score-net');
   for (let i = 0; i < (await marks.count()); i++) {
     const b = await box(marks.nth(i));
     expect(b.y).toBeGreaterThanOrEqual(wrap.y - EPSILON);
@@ -108,33 +110,50 @@ async function expectBarGeometry(page: Page) {
   }
 }
 
-test('28-day net bars are filled, anchored on the zero line, and inside the chart', async ({ page }) => {
+test('28-day total bars and net diamonds are placed on their values inside the chart', async ({ page }) => {
   await seedState(page, chartState('28d'));
   await open(page);
 
   const columns = page.locator('.score-bar-col');
   await expect(columns).toHaveCount(28);
-  await expect(columns.nth(27).locator('.score-netbar-up')).toHaveCount(1);
-  await expect(columns.nth(26).locator('.score-netbar-up')).toHaveCount(1);
-  await expect(columns.nth(25).locator('.score-netbar-down')).toHaveCount(1);
+  await expect(columns.nth(27).locator('.score-total-pos')).toHaveCount(1);
+  await expect(columns.nth(27).locator('.score-total-neg')).toHaveCount(1);
+  await expect(columns.nth(26).locator('.score-total-pos')).toHaveCount(1);
+  await expect(columns.nth(26).locator('.score-total-neg')).toHaveCount(0);
+  await expect(columns.nth(25).locator('.score-total-neg')).toHaveCount(1);
+  await expect(columns.nth(25).locator('.score-total-pos')).toHaveCount(0);
+
+  // One diamond per non-zero net, classed by its net.
+  await expect(columns.nth(27).locator('.score-net.score-net-up')).toHaveCount(1);
+  await expect(columns.nth(26).locator('.score-net.score-net-gold')).toHaveCount(1);
+  await expect(columns.nth(25).locator('.score-net.score-net-down')).toHaveCount(1);
+  await expect(columns.nth(24).locator('.score-net')).toHaveCount(0);
 
   await expectBarGeometry(page);
 
-  // The full-scale bar reaches the chart's bottom edge, short only of room for its marker.
+  // The full-scale bars reach the chart's edges, short only of room for a diamond.
   const wrap = await box(page.locator('.score-bar-wrap'));
-  const full = await box(columns.nth(25).locator('.score-netbar-down'));
-  const fullEnd = full.y + full.height;
-  expect(wrap.y + wrap.height - fullEnd).toBeLessThanOrEqual(MARKER_INSET);
+  const fullNeg = await box(columns.nth(25).locator('.score-total-neg'));
+  const fullNegEnd = fullNeg.y + fullNeg.height;
+  expect(wrap.y + wrap.height - fullNegEnd).toBeLessThanOrEqual(MARKER_INSET);
+  const fullPos = await box(columns.nth(27).locator('.score-total-pos'));
+  expect(fullPos.y - wrap.y).toBeLessThanOrEqual(MARKER_INSET);
 
-  // A marker is centred on its value: where a component equals the net, on the bar's end.
-  const negMarker = await box(columns.nth(25).locator('.score-dot-neg'));
-  expect(Math.abs(negMarker.y + negMarker.height / 2 - fullEnd)).toBeLessThanOrEqual(EPSILON);
-  const up = await box(columns.nth(26).locator('.score-netbar-up'));
-  const posMarker = await box(columns.nth(26).locator('.score-dot-pos'));
-  expect(Math.abs(posMarker.y + posMarker.height / 2 - up.y)).toBeLessThanOrEqual(EPSILON);
+  // A diamond is centred on its net: where the net equals a total, on that bar's end.
+  const centre = (b: { y: number; height: number }) => b.y + b.height / 2;
+  const down = await box(columns.nth(25).locator('.score-net'));
+  expect(Math.abs(centre(down) - fullNegEnd)).toBeLessThanOrEqual(EPSILON);
+  const goldBar = await box(columns.nth(26).locator('.score-total-pos'));
+  const gold = await box(columns.nth(26).locator('.score-net'));
+  expect(Math.abs(centre(gold) - goldBar.y)).toBeLessThanOrEqual(EPSILON);
+
+  // Today's net of +3 sits three quarters of the way up its +4 bar.
+  const zero = wrap.y + wrap.height / 2;
+  const upNet = await box(columns.nth(27).locator('.score-net'));
+  expect(Math.abs(centre(upNet) - (zero - (zero - fullPos.y) * 0.75))).toBeLessThanOrEqual(EPSILON);
 });
 
-test('26-week net bars are filled, anchored on the zero line, and inside the chart', async ({ page }) => {
+test('26-week total bars and net diamonds stay inside the chart', async ({ page }) => {
   await seedState(page, chartState('26w'));
   await open(page);
 
