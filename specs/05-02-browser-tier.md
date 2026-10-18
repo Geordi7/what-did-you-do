@@ -44,6 +44,11 @@ file that restates them goes stale the moment a case is added.
 - Accessibility, in `e2e/accessibility.e2e.ts`: named inputs, menu keyboard navigation and focus return, count announcements, and focus containment in both blocking variants and import review.
 - Invalid-date recovery, in `e2e/date-recovery.e2e.ts`: download of the byte-intact original payload after a protected load failure.
 - File boundaries, in `e2e/file-boundary.e2e.ts`: oversized selections never reach the reader and stale callbacks cannot replace a newer preview.
+- Backup reminder, in `e2e/backup-boundary.e2e.ts`: the inclusive 24-hour threshold using a fixed clock.
+
+## Production preview
+- `npm run test:preview` serves an existing production build on a separate port through `playwright.preview.config.ts`; `npm run check` builds it first.
+- Files named `e2e/**/*.smoke.ts` check the emitted CSP, app mount, a persisted mutation, and absence of CSP violations. Dev checks continue to use Vite's dev server.
 
 ## Relationship to the manual suites
 The manual suites stay. They are human procedures as well as assertions, and a tester reading them

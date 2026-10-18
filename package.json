@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run --environment node",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:preview": "playwright test --config playwright.preview.config.ts",
+    "check": "npm run build && npm test && npm run test:e2e && npm run test:preview"
   },
   "dependencies": {
     "@badrap/valita": "^0.4.0",

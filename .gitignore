@@ -4,4 +4,5 @@ dist/
 *.local
 DECISIONS.yaml
 test-results/
+test-results-preview/
 playwright-report/

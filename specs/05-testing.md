@@ -45,3 +45,4 @@ Both are executed by the browser tier as well as being walkable by hand.
 ## Build verification
 - TypeScript build must pass.
 - Vite production build must succeed.
+- `npm run check` runs build/type checks, unit tests, dev-browser checks and production-preview smoke checks in sequence.
