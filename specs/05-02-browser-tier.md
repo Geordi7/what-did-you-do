@@ -40,6 +40,8 @@ file that restates them goes stale the moment a case is added.
   draws outside the chart area. Whether colours and shapes read right stays manual.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
   pointer timing rather than a faked timer.
+- Midnight rollover, in `e2e/day-clock.e2e.ts`: grid and chart advance together under a controlled browser clock.
+- Accessibility, in `e2e/accessibility.e2e.ts`: named inputs, menu keyboard navigation and focus return, count announcements, and focus containment in both blocking variants and import review.
 
 ## Relationship to the manual suites
 The manual suites stay. They are human procedures as well as assertions, and a tester reading them

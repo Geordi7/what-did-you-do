@@ -9,7 +9,7 @@ runs once at import, so a test installs a `localStorage` fake on `globalThis` an
 *before* importing it, and resets the module between scenarios to get a fresh load. That keeps the
 tier DOM-free and needs no production seam. Components stay out — they would need jsdom and a
 testing library. The browser tier reaches the import modal and the load paths in a real browser
-instead; every other component stays with `05-03-manual-checks.md`.
+instead; keyboard accessibility and midnight rollover are also exercised there. Visual judgements stay with `05-03-manual-checks.md`.
 
 Run with `npm test`. The browser tier's files are invisible to this runner by name alone — nothing
 configures a directory — and `05-02-browser-tier.md` owns that convention.
@@ -53,6 +53,7 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
   - Unavailable or full storage surfaces an error and keeps the in-memory state usable.
   - A `storage` event from another tab converges without the write loop re-firing.
 - `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels.
+- Shared day clock — repeated midnight ticks and cancellation of the latest timer on disposal.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at
   25% and 50% of max.
 
