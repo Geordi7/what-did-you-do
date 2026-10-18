@@ -53,8 +53,8 @@ function storageMessage(error: unknown): string {
 
 /**
  * What the store holds. `theme` and the last-export timestamp are standalone
- * preferences rather than part of the state tree, so they are signals; both are
- * folded back into the persisted envelope on write.
+ * preferences rather than part of the state tree, so they are signals. Theme
+ * is folded into the persisted envelope; last export has its own key.
  */
 export interface StoreState {
   version: number;

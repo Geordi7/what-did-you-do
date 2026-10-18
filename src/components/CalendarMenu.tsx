@@ -83,7 +83,10 @@ export default function CalendarMenu(props: Props) {
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
             setOpen(true);
-            if (e.key === 'ArrowUp') items().at(-1)?.focus();
+            if (e.key === 'ArrowUp') {
+              const stops = items();
+              stops[stops.length - 1]?.focus();
+            }
           }
         }}
       >

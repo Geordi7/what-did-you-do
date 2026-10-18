@@ -78,6 +78,7 @@ Actions:
 - Both diagnostic controls — Copy diagnostic and Download diagnostic — are focusable and named
   for what they produce. Copy diagnostic is the surface's first interactive stop, Download
   diagnostic the second.
+- Download saved data is the third stop when raw recovery data is available; all stops participate in the same focus cycle.
 
 ## Contrast
 - The light theme meets WCAG 2.2 AA against its own backgrounds: 4.5:1 for body text and muted
