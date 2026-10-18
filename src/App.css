@@ -985,6 +985,61 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* A pinned breakdown takes the pointer so clicks on it never reach the calendar beneath. */
+.score-tooltip-pinned {
+  pointer-events: auto;
+}
+
+.score-activities {
+  list-style: none;
+  margin: 0.3rem 0 0;
+  padding: 0.3rem 0 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: auto auto auto;
+  column-gap: 0.6rem;
+  row-gap: 1px;
+  font-size: 0.72rem;
+}
+
+.score-activity {
+  display: contents;
+}
+
+.score-activity-name {
+  color: var(--text);
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-activity-count {
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.score-activity-score {
+  color: var(--text-dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-activity-pos {
+  color: #4caf50;
+}
+
+.score-activity-neg {
+  color: #f44336;
+}
+
+.score-activity-empty {
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
 .score-tooltip-date {
   font-size: 0.65rem;
   color: var(--text-dim);

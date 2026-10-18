@@ -39,7 +39,9 @@ file that restates them goes stale the moment a case is added.
   diamond is marker-sized, offset right of centre, centred on its value and classed gold, up or down by its net; the full-scale bar
   reaches the chart's edge; no mark draws outside the chart area; and a hovered column's tooltip
   sits below the chart card, centred on the column, and stays within the card's width at the
-  edge columns of a narrow viewport without scrolling the page sideways. Whether colours and shapes
+  edge columns of a narrow viewport without scrolling the page sideways. The breakdown, in the same
+  file: clicking or pressing `Enter` on a column pins its rows, which survive the pointer leaving;
+  each way of closing closes it; and the pinned tooltip takes the pointer. Whether colours and shapes
   read right stays manual.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
   pointer timing rather than a faked timer.

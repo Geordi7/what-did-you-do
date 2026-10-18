@@ -41,3 +41,26 @@ it('uses visible maxima without spreading a large history into arguments', () =>
   days['2026-10-18'] = 9;
   expect(visibleMaximum(days, ['2026-10-18', '2026-10-19'])).toBe(9);
 });
+
+for (const range of ['28d', '26w'] as const) {
+  it(`breaks each ${range} column down by active calendar with a non-zero count, highest score first`, () => {
+    const today = new Date(2026, 9, 19);
+    const cals = calendars();
+    cals[1].days = { [dateKey(new Date(2026, 9, 18))]: 3 };
+    const windows = range === '26w' ? buildGrid(today, 26) : Array.from({ length: 28 }, (_, i) => [new Date(2026, 9, 19 - 27 + i)]);
+    const expected = windows.map(dates => cals
+      .filter(cal => !cal.deleted)
+      .map(cal => {
+        const count = dates.reduce((sum, day) => sum + (cal.days[dateKey(day)] ?? 0), 0);
+        return { id: cal.id, name: cal.name, count, score: count * cal.activityValue };
+      })
+      .filter(row => row.count !== 0)
+      .sort((a, b) => b.score - a.score));
+    const bars = scoreBars(cals, today, range);
+    expect(bars.map(bar => bar.activities)).toEqual(expected);
+    expect(bars.some(bar => bar.activities.length > 1)).toBe(true);
+    // Scores 2×, 0× and -0.5× per count: sorted order differs from calendar order once all three count.
+    expect(bars.some(bar => bar.activities.map(row => row.id).join() === '0,2,1')).toBe(true);
+    if (range === '28d') expect(bars.some(bar => bar.activities.length === 0)).toBe(true);
+  });
+}

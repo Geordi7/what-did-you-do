@@ -9,6 +9,13 @@ Every flow is reachable by keyboard alone, in both themes.
 - `Backspace` or `Delete` clears the focused day's count.
 - Focus is visible on every cell, distinct from hover and from the today outline.
 
+## Score chart
+- Each chart column is a button with `aria-expanded` reflecting whether its breakdown is pinned.
+- `Enter` or `Space` on a focused column toggles its breakdown; `Escape` closes it and leaves
+  focus on the column.
+- The column's accessible name carries its date and values; a pinned breakdown is referenced from
+  the column with `aria-describedby`.
+
 ## Overflow menu
 - The "…" trigger carries `aria-haspopup="menu"` and `aria-expanded` reflecting open state.
 - The popup carries `role="menu"`; each control inside it is a `role="menuitem"` (or the

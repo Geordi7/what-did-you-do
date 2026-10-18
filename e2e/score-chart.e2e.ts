@@ -4,7 +4,9 @@
  * 2px left of its column's centre and grows from the zero line on its own side; each net diamond
  * sits 2px right of its column's centre, is centred on its value and is classed gold, up or down
  * by its net; every mark stays inside the chart area; and a column's tooltip sits wholly below the
- * chart card, centred on the column, shifting inward to stay within the card's width. Whether the fills read as green, red or gold, and whether a
+ * chart card, centred on the column, shifting inward to stay within the card's width. The breakdown
+ * cases cover `specs/04-01-score-chart.md` "Breakdown" and the score chart keys of
+ * `specs/06-accessibility.md`. Whether the fills read as green, red or gold, and whether a
  * marker reads as a diamond, stay manual judgements.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -40,6 +42,7 @@ function dayKey(offset: number): string {
 }
 
 /**
+ * Slips comes before Wins in calendar order, so a breakdown sorted by score reverses them.
  * Today nets +3 out of +4 and -1, so its diamond is up; yesterday nets +2 with no negatives, so its
  * diamond is gold; the day before nets -4, down. +4 and -4 are the largest absolute values in the
  * range, so today's positive bar and the day before's negative bar are full scale.
@@ -51,19 +54,19 @@ function chartState(chartRange: '28d' | '26w') {
     chartRange,
     calendars: [
       {
-        id: 'sc-wins',
-        name: 'Wins',
-        color: '#40c463',
-        days: { [dayKey(0)]: 4, [dayKey(-1)]: 2 },
-        activityValue: 1,
-        updatedAt: '2025-05-10T00:00:00.000Z',
-      },
-      {
         id: 'sc-slips',
         name: 'Slips',
         color: '#d73a49',
         days: { [dayKey(0)]: 1, [dayKey(-2)]: 4 },
         activityValue: -1,
+        updatedAt: '2025-05-10T00:00:00.000Z',
+      },
+      {
+        id: 'sc-wins',
+        name: 'Wins',
+        color: '#40c463',
+        days: { [dayKey(0)]: 4, [dayKey(-1)]: 2 },
+        activityValue: 1,
         updatedAt: '2025-05-10T00:00:00.000Z',
       },
     ],
@@ -200,4 +203,113 @@ test('on a narrow viewport an edge column\'s tooltip stays within the chart card
     expect(tip.x + tip.width).toBeLessThanOrEqual(card.x + card.width + EPSILON);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
+});
+
+/* ── Breakdown ─────────────────────────────────────────────────────────────── */
+
+const rows = (page: Page) => page.locator('.score-tooltip .score-activity');
+const hit = (page: Page, i: number) => page.locator('.score-bar-col').nth(i).locator('.score-bar-hit');
+
+async function expectRow(row: Locator, name: string, count: string, score: string) {
+  await expect(row.locator('.score-activity-name')).toHaveText(name);
+  await expect(row.locator('.score-activity-count')).toHaveText(count);
+  await expect(row.locator('.score-activity-score')).toHaveText(score);
+}
+
+test('clicking a column pins a breakdown that survives the pointer leaving', async ({ page }) => {
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  await expect(rows(page)).toHaveCount(0);
+  await hit(page, 27).click();
+  await expect(rows(page)).toHaveCount(2);
+  await expectRow(rows(page).nth(0), 'Wins', '×4', '+4.0');
+  await expectRow(rows(page).nth(1), 'Slips', '×1', '-1.0');
+  await expect(hit(page, 27)).toHaveAttribute('role', 'button');
+  await expect(hit(page, 27)).toHaveAttribute('aria-expanded', 'true');
+  const tipId = await page.locator('.score-tooltip').getAttribute('id');
+  expect(tipId).toBeTruthy();
+  await expect(hit(page, 27)).toHaveAttribute('aria-describedby', tipId!);
+
+  // Pointer leaves the column, and passes over another one: the pin holds.
+  await page.locator('.score-chart-title').hover();
+  await hit(page, 20).hover();
+  await expect(rows(page)).toHaveCount(2);
+
+  // Another column takes the pin; clicking it again closes it.
+  await hit(page, 25).click();
+  await expect(rows(page)).toHaveCount(1);
+  await expectRow(rows(page).nth(0), 'Slips', '×4', '-4.0');
+  await expect(hit(page, 27)).toHaveAttribute('aria-expanded', 'false');
+  await hit(page, 25).click();
+  await expect(rows(page)).toHaveCount(0);
+  await expect(hit(page, 25)).toHaveAttribute('aria-expanded', 'false');
+  await expect(hit(page, 25)).not.toHaveAttribute('aria-describedby');
+});
+
+test('a column with no counts reads "No activity"', async ({ page }) => {
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  await hit(page, 24).click();
+  await expect(rows(page)).toHaveCount(0);
+  await expect(page.locator('.score-tooltip .score-activity-empty')).toHaveText('No activity');
+});
+
+test('Escape and a click outside both close the breakdown', async ({ page }) => {
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  await hit(page, 27).click();
+  await expect(rows(page)).toHaveCount(2);
+  await page.keyboard.press('Escape');
+  await expect(rows(page)).toHaveCount(0);
+
+  await hit(page, 27).click();
+  await expect(rows(page)).toHaveCount(2);
+  await page.locator('.score-chart-title').click();
+  await expect(rows(page)).toHaveCount(0);
+  await expect(page.locator('.score-tooltip')).toHaveCount(0);
+});
+
+test('the pinned tooltip takes the pointer, so clicks on it stay on it', async ({ page }) => {
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  await hit(page, 27).click();
+  const tip = page.locator('.score-tooltip');
+  const b = await box(tip);
+  const onTip = await page.evaluate(
+    ([x, y]) => !!document.elementFromPoint(x, y)?.closest('.score-tooltip'),
+    [b.x + b.width / 2, b.y + b.height / 2],
+  );
+  expect(onTip).toBe(true);
+  await tip.click();
+  await expect(rows(page)).toHaveCount(2);
+});
+
+test('Enter and Space toggle a focused column\'s breakdown and Escape keeps focus', async ({ page }) => {
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  await hit(page, 27).focus();
+  await page.keyboard.press('Enter');
+  await expect(rows(page)).toHaveCount(2);
+  await expect(hit(page, 27)).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('Space');
+  await expect(rows(page)).toHaveCount(0);
+  await page.keyboard.press('Space');
+  await expect(rows(page)).toHaveCount(2);
+  await page.keyboard.press('Escape');
+  await expect(rows(page)).toHaveCount(0);
+  await expect(hit(page, 27)).toBeFocused();
+});
+
+test('a 26-week column breaks its week down', async ({ page }) => {
+  await seedState(page, chartState('26w'));
+  await open(page);
+
+  await hit(page, 25).click();
+  await expect(rows(page).first()).toBeVisible();
+  await expect(rows(page).filter({ hasText: 'Wins' }).locator('.score-activity-count')).toHaveText(/^×[1-9]/);
 });

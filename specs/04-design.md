@@ -1,7 +1,7 @@
 # Design
 
 ## Refinements
-- `04-01-score-chart.md` — score chart ranges and the range toggle.
+- `04-01-score-chart.md` — score chart ranges, marks, tooltip, and the click-to-pin breakdown.
 - `04-02-copy.md` — title, favicon, subtitle, hint, and the banner region's messages.
 - `04-03-dialogs.md` — the import review modal and the unrecoverable-data blocking message.
 

@@ -27,3 +27,14 @@ Combined daily score from all active calendars, shown above the calendar section
 - Hovering or focusing a column shows a tooltip with the date and the positive, negative, and net
   values. It sits wholly below the chart card, horizontally centred on its column, except that it
   shifts inward as far as needed to stay within the card's width.
+
+## Breakdown
+- Clicking a column pins its tooltip open and expands it with a breakdown of that day or week:
+  one row per active calendar with a non-zero count in it, giving the calendar's name, its total
+  count, and its score (count × activity value). Rows run from highest score to lowest; equal
+  scores keep calendar order. A column with no
+  counts reads "No activity".
+- The pinned tooltip stays open when the pointer leaves. Clicking the same column again, pressing
+  `Escape`, or clicking anywhere outside the chart columns and the tooltip closes it; clicking
+  another column pins that one instead.
+- While pinned, the tooltip takes the pointer, so a click on it never reaches what lies beneath.
