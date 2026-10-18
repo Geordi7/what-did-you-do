@@ -38,6 +38,7 @@ class FakeStorage {
   readonly writes: Array<{ key: string; value: string }> = [];
   /** When set, every `setItem` throws it — a full quota. */
   throwOnWrite: Error | null = null;
+  rejectKey: string | null = null;
 
   constructor(seed: Record<string, string> = {}) {
     for (const [key, value] of Object.entries(seed)) this.map.set(key, value);
@@ -59,6 +60,7 @@ class FakeStorage {
   setItem(key: string, value: string): void {
     this.writes.push({ key, value: String(value) });
     if (this.throwOnWrite !== null) throw this.throwOnWrite;
+    if (key === this.rejectKey) throw new Error("quota exceeded");
     this.map.set(key, String(value));
   }
 
@@ -841,5 +843,43 @@ describe('newer-version guard precedes legacy wrapping', () => {
       }),
     );
     expect(lone.ok).toBe(true);
+  });
+});
+
+
+describe('selective persistence failures', () => {
+  it('guards a throwing browser storage accessor', async () => {
+    vi.resetModules();
+    installWindow();
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true, get() { throw new Error('storage denied'); },
+    });
+    let loaded: Store | undefined;
+    let failure: unknown = null;
+    try { loaded = (await import('./store')).store; } catch (error) { failure = error; }
+    expect(failure).toBeNull();
+    expect(loaded?.storageError).toMatch(/unavailable/);
+    loaded?.addCalendar('Memory');
+    expect(loaded?.calendars.length).toBe(1);
+  });
+
+  it('keeps a failed state save visible after successful preference writes', async () => {
+    const { store } = await boot({}, { prepare: s => { s.rejectKey = STORAGE_KEY; } });
+    store.addCalendar('Memory');
+    store.setTheme('dark');
+    store.setLastExport();
+    expect(store.storageError).toMatch(/full/);
+    expect(store.calendars.length).toBe(1);
+  });
+
+  it('preserves old data when its snapshot cannot be saved', async () => {
+    const raw = JSON.stringify({ version: 4, calendars: [{ id: 'old', name: 'Old', color: '#40c463', days: {}, activityValue: 1 }] });
+    const { store, storage } = await boot({ [STORAGE_KEY]: raw }, { prepare: s => { s.rejectKey = BACKUP_KEY; } });
+    store.addCalendar('Memory');
+    store.setLastExport();
+    expect(storage.getItem(STORAGE_KEY)).toBe(raw);
+    expect(storage.writesTo(STORAGE_KEY)).toEqual([]);
+    expect(store.storageError).toMatch(/full/);
+    expect(store.calendars.length).toBe(2);
   });
 });

@@ -17,6 +17,7 @@
 ## Persistence
 - State persists to `localStorage` under `achievement-calendars`.
 - State migration handles schema upgrades on load.
+- Storage access, including obtaining the browser storage object, is guarded. Failures are tracked per key; successful preference writes clear only their own failures.
 
 ## Cross-tab sync
 - One `window` `storage` listener at store init, removed on teardown. It fires only in other tabs, never the writer; the design depends on that.

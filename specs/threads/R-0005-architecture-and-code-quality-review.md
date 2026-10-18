@@ -6,6 +6,14 @@ affects:
 tags: [architecture, code-quality, review, persistence, lifecycle, accessibility, testing]
 links: {related: [0002, 0003, 0004]}
 ---
+## Outcome
+Decision: adopt activities 1, 2, 3, 5, and 6 as proposed; validate real calendar dates in activity 4 while keeping previously accepted stored histories recoverable; use visible-window heatmap maxima and chart aggregation in activity 7; adopt all of activity 8, removing dependencies from the current index while retaining local files and the lockfile. Implement each as a separate activity.
+Rejected:
+1. New numeric limits and overflow safeguards: these values are far beyond normal use.
+2. A history rewrite for dependency cleanup: the confirmed scope removes files from the current index and avoids disrupting existing clones.
+3. A framework rewrite, server, sync service, or generalized repository abstraction: there is no demonstrated benefit for this local-first app.
+Reopen if: numeric extremes occur in normal use, persistence scale requires a requirements change, or full-history cleanup is explicitly requested.
+
 ## Thread
 > Which of the following improvement activities should we adopt, and in what order?
 >
@@ -77,3 +85,9 @@ links: {related: [0002, 0003, 0004]}
 > Please confirm this reading and mark it “decided” to resolve the thread. For item 8, specify whether you want current-index cleanup only or removal from all Git history, and whether to include the remaining verification/backup-boundary proposals. If you want numeric overflow safeguards despite excluding new limits, say so under item 4.
 >
 > Holding implementation until that clarification: `00-meta.md` requires confirmation of terse or ambiguous answers before applying them, and an explicit operator decision before moving A → R. No other thread needs a response or has a resolved decision awaiting application; thread 0002 remains deferred.
+
+Accept the rest of item 8 as-is
+
+If there are no other clarifications needed, this is decided.
+
+> Confirmed and decided. Applying the eight independent activities, including all remaining verification and backup-boundary work in item 8. Dependency cleanup uses the confirmed current-index scope. Previously accepted malformed dates will retain their original stored payload and offer a raw-data download for repair before stricter validation is applied.

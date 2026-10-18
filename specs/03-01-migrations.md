@@ -69,7 +69,8 @@ date the user entered, not a time the calendar was edited.
 
 ## Guards
 
-- Before migrating, the raw stored string is snapshotted to `achievement-calendars-backup`. Single key, overwritten on each migration.
+- After successful migration and before saving its result, the raw stored string is snapshotted to `achievement-calendars-backup`. Single key, overwritten on each successful migration.
+- A failed snapshot leaves the original state byte-intact for the session; migrated data remains usable in memory with a storage error, and state saving stays disabled.
 - If the stored version is greater than `STORAGE_VERSION`, the app neither loads nor saves: it shows a blocking "data from a newer version" message, so the save path cannot clobber newer data.
 
 ## Failure

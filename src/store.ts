@@ -57,10 +57,6 @@ const LEGACY_VERSION = 3;
 
 /* ── storage access ──────────────────────────────────────────────────────── */
 
-function storageAvailable(): boolean {
-  return typeof localStorage !== 'undefined';
-}
-
 function storageMessage(error: unknown): string {
   const quota = error instanceof Error && /quota/i.test(`${error.name} ${error.message}`);
   return quota
@@ -261,32 +257,35 @@ function serializeCalendar(cal: Calendar): Calendar {
 /* ── the store ───────────────────────────────────────────────────────────── */
 
 export const store = createRoot(() => {
-  const [storageError, setStorageError] = createSignal<string | null>(null);
+  const [storageErrors, setStorageErrors] = createSignal<Record<string, string>>({});
+
+  function reportStorage(key: string, error: unknown) {
+    setStorageErrors(previous => {
+      const next = { ...previous };
+      if (error === null) delete next[key];
+      else next[key] = storageMessage(error);
+      return next;
+    });
+  }
 
   function readKey(key: string): string | null {
-    if (!storageAvailable()) {
-      setStorageError(storageMessage(undefined));
-      return null;
-    }
     try {
+      if (typeof localStorage === 'undefined') throw new Error('Storage unavailable');
       return localStorage.getItem(key);
     } catch (error) {
-      setStorageError(storageMessage(error));
+      reportStorage(key, error);
       return null;
     }
   }
 
   function writeKey(key: string, value: string): boolean {
-    if (!storageAvailable()) {
-      setStorageError(storageMessage(undefined));
-      return false;
-    }
     try {
+      if (typeof localStorage === 'undefined') throw new Error('Storage unavailable');
       localStorage.setItem(key, value);
-      setStorageError(null);
+      reportStorage(key, null);
       return true;
     } catch (error) {
-      setStorageError(storageMessage(error));
+      reportStorage(key, error);
       return false;
     }
   }
@@ -299,6 +298,7 @@ export const store = createRoot(() => {
   let initial = emptyState();
   let initialTheme: ThemeMode | null = null;
   let initialBlocked = false;
+  let stateSavingAllowed = true;
   let initialDiagnostic: Diagnostic | null = null;
 
   if (rawState !== null && rawState !== '') {
@@ -327,7 +327,7 @@ export const store = createRoot(() => {
         // walk has succeeded, and only when a step actually ran. Writing it eagerly would
         // clobber the last good backup with a payload that then failed to migrate — the
         // one moment the backup exists for. A boot that migrates nothing leaves it alone.
-        if (migrating) writeKey(BACKUP_KEY, rawState);
+        if (migrating && !writeKey(BACKUP_KEY, rawState)) stateSavingAllowed = false;
         initial = toStoreState(result.state);
         initialTheme = result.state.theme;
       } else if (result.kind === 'failed') {
@@ -385,6 +385,7 @@ export const store = createRoot(() => {
   // byte-intact, so the effects that would write it are never created.
   if (!blocked) {
     createEffect(() => {
+      if (!stateSavingAllowed) return;
       const payload = serialize();
       if (payload === lastWritten) return;
       if (writeKey(STORAGE_KEY, payload)) lastWritten = payload;
@@ -487,7 +488,7 @@ export const store = createRoot(() => {
       return lastExport();
     },
     get storageError(): string | null {
-      return storageError();
+      return Object.values(storageErrors())[0] ?? null;
     },
     get blocked(): boolean {
       return blocked;
