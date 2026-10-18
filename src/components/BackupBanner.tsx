@@ -20,14 +20,14 @@ export default function BackupBanner(props: { onExport: () => void }) {
       // Never exported — show once at least one calendar exists.
       return store.activeCalendars.length > 0;
     }
-    return loadedAt - last > MS_24H;
+    return loadedAt - last >= MS_24H;
   });
 
   return (
     <Show when={show()}>
       <div class="backup-banner" role="alert">
         <span class="backup-banner-text">
-          ⚠ It's been over 24 hours since your last backup. Export your calendars to stay safe.
+          ⚠ It's been at least 24 hours since your last backup. Export your calendars to stay safe.
         </span>
         <div class="backup-banner-actions">
           <button class="backup-banner-btn" onClick={props.onExport}>
