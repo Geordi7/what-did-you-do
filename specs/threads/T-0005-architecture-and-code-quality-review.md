@@ -2,7 +2,7 @@
 id: 0005
 affects:
   specs: [01-requirements.md, 02-architecture.md, 02-01-coding-standard.md, 02-02-state-store.md, 03-data-model.md, 03-01-migrations.md, 03-02-import-export.md, 04-design.md, 04-01-score-chart.md, 04-02-copy.md, 04-03-dialogs.md, 05-testing.md, 05-01-automated-tier.md, 05-02-browser-tier.md, 06-accessibility.md, 07-security-standard.md]
-  paths: [src/store.ts, src/store.test.ts, src/migrations.ts, src/schemas.ts, src/types.ts, src/merge.ts, src/utils.ts, src/App.tsx, src/components/, e2e/, package.json, package-lock.json, .gitignore, node_modules/]
+  paths: [src/store.ts, src/store.test.ts, src/store-factory.test.ts, src/payload.ts, src/persistence-contract.ts, src/persistence-contract.test.ts, src/day-clock.ts, src/day-clock.test.ts, src/modal-focus.ts, src/scores.ts, src/scores.test.ts, src/calendar-date.test.ts, src/migrations.ts, src/schemas.ts, src/schemas.test.ts, src/types.ts, src/merge.ts, src/utils.ts, src/App.tsx, src/App.css, src/components/, e2e/, scripts/benchmark-history.mjs, docs/performance.md, playwright.preview.config.ts, tsconfig.json, package.json, package-lock.json, .gitignore, node_modules/]
 tags: [architecture, code-quality, review, persistence, lifecycle, accessibility, testing]
 links: {related: [0002, 0003, 0004]}
 ---
@@ -91,3 +91,19 @@ Accept the rest of item 8 as-is
 If there are no other clarifications needed, this is decided.
 
 > Confirmed and decided. Applying the eight independent activities, including all remaining verification and backup-boundary work in item 8. Dependency cleanup uses the confirmed current-index scope. Previously accepted malformed dates will retain their original stored payload and offer a raw-data download for repair before stricter validation is applied.
+
+> Applied and verified across separate commits:
+> 1. Storage access is guarded, including a throwing accessor. Failures are tracked by key; preference writes cannot hide a failed calendar save. A failed migration snapshot disables state saving for the session and preserves the original data while migrated state remains usable in memory.
+> 2. One app-owned midnight clock drives chart and grids, cancels its latest timeout on disposal, and refreshes on visibility return.
+> 3. Menus support keyboard navigation and focus return; inputs are named; day changes and import outcomes share a persistent live region whose latest event wins. Native inert plus a focus guard protects modal backgrounds, including the no-control blocking variant.
+> 4. Real dates are validated in every schema version. A protected load failure offers the original JSON as Download saved data for repair. Leap days and negative fractional weights remain accepted. Numeric limits and overflow work remain outside the decided scope.
+> 5. File size is checked before constructing/using the reader, and obsolete reads are aborted with stale callbacks ignored. String callers retain the parse-time byte guard.
+> 6. The disposable store factory accepts storage, clock and event-source dependencies. Tests dispose their instances. Pure payload interpretation and canonical serialization are extracted, migrations use one runner with named failures, persistence constants are shared with an independent compatibility assertion, and persisted version/theme types are required.
+> 7. Chart aggregation and heatmap maxima query visible dates. Full history and totals remain intact. Local before/after measurements and the reproducible benchmark are recorded in docs/performance.md: at 60,000 stored days, median mutation latency fell from approximately 202–203 ms to 102–103 ms, with sampled allocation totals roughly halved. These synthetic dev measurements do not establish a production target or justify a new persistence backend.
+> 8. All 2,758 generated dependency files are removed from the current index and remain installed locally. A clean npm ci in a temporary directory installed 114 packages successfully. npm run check now runs build/type, unit, dev-browser and production-preview checks. The production check verifies emitted CSP, mount, persisted mutation and no CSP violations. The backup reminder now uses the inclusive 24-hour boundary.
+>
+> Observed failures before fixes included the throwing accessor escaping boot, a cleared state-save warning, an overwritten original after backup failure, a frozen midnight clock, missing menu labels/count announcements, escaped modal focus, impossible dates accepted, an oversized selection reaching the reader, stale preview replacement, shared factory state/missing listeners, mismatched window scores/maxima, and an absent reminder at exactly 24 hours. The final interaction regression first retained “Imported 1 calendar.” instead of announcing the new day count. Deliberately broken parser, persistence-contract, clock and production-response doubles also produced assertion failures; those temporary doubles were discarded. All new regression cases subsequently pass.
+>
+> Final verification: npm run check passes TypeScript and production bundling, 189 unit tests, 43 Chromium dev-browser tests, and one production-preview CSP smoke test. git diff --check passes, specification line limits hold, and Git tracks zero node_modules files. Separate drift checks reconciled testing coverage and recovery behavior with the specifications and removed an API newer than the browser baseline from menu navigation. No human visual or screen-reader audit was performed. The pre-existing CLAUDE.md edit is preserved.
+>
+> All adopted activities are applied and committed; R → T. No thread awaits an operator response; 0002 remains deferred.
