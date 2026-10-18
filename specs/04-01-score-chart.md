@@ -24,4 +24,5 @@ Combined daily score from all active calendars, shown above the calendar section
 - Bar height is relative to the largest absolute positive or negative score in the range: that
   value reaches the chart's edge, short only of room for a diamond, and nothing draws outside
   the chart area.
-- Hovering or focusing a column shows a tooltip with the date and the positive, negative, and net values.
+- Hovering or focusing a column shows a tooltip with the date and the positive, negative, and net
+  values. It sits wholly below the chart card, horizontally centred on its column.

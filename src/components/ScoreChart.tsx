@@ -25,15 +25,17 @@ export default function ScoreChart(props: { isLight: boolean; now: () => Date })
 
   const [tooltip, setTooltip] = createSignal<Bar & { x: number; y: number } | null>(null);
 
+  /** Places the tooltip below the chart card, centred on the column; the tooltip lives in the bar wrap. */
   function showTooltip(target: HTMLElement, bar: Bar) {
     const chart = target.closest('.score-chart');
-    if (!chart) return;
+    const wrap = target.closest('.score-bar-wrap');
+    if (!chart || !wrap) return;
     const rect = target.getBoundingClientRect();
-    const parent = chart.getBoundingClientRect();
+    const origin = wrap.getBoundingClientRect();
     setTooltip({
       ...bar,
-      x: rect.left - parent.left + rect.width / 2,
-      y: rect.top - parent.top,
+      x: rect.left - origin.left + rect.width / 2,
+      y: chart.getBoundingClientRect().bottom - origin.top,
     });
   }
 
@@ -108,7 +110,7 @@ export default function ScoreChart(props: { isLight: boolean; now: () => Date })
               class="score-tooltip"
               style={{
                 left: `${tip().x}px`,
-                top: `${tip().y - TOOLTIP_OFFSET}px`,
+                top: `${tip().y + TOOLTIP_OFFSET}px`,
               }}
             >
               <div class="score-tooltip-date">{tip().label}</div>

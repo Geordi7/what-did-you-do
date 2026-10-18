@@ -975,7 +975,7 @@ body {
 
 .score-tooltip {
   position: absolute;
-  transform: translate(-50%, -100%);
+  transform: translateX(-50%);
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 4px;

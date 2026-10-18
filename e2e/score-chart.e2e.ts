@@ -3,8 +3,9 @@
  * geometry `specs/04-01-score-chart.md` "Marks" states: each total bar is filled, at most 8px wide,
  * 2px left of its column's centre and grows from the zero line on its own side; each net diamond
  * sits 2px right of its column's centre, is centred on its value and is classed gold, up or down
- * by its net; and every mark stays inside the chart area. Whether the fills read as green, red or
- * gold, and whether a marker reads as a diamond, stay manual judgements.
+ * by its net; every mark stays inside the chart area; and a column's tooltip sits wholly below the
+ * chart card, centred on the column. Whether the fills read as green, red or gold, and whether a
+ * marker reads as a diamond, stay manual judgements.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { open, seedState } from './harness';
@@ -168,4 +169,19 @@ test('26-week total bars and net diamonds stay inside the chart', async ({ page 
 
   await expect(page.locator('.score-bar-col')).toHaveCount(26);
   await expectBarGeometry(page);
+});
+
+test('a hovered column shows its tooltip below the chart card, centred on the column', async ({ page }) => {
+  await seedState(page, chartState('28d'));
+  await open(page);
+
+  const card = await box(page.locator('.score-chart'));
+  for (const i of [0, 27]) {
+    const hit = page.locator('.score-bar-col').nth(i).locator('.score-bar-hit');
+    await hit.hover();
+    const tip = await box(page.locator('.score-tooltip'));
+    expect(tip.y).toBeGreaterThanOrEqual(card.y + card.height);
+    const column = await box(hit);
+    expect(Math.abs(tip.x + tip.width / 2 - (column.x + column.width / 2))).toBeLessThanOrEqual(EPSILON);
+  }
 });
