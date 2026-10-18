@@ -15,9 +15,10 @@ Combined daily score from all active calendars, shown above the calendar section
 ## Marks
 - A zero line runs across the middle of the chart; positive values sit above it, negative below.
 - The positive and negative totals are filled bars growing from the zero line: green upward for
-  the positive total, red downward for the negative one. Bars are centred in their column and at
-  most 8px wide.
-- The net is a small diamond centred on its value and ringed in the card colour so it stays
+  the positive total, red downward for the negative one. Bars are at most 8px wide and sit 2px
+  left of their column's centre.
+- The net is a small diamond centred vertically on its value, 2px right of its column's centre,
+  and ringed in the card colour so it stays
   legible over a bar. It is gold when the net equals the positive total (no negatives), otherwise
   green for a positive net and red for a negative one. A zero net draws no diamond.
 - Bar height is relative to the largest absolute positive or negative score in the range: that

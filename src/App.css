@@ -872,6 +872,8 @@ body {
 
 .score-bar-wrap {
   --score-marker: 6px;
+  /* Bars sit this far left of column centre and diamonds this far right. */
+  --score-offset: 2px;
   position: relative;
   height: 80px;
 }
@@ -905,6 +907,7 @@ body {
   margin-inline: auto;
   width: 100%;
   max-width: 8px;
+  transform: translateX(calc(-1 * var(--score-offset)));
 }
 
 .score-total-pos {
@@ -927,7 +930,7 @@ body {
   margin-inline: auto;
   width: var(--score-marker);
   height: var(--score-marker);
-  transform: rotate(45deg);
+  transform: translateX(var(--score-offset)) rotate(45deg);
   box-shadow: 0 0 0 1px var(--bg-secondary);
   z-index: 1;
 }

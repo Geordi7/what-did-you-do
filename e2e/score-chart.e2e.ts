@@ -1,10 +1,10 @@
 /**
  * The score chart rendering case of `specs/05-02-browser-tier.md` "Scope", asserting the mark
  * geometry `specs/04-01-score-chart.md` "Marks" states: each total bar is filled, at most 8px wide,
- * centred in its column and grows from the zero line on its own side; each net diamond is centred
- * on its value and classed gold, up or down by its net; and every mark stays inside the chart
- * area. Whether the fills read as green, red or gold, and whether a marker reads as a diamond,
- * stay manual judgements.
+ * 2px left of its column's centre and grows from the zero line on its own side; each net diamond
+ * sits 2px right of its column's centre, is centred on its value and is classed gold, up or down
+ * by its net; and every mark stays inside the chart area. Whether the fills read as green, red or
+ * gold, and whether a marker reads as a diamond, stay manual judgements.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { open, seedState } from './harness';
@@ -15,6 +15,14 @@ const SEED_VERSION = 5;
 const EPSILON = 1;
 
 const MAX_BAR_WIDTH = 8;
+
+/** Bars sit this far left of their column's centre, and diamonds this far right. */
+const MARK_OFFSET = 2;
+
+async function columnCentre(mark: Locator): Promise<number> {
+  const column = await box(mark.locator('xpath=ancestor::*[contains(@class, "score-bar-col")]'));
+  return column.x + column.width / 2;
+}
 
 /** A marker smaller than this is a tick, not a diamond. */
 const MIN_MARKER_SIZE = 6;
@@ -82,8 +90,7 @@ async function expectBarGeometry(page: Page) {
     expect(b.height).toBeGreaterThan(0);
     expect(b.width).toBeLessThanOrEqual(MAX_BAR_WIDTH + EPSILON);
 
-    const column = await box(bar.locator('xpath=ancestor::*[contains(@class, "score-bar-col")]'));
-    expect(Math.abs(b.x + b.width / 2 - (column.x + column.width / 2))).toBeLessThanOrEqual(EPSILON);
+    expect(Math.abs(b.x + b.width / 2 - (await columnCentre(bar) - MARK_OFFSET))).toBeLessThanOrEqual(EPSILON);
 
     const fill = await bar.evaluate(el => getComputedStyle(el).backgroundColor);
     expect(fill).not.toBe('rgba(0, 0, 0, 0)');
@@ -98,8 +105,10 @@ async function expectBarGeometry(page: Page) {
 
   const markers = page.locator('.score-net');
   for (let i = 0; i < (await markers.count()); i++) {
-    const b = await box(markers.nth(i));
+    const marker = markers.nth(i);
+    const b = await box(marker);
     expect(b.height).toBeGreaterThanOrEqual(MIN_MARKER_SIZE);
+    expect(Math.abs(b.x + b.width / 2 - (await columnCentre(marker) + MARK_OFFSET))).toBeLessThanOrEqual(EPSILON);
   }
 
   const marks = page.locator('.score-total, .score-net');

@@ -35,8 +35,8 @@ file that restates them goes stale the moment a case is added.
     origin, driven by real `storage` events between two pages.
   - Two pages writing in the same turn resolve last-write-wins.
 - Score chart geometry, in `e2e/score-chart.e2e.ts`, in both ranges: each total bar is filled,
-  width-capped, centred and anchored on the zero line on its own side; each net diamond is
-  marker-sized, centred on its value and classed gold, up or down by its net; the full-scale bar
+  width-capped, offset left of centre and anchored on the zero line on its own side; each net
+  diamond is marker-sized, offset right of centre, centred on its value and classed gold, up or down by its net; the full-scale bar
   reaches the chart's edge; and no mark draws outside the chart area. Whether colours and shapes
   read right stays manual.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
