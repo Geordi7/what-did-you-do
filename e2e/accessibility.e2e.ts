@@ -38,6 +38,17 @@ test('day increments and resets announce the new count', async ({ page }) => {
   await expect(page.locator('[aria-live="polite"]')).toContainText('0 activities');
 });
 
+test('a day change is announced while an import outcome remains visible', async ({ page }) => {
+  await seedState(page, { version: 5, calendars: [calendar] });
+  await open(page);
+  await importFile(page, 'calendar.json', JSON.stringify({ version: 5, calendars: [{ ...calendar, id: 'b', name: 'Other' }] }));
+  await page.getByRole('button', { name: 'Apply', exact: true }).click();
+  await expect(page.locator('.import-status')).toContainText('Imported 1 calendar.');
+  await page.locator('.cell.today').first().focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[aria-live="polite"]')).toContainText('1 activity', { timeout: 1000 });
+});
+
 for (const version of [5, 999]) {
   test(`blocking dialog retains keyboard and programmatic focus (version ${version})`, async ({ page }) => {
     await seedState(page, { version, calendars: version === 5 ? [{ ...calendar, updatedAt: 'invalid' }] : [] });

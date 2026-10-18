@@ -40,11 +40,21 @@ function App() {
   const [themeOpen, setThemeOpen] = createSignal(false);
   const [importRows, setImportRows] = createSignal<ImportRow[] | null>(null);
   const [importStatus, setImportStatus] = createSignal<ImportStatus | null>(null);
+  const [announcement, setAnnouncement] = createSignal('');
   const [systemDark, setSystemDark] = createSignal(window.matchMedia('(prefers-color-scheme: dark)').matches);
   const isLight = createMemo(() => {
     const mode = store.theme;
     if (mode !== 'system') return mode === 'light';
     return !systemDark();
+  });
+
+  createEffect(() => {
+    const message = store.dayAnnouncement;
+    if (message) setAnnouncement(message);
+  });
+  createEffect(() => {
+    const status = importStatus();
+    if (status) setAnnouncement(status.text);
   });
 
   let fileInput: HTMLInputElement | undefined;
@@ -265,7 +275,7 @@ function App() {
         <div class="banner-region">
           <BackupBanner onExport={handleExportAll} />
           <div class="sr-only" aria-live="polite" aria-atomic="true">
-            {importStatus()?.text ?? store.dayAnnouncement}
+            {announcement()}
           </div>
 
           {/* The region is always mounted; only its contents come and go. A live region

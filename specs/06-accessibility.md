@@ -98,3 +98,4 @@ Actions:
 - The region announces the changed value only; it does not re-read the surrounding grid.
 - The same region announces an import outcome after the review modal closes, since the result
   appears on the status line once focus has already returned to the import control.
+- The latest event supplies the announcement, including day changes while an import outcome is still visible.
