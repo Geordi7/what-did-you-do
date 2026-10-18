@@ -973,8 +973,11 @@ body {
   z-index: 0;
 }
 
+/* Sized to its content, not to the room left of its position; the card width caps it inline. */
 .score-tooltip {
   position: absolute;
+  width: max-content;
+  box-sizing: border-box;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 4px;

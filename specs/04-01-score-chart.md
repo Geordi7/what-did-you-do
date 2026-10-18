@@ -26,7 +26,8 @@ Combined daily score from all active calendars, shown above the calendar section
   the chart area.
 - Hovering or focusing a column shows a tooltip with the date and the positive, negative, and net
   values. It sits wholly below the chart card, horizontally centred on its column, except that it
-  shifts inward as far as needed to stay within the card's width.
+  shifts inward as far as needed to stay within the card's width. It is as wide as its content
+  needs, at most the card's width, wherever its column is.
 
 ## Breakdown
 - Clicking a column pins its tooltip open and expands it with a breakdown of that day or week:

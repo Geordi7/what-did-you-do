@@ -247,6 +247,49 @@ test('clicking a column pins a breakdown that survives the pointer leaving', asy
   await expect(hit(page, 25)).not.toHaveAttribute('aria-describedby');
 });
 
+/** The tooltip's width if nothing constrained it: a max-content clone laid out off to the side. */
+async function naturalWidth(page: Page): Promise<number> {
+  return page.locator('.score-tooltip').evaluate(el => {
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.removeAttribute('id');
+    Object.assign(clone.style, { left: '0', top: '0', width: 'max-content', maxWidth: 'none', visibility: 'hidden' });
+    document.body.append(clone);
+    const width = clone.getBoundingClientRect().width;
+    clone.remove();
+    return width;
+  });
+}
+
+for (const width of [1280, 375]) {
+  test(`at ${width}px an edge column's breakdown keeps its natural width inside the card`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 700 });
+    // A long name on every edge-column day widens the breakdown past the collapsed tooltip.
+    const state = chartState('28d');
+    state.calendars.push({
+      id: 'sc-long',
+      name: 'Morning stretching routine',
+      color: '#0969da',
+      days: { [dayKey(0)]: 2, [dayKey(-27)]: 2, [dayKey(-1)]: 2 },
+      activityValue: 0,
+      updatedAt: '2025-05-10T00:00:00.000Z',
+    });
+    await seedState(page, state);
+    await open(page);
+
+    const card = await box(page.locator('.score-chart'));
+    for (const i of [27, 0, 26]) {
+      // Sweep towards the column the way a pointer does, then click it.
+      for (const j of [13, i]) await hit(page, j).hover();
+      await hit(page, i).click();
+      await expect(page.locator('.score-tooltip')).toHaveClass(/score-tooltip-pinned/);
+      const tip = await box(page.locator('.score-tooltip'));
+      expect(tip.width).toBeGreaterThanOrEqual(await naturalWidth(page) - EPSILON);
+      expect(tip.x).toBeGreaterThanOrEqual(card.x - EPSILON);
+      expect(tip.x + tip.width).toBeLessThanOrEqual(card.x + card.width + EPSILON);
+    }
+  });
+}
+
 test('a column with no counts reads "No activity"', async ({ page }) => {
   await seedState(page, chartState('28d'));
   await open(page);

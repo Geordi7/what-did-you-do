@@ -192,6 +192,7 @@ export default function ScoreChart(props: { isLight: boolean; now: () => Date })
               style={{
                 left: `${tooltipLeft()}px`,
                 top: `${tooltip()!.y + TOOLTIP_OFFSET}px`,
+                'max-width': `${tooltip()!.maxX - tooltip()!.minX}px`,
               }}
             >
               <div class="score-tooltip-date">{bar().label}</div>
