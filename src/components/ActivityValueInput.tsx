@@ -47,6 +47,8 @@ export default function ActivityValueInput(props: Props) {
       <span>Activity Value</span>
       <input
         type="text"
+        role="menuitem"
+        aria-label={`Activity value: ${props.cal.name}`}
         inputmode="decimal"
         class="value-input"
         value={text()}

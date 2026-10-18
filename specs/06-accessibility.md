@@ -18,6 +18,7 @@ Every flow is reachable by keyboard alone, in both themes.
 - `Escape` closes the menu, as does a click outside it.
 - Opening the menu moves focus into it; closing it returns focus to the trigger, however
   it was closed.
+- Calendar name, color, and activity-value inputs have explicit accessible names identifying the calendar.
 
 ## Modal surfaces
 Two surfaces take over the page: the import review modal, where the user decides what each
@@ -34,6 +35,7 @@ Common behaviour:
   the calendar, the overflow menu, or anything else behind it.
 - Content behind the dialog is inert to the screen reader as well as to the pointer, so the
   grid is not readable while a dialog is up.
+- Native inert is supplemented by a focus guard for the browser baseline. A dialog without controls retains focus on its panel for both Tab directions.
 - Closing returns focus to the element that opened the dialog, however it was closed.
 
 ### Import review modal

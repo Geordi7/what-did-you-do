@@ -2,6 +2,7 @@ import { Show, createSignal, onMount } from 'solid-js';
 import { formatDiagnostic } from '../diagnostic';
 import { downloadFile } from '../utils';
 import type { Diagnostic } from '../types';
+import { guardModalFocus } from '../modal-focus';
 
 /**
  * The unrecoverable-data message of `specs/04-03-dialogs.md`.
@@ -45,13 +46,18 @@ export default function BlockingMessage(props: { diagnostic: Diagnostic | null }
 
   let copyBtn: HTMLButtonElement | undefined;
   let dialogEl: HTMLDivElement | undefined;
+  guardModalFocus(() => dialogEl);
 
   // The trap holds for the life of the page: there is no safe state to dismiss
   // to, so Tab cycles between the two diagnostic controls and nothing else.
   function onKeyDown(e: KeyboardEvent) {
     if (e.key !== 'Tab' || dialogEl === undefined) return;
     const stops = Array.from(dialogEl.querySelectorAll<HTMLElement>('button'));
-    if (stops.length === 0) return;
+    if (stops.length === 0) {
+      e.preventDefault();
+      dialogEl.focus();
+      return;
+    }
     const first = stops[0];
     const last = stops[stops.length - 1];
     const active = document.activeElement;

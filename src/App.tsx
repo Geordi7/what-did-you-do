@@ -182,7 +182,7 @@ function App() {
 
   return (
     <>
-      <div class="app" aria-hidden={store.blocked || importRows() !== null}>
+      <div class="app" aria-hidden={store.blocked || importRows() !== null} inert={store.blocked || importRows() !== null}>
         <header class="header">
           <div class="title-row">
             <div>
@@ -247,6 +247,9 @@ function App() {
         {/* The one banner region: backup reminder, import status, storage error. */}
         <div class="banner-region">
           <BackupBanner onExport={handleExportAll} />
+          <div class="sr-only" aria-live="polite" aria-atomic="true">
+            {importStatus()?.text ?? store.dayAnnouncement}
+          </div>
 
           {/* The region is always mounted; only its contents come and go. A live region
               inserted in the same mutation as its text is routinely not announced. */}
@@ -258,7 +261,7 @@ function App() {
               'import-status-success': importStatus()?.kind === 'success',
             }}
             role="status"
-            aria-live="polite"
+            aria-live="off"
           >
             <Show when={importStatus()}>
               {status => (
@@ -294,6 +297,7 @@ function App() {
               ref={el => { newNameInput = el; }}
               type="text"
               placeholder="Calendar name…"
+              aria-label="New calendar name"
               value={newName()}
               onInput={(e) => setNewName(e.currentTarget.value)}
               onKeyDown={handleNewCalKeydown}

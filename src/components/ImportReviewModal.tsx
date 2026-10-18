@@ -1,5 +1,6 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import { store } from '../store';
+import { guardModalFocus } from '../modal-focus';
 import type { ImportRow, MergeAction, RowDisposition } from '../types';
 
 /**
@@ -114,6 +115,7 @@ export default function ImportReviewModal(props: {
   }
 
   let dialogEl: HTMLDivElement | undefined;
+  guardModalFocus(() => dialogEl);
 
   // Escape is a Cancel, and Tab is trapped. An open native select swallows both
   // itself, so dismissing the dropdown never cancels the import.

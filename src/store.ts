@@ -363,6 +363,14 @@ export const store = createRoot(() => {
   );
 
   const [highlightedKey, setHighlightedKey] = createSignal<string | null>(null);
+  const [dayAnnouncement, setDayAnnouncement] = createSignal('');
+
+  function announceDay(id: string, key: string) {
+    const cal = state.calendars.find(candidate => candidate.id === id);
+    if (!cal) return;
+    const count = cal.days[key] ?? 0;
+    setDayAnnouncement(`${cal.name}, ${key}: ${count} ${count === 1 ? 'activity' : 'activities'}.`);
+  }
 
   /* ── persistence ───────────────────────────────────────────────────────── */
 
@@ -490,6 +498,9 @@ export const store = createRoot(() => {
     get storageError(): string | null {
       return Object.values(storageErrors())[0] ?? null;
     },
+    get dayAnnouncement(): string {
+      return dayAnnouncement();
+    },
     get blocked(): boolean {
       return blocked;
     },
@@ -588,6 +599,7 @@ export const store = createRoot(() => {
       editCalendar(calId, cal => {
         cal.days[dateKey] = (cal.days[dateKey] ?? 0) + 1;
       });
+      announceDay(calId, dateKey);
     },
 
     /** Resetting a day deletes its key rather than storing `0`. */
@@ -604,6 +616,7 @@ export const store = createRoot(() => {
           cal.updatedAt = now;
         }),
       );
+      announceDay(calId, dateKey);
     },
 
     /* ── export ──────────────────────────────────────────────────────────── */
