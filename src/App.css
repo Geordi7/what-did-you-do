@@ -18,7 +18,7 @@
   --scrim: rgba(1, 4, 9, 0.7);
   --cell-size: 12px;
   --cell-gap: 2px;
-  --month-band: rgba(255, 255, 255, 0.14);
+  --month-band: rgba(1, 4, 9, 0.55);
   --hatch: rgba(255, 255, 255, 0.22);
 }
 
@@ -32,7 +32,7 @@
   --accent: #0969da;
   --danger: #cf222e;
   --scrim: rgba(27, 31, 36, 0.45);
-  --month-band: rgba(31, 35, 40, 0.14);
+  --month-band: rgba(255, 255, 255, 0.9);
   --hatch: rgba(31, 35, 40, 0.2);
 }
 
@@ -46,7 +46,7 @@
   --accent: #58a6ff;
   --danger: #f85149;
   --scrim: rgba(1, 4, 9, 0.7);
-  --month-band: rgba(255, 255, 255, 0.14);
+  --month-band: rgba(1, 4, 9, 0.55);
   --hatch: rgba(255, 255, 255, 0.22);
 }
 
