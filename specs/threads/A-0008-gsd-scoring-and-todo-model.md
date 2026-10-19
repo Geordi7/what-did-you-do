@@ -87,3 +87,24 @@ Q7: agree... add to sort bar a filter button to filter for scoring calendars vs 
 > Q12. The All / Scoring / GSD filter persists across reloads, with the sort. Proposed: yes.
 >
 > When these are settled, say "decided" and I write the outcome.
+
+Q8: prefill 1, let's also have GSD-calendar setting that changes the default bounty for that calendar
+Q9: Agree
+Q10: Agree
+Q11 agree
+Q12 agree
+
+decided or discuss Q8 further?
+
+> Q9–Q12: adopted as proposed.
+>
+> Q8, my reading: each GSD calendar has a "Default bounty" setting (default 1), changed from its
+> menu. A new root todo's bounty field is prefilled with that value and stays editable. One
+> point to pin down before I write the outcome:
+> Q8a. How far does the calendar default reach? Proposed:
+> - creation points stay fixed: 1 for a root todo, 0.5 for a Nudge;
+> - a Nudge's bounty starts at half the calendar default (0.5 when the default is 1);
+> - on promotion to root, the bounty becomes the larger of its current value and the calendar
+>   default (Q9), and the creation point is topped up to 1.
+>
+> If that reading holds, say "decided".

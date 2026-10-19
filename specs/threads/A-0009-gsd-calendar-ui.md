@@ -69,3 +69,32 @@ Q8: yes
 > are still open; nothing once all are done. Proposed: yes.
 >
 > When these are settled, say "decided" and I write the outcome.
+
+Q1: agree on hash url
+Q5: so... let's shift to this:
+- all calendars show 4 weeks forwards always, future days are hatched. so all calendars line up (5a)
+- maybe reduce the history by a few weeks
+- add an alternating background effect to show which month each day is associated with
+- lets make due dates a thick Dot in the middle of that day, same color approach
+
+decided or needs more?
+
+> Q1: hash URLs, adopted.
+>
+> Q5, my reading (this replaces Q5a/Q5b):
+> - Every grid, scoring and GSD alike, shows 22 weeks back and 4 weeks forward: 26 columns, the
+>   same width as today, so all grids line up and the cross-calendar date highlight keeps working.
+> - Future days are hatched. On scoring calendars they are not clickable.
+> - Days alternate between two backgrounds by calendar month, so each day's month is visible at
+>   a glance.
+> - A day with open todos due gets a thick dot in its centre, in the foreground colour; the dot
+>   turns red once the day has passed with todos still open; no dot once all are done.
+>
+> Two points left:
+> Q5c. The alternating month background: cells with counts carry the heatmap colour, so the
+> month shows on empty cells only (two neutral shades, alternating by month), plus a faint band
+> behind the cells for the gaps. Proposed: yes.
+> Q5d. The score chart's "Last 26 weeks" view: proposed it becomes "Last 22 weeks", matching the
+> grid's history, and shows no future columns.
+>
+> If those hold, say "decided".
