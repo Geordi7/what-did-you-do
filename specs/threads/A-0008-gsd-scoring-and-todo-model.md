@@ -41,3 +41,49 @@ links: {related: [0009, 0007]}
 > existing calendar `kind: 'scoring'`. Proposed: yes.
 > Q7. Any number of GSD calendars, created from the create bar with a kind choice
 > (Scoring / Getting Stuff Done). Proposed: yes.
+
+Q1: looks good...
+on d: let's call this 'Nudge'
+Q2: we want to push the user in the direction of setting due dates and bounties, default due date of one week hence, allow 'removing' a due date
+Q3: Agree, when completing, give a way to set an earlier completed date, to allow consistency
+Q4: Two things:
+- cannot complete a parent with open children
+- a child has the option to be 'promoted' to its grandparent (up to the root). If a child gets promoted to its root then its derived scores get the corresponding boost: 1 point on creation day, and a 1 point bounty
+Q5: The 'activity count' for a GSD calendar is number of root level activities completed, everything else yes.
+Q6: 
+- activity value as above, derived
+- agree
+Q7: agree... add to sort bar a filter button to filter for scoring calendars vs gsd calendars
+
+> Thanks. My reading, then the points still open.
+>
+> Readings — confirm or correct:
+> - Q1: (a)–(e) as written; the child action is called **Nudge**.
+> - Q2: the add form always shows bounty and due date; due date is prefilled one week from today
+>   (a Nudge starts with its parent's due date instead); a due date can be removed; both fields
+>   stay editable.
+> - Q3: points are derived. Marking done asks for the completion date, defaulting to today and
+>   allowing an earlier date (not before the todo was created, not in the future). On-time vs
+>   late is judged on that date, and the points land on that date.
+> - Q4: a todo with any open child cannot be marked done (its checkbox is disabled, with the
+>   reason as its label). Promote moves a Nudge up one level to its grandparent's children,
+>   subtree included. Promotion between nudge levels changes no points.
+> - Q5: a GSD calendar's **activity count** for a day is the number of root-level todos marked
+>   done that day. Its **score** for a day is the points earned that day, which join the chart.
+> - Q7: any number of GSD calendars; the sort bar gains a filter: All / Scoring / GSD.
+>
+> Open points:
+> Q8. Bounty push: what should push the user to set a bounty? Proposed: the bounty field starts
+> empty with placeholder "bounty", and Add stays disabled until it holds a number. (Due date is
+> prefilled, so it pushes by default.) Or prefill 1, like the due date?
+> Q9. Promotion to root: points become 1 on the original creation day, and the bounty becomes 1.
+> If the user had already edited the Nudge's bounty (say to 3), does promotion keep 3, set 1, or
+> take the larger? Proposed: the larger of the two.
+> Q10. Heatmap: the cell colour for a GSD day follows its activity count (root todos done), like
+> a scoring calendar; points show in the hover detail and the chart. Or should the colour follow
+> points? Proposed: activity count, for consistency.
+> Q11. Sort for GSD calendars: Activities = root todos done in the visible window; Score =
+> points in the window; Recent = latest day with any points (created or done). Proposed: yes.
+> Q12. The All / Scoring / GSD filter persists across reloads, with the sort. Proposed: yes.
+>
+> When these are settled, say "decided" and I write the outcome.

@@ -36,3 +36,36 @@ links: {related: [0008]}
 > due that day; clicking it again clears the filter. Proposed: yes — or no day action at all.
 > Q8. The GSD calendar's menu offers the same options as a scoring calendar's
 > (colour, move, Export, Delete) minus activity value. Proposed: yes.
+
+Q1: agree, must SPA urls be based on `#` fragments?
+Q2: agree
+Q3: agree
+Q4: agree
+Q5: a - extend calendar as needed (so all due dates within 4 weeks are visible) add a visual indication that differentiates past/future, apply the same indication to scoring calendars
+Q6: good, keep the layout compact, push done todos to the bottom
+Q7: good feature, but any interaction outside the todo list should clear this feature
+Q8: yes
+
+> Q2, Q3, Q4, Q8: adopted as proposed. Q6: compact layout, done todos sink to the bottom of their
+> sibling group. Q7: any interaction outside the todo list (and outside the day that set the
+> filter) clears it.
+>
+> On Q1's question — no, SPA URLs need not use `#`. Path URLs (`/gsd/<id>`) via the History API
+> look cleaner, but every host must then serve `index.html` for any path, or a reload or bookmark
+> on the todo page 404s. The deploy target is still deferred (thread 0002), and static hosts
+> such as GitHub Pages have no such rewrite. Hash URLs work on any host and from `file://`, with no
+> server setup. Proposed: hash now; path URLs could follow once thread 0002 picks a host with
+> rewrites. Q1a: hash or path?
+>
+> On Q5 — my reading, plus two points:
+> - Every grid extends forward just far enough to show the latest open due date within the next
+>   4 weeks, across all GSD calendars, and not at all when none is due. The 26 weeks back stay.
+> - Future days look different from past days (proposed: faint hatched cells), and the same
+>   treatment applies to scoring calendars.
+> Q5a. Should scoring calendars extend by the same weeks, so every grid's columns line up and the
+> cross-calendar date highlight keeps working? Their future cells would be hatched and not
+> clickable. Proposed: yes, all grids share one forward extension.
+> Q5b. Due markers: a ring on a day with open todos due; red ring when that day has passed and they
+> are still open; nothing once all are done. Proposed: yes.
+>
+> When these are settled, say "decided" and I write the outcome.

@@ -6,6 +6,19 @@ affects:
 tags: [ui, menu, header, accessibility]
 links: {}
 ---
+## Outcome
+Decision: the header keeps only title and subtitle plus one ☰ hamburger button at its right. The
+hamburger menu holds New calendar (opens the create bar and closes the menu), Import, Export all,
+and the theme as three radio items (Light / Dark / System). Each calendar's overflow menu trigger
+becomes a ⋮ vertical-dots (kebab) button; its contents are unchanged. The hamburger follows the
+same keyboard and ARIA rules as the calendar menu (role="menu", arrows, Home/End, Escape and
+click-outside close, focus returns to the trigger).
+Rejected:
+1. Keeping theme, create, import and export as separate header buttons: the operator wants them
+   collected into one menu.
+2. A ⋯ horizontal-dots trigger (today's "…"), restyled or not: the operator chose kebab.
+Reopen if: the header gains a control that must stay one tap away.
+
 ## Thread
 > Operator asked in chat: collect the top menu items into a hamburger menu, and change the
 > per-calendar menus into "sushi" menus. How exactly should both menus look and behave?
@@ -26,3 +39,14 @@ links: {}
 > focus returns to the button). Proposed: yes.
 > Q4. Choosing "New calendar" in the hamburger opens the existing create bar below the header,
 > and closes the menu. Proposed: yes.
+
+Q1: fine
+Q2: let's go with kebab
+Q3: no opinion
+Q4: fine
+
+decided!
+
+> Q1, Q4: adopted as proposed. Q2: kebab (⋮). Q3: with no preference stated, I apply the
+> proposal — the hamburger uses the calendar menu's keyboard rules, so the app has one menu
+> behaviour. Decided in thread; renamed A → R. Applying now.
