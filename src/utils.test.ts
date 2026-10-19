@@ -118,8 +118,8 @@ describe('cellColor', () => {
 
   it('renders the zero-activity color at or below zero, per theme', () => {
     for (const intensity of [0, -0.4, -1]) {
-      expect(cellColor(base, intensity, true)).toBe('#ebedf0');
-      expect(cellColor(base, intensity, false)).toBe('#1d2226');
+      expect(cellColor(base, intensity, true)).toBe('#d8dde3');
+      expect(cellColor(base, intensity, false)).toBe('#2d333b');
     }
   });
 
@@ -128,16 +128,16 @@ describe('cellColor', () => {
     expect(cellColor(base, 1, true)).toBe(base);
   });
 
-  it('lifts 25% of max to a 50% mix, as specs/04-design.md states', () => {
+  it('lifts 25% of max to a 50% mix, as specs/04-05-calendar-grid.md states', () => {
     // 0.25 ** 0.5 === 0.5: halfway between the zero-cell color and the calendar color.
-    expect(cellColor(base, 0.25, false)).toBe('#2f7345');
-    expect(cellColor(base, 0.25, true)).toBe('#96d9aa');
+    expect(cellColor(base, 0.25, false)).toBe('#377c4f');
+    expect(cellColor(base, 0.25, true)).toBe('#8cd1a3');
   });
 
-  it('lifts 50% of max to a 71% mix, as specs/04-design.md states', () => {
+  it('lifts 50% of max to a 71% mix, as specs/04-05-calendar-grid.md states', () => {
     // 0.5 ** 0.5 === 0.7071...
-    expect(cellColor(base, 0.5, false)).toBe('#369551');
-    expect(cellColor(base, 0.5, true)).toBe('#72d08c');
+    expect(cellColor(base, 0.5, false)).toBe('#3a9a57');
+    expect(cellColor(base, 0.5, true)).toBe('#6dcb88');
   });
 
   it('names the curve exponent as a constant of 0.5', () => {
@@ -149,7 +149,7 @@ describe('cellColor', () => {
   it('rises monotonically between zero and max', () => {
     // Distinctness alone would also pass for an inverted or non-monotonic curve, so
     // measure how far each step has travelled from the zero-activity background.
-    const bg = [29, 34, 38];
+    const bg = [45, 51, 59];
     const distanceFromBg = (hex: string) =>
       [1, 3, 5].reduce(
         (sum, at, channel) => sum + Math.abs(parseInt(hex.substring(at, at + 2), 16) - bg[channel]),

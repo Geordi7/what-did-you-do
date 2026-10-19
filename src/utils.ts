@@ -61,12 +61,12 @@ export function rgbToHex(r: number, g: number, b: number): string {
   return '#' + [clamp(r), clamp(g), clamp(b)].map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
-// Positive-bias curve, see specs/04-design.md "Heatmap intensity curve".
+// Positive-bias curve, see specs/04-05-calendar-grid.md "Heatmap intensity curve".
 export const INTENSITY_EXPONENT = 0.5;
 
 export function cellColor(baseHex: string, intensity: number, isLight = false): string {
-  if (intensity <= 0) return isLight ? '#ebedf0' : '#1d2226';
-  const bg: [number, number, number] = isLight ? [235, 237, 240] : [29, 34, 38];
+  if (intensity <= 0) return isLight ? '#d8dde3' : '#2d333b';
+  const bg: [number, number, number] = isLight ? [216, 221, 227] : [45, 51, 59];
   const [r, g, b] = parseHex(baseHex);
   const t = intensity ** INTENSITY_EXPONENT;
   return rgbToHex(

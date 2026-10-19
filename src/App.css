@@ -18,8 +18,9 @@
   --scrim: rgba(1, 4, 9, 0.7);
   --cell-size: 12px;
   --cell-gap: 2px;
-  --month-band: rgba(1, 4, 9, 0.55);
-  --hatch: rgba(255, 255, 255, 0.22);
+  --month-band: #010409;
+  --month-band-other: #22272e;
+  --hatch: rgba(255, 255, 255, 0.09);
 }
 
 :root[data-theme-resolved='light'] {
@@ -32,8 +33,9 @@
   --accent: #0969da;
   --danger: #cf222e;
   --scrim: rgba(27, 31, 36, 0.45);
-  --month-band: rgba(255, 255, 255, 0.9);
-  --hatch: rgba(31, 35, 40, 0.2);
+  --month-band: #ffffff;
+  --month-band-other: #e2e6ea;
+  --hatch: rgba(31, 35, 40, 0.08);
 }
 
 :root[data-theme-resolved='dark'] {
@@ -46,8 +48,9 @@
   --accent: #58a6ff;
   --danger: #f85149;
   --scrim: rgba(1, 4, 9, 0.7);
-  --month-band: rgba(1, 4, 9, 0.55);
-  --hatch: rgba(255, 255, 255, 0.22);
+  --month-band: #010409;
+  --month-band-other: #22272e;
+  --hatch: rgba(255, 255, 255, 0.09);
 }
 
 body {
@@ -574,6 +577,7 @@ body {
    the day's month without touching the cell colour. */
 .cell-slot {
   padding: calc(var(--cell-gap) / 2);
+  background: var(--month-band-other);
 
   &.month-alt {
     background: var(--month-band);
