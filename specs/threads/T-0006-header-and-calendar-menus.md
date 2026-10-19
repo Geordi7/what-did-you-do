@@ -50,3 +50,7 @@ decided!
 > Q1, Q4: adopted as proposed. Q2: kebab (⋮). Q3: with no preference stated, I apply the
 > proposal — the hamburger uses the calendar menu's keyboard rules, so the app has one menu
 > behaviour. Decided in thread; renamed A → R. Applying now.
+
+> Applied: header ☰ menu and ⋮ calendar trigger, sharing one menu helper; specs 04-design,
+> 06-accessibility, 02-architecture and the browser and manual test lists updated;
+> `e2e/menus.e2e.ts` added. Renamed R → T.

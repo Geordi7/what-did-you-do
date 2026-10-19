@@ -6,7 +6,7 @@
 - `04-03-dialogs.md` — the import review modal and the unrecoverable-data blocking message.
 
 ## Visual style
-- Light, dark, and system themes, selectable from the header. `system` is the default.
+- Light, dark, and system themes, selectable from the header menu. `system` is the default.
 - GitHub-like palette for the heatmap in both themes.
 - Each calendar is a flat section, separated from the next by a thin rule and a small margin;
   vertical space is kept to a minimum.
@@ -26,11 +26,12 @@
 - A user whose stored choice differs from their system setting sees the system theme for one frame.
 
 ## Layout
-- Header contains title, subtitle, theme selector, create toggle, and import/export icon buttons.
+- Header contains title, subtitle, and a ☰ menu button: New calendar, Import, Export all, and the
+  theme as Light / Dark / System radio items.
 - Banner region sits directly below the header and carries all app notifications.
 - Score chart above the calendar sections.
 - Collapsible create bar, calendar sections, hint, trash section.
-- Calendar section header is one row: name on the left; total in small dim text and a "…"
+- Calendar section header is one row: name on the left; total in small dim text and a ⋮
   overflow menu on the right.
 - Grid and detail panel sit side by side on desktop.
 - Grid and detail stack on mobile, the detail's date, badge and score on one line.
@@ -39,9 +40,9 @@
   with no day highlighted it invites the user to select one.
 
 ## Controls
-- Header toggle shows and hides the create bar; the bar holds a name input, Create, and Cancel.
+- The menu's New calendar opens the create bar; the bar holds a name input, Create, and Cancel.
 - Inline text input for calendar rename.
-- The "…" overflow menu holds color picker, activity value, move up, move down, Export, and Delete.
+- The ⋮ overflow menu holds color picker, activity value, move up, move down, Export, and Delete.
 - Trash section offers Recover and Delete forever per item. There is no empty-trash control.
 - Delete forever confirms through a native `confirm` dialog, the app's only native dialog.
 - Calendar cells act as buttons.

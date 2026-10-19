@@ -1,7 +1,8 @@
-import { createSignal, createEffect, onCleanup, Show } from 'solid-js';
+import { Show } from 'solid-js';
 import { store } from '../store';
-import { downloadFile, onClickOutside } from '../utils';
+import { downloadFile } from '../utils';
 import ActivityValueInput from './ActivityValueInput';
+import { createMenu } from './menu';
 import type { Calendar } from '../types';
 
 interface Props {
@@ -11,54 +12,7 @@ interface Props {
 }
 
 export default function CalendarMenu(props: Props) {
-  const [open, setOpen] = createSignal(false);
-  let root: HTMLDivElement | undefined;
-  let trigger: HTMLButtonElement | undefined;
-  let menu: HTMLDivElement | undefined;
-
-  function close() {
-    setOpen(false);
-    trigger?.focus();
-  }
-
-  function toggle(e: MouseEvent) {
-    e.stopPropagation();
-    if (open()) close();
-    else setOpen(true);
-  }
-
-  const items = () => Array.from(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)') ?? []);
-
-  function navigate(e: KeyboardEvent) {
-    const stops = items();
-    if (stops.length === 0) return;
-    const at = stops.findIndex(el => el === document.activeElement);
-    let next: number;
-    if (e.key === 'ArrowDown') next = (at + 1) % stops.length;
-    else if (e.key === 'ArrowUp') next = (at - 1 + stops.length) % stops.length;
-    else if (e.key === 'Home') next = 0;
-    else if (e.key === 'End') next = stops.length - 1;
-    else if (e.key === 'Tab') { close(); return; }
-    else return;
-    e.preventDefault();
-    stops[next].focus();
-  }
-
-  // Document-level listeners exist only while the menu is open, and each one is
-  // disposed when it closes or the component goes away — specs/02-01-coding-standard.md.
-  createEffect(() => {
-    if (!open()) return;
-    items()[0]?.focus();
-    const el = root;
-    if (el !== undefined) {
-      onCleanup(onClickOutside(el, close));
-    }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
-    };
-    document.addEventListener('keydown', handleEscape);
-    onCleanup(() => document.removeEventListener('keydown', handleEscape));
-  });
+  const { open, close, toggle, onTriggerKeyDown, onMenuKeyDown, refs } = createMenu();
 
   function handleExport() {
     // A plain-JSON envelope, not base64 — see specs/03-02-import-export.md.
@@ -70,30 +24,21 @@ export default function CalendarMenu(props: Props) {
   }
 
   return (
-    <div class="cal-menu" ref={root}>
+    <div class="cal-menu" ref={el => { refs.root = el; }}>
       <button
         class="cal-menu-trigger"
-        ref={trigger}
+        ref={el => { refs.trigger = el; }}
         onClick={toggle}
         title="Calendar actions"
         aria-label="Calendar actions"
         aria-expanded={open()}
         aria-haspopup="menu"
-        onKeyDown={e => {
-          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            setOpen(true);
-            if (e.key === 'ArrowUp') {
-              const stops = items();
-              stops[stops.length - 1]?.focus();
-            }
-          }
-        }}
+        onKeyDown={onTriggerKeyDown}
       >
-        …
+        ⋮
       </button>
       <Show when={open()}>
-        <div class="cal-menu-dropdown" role="menu" ref={menu} onKeyDown={navigate} onClick={(e) => e.stopPropagation()}>
+        <div class="cal-menu-dropdown" role="menu" ref={el => { refs.menu = el; }} onKeyDown={onMenuKeyDown} onClick={(e) => e.stopPropagation()}>
           <label class="cal-menu-item cal-menu-color">
             <span>Color</span>
             <input

@@ -88,10 +88,16 @@ export async function importFile(page: Page, name: string, contents: string): Pr
   });
 }
 
-/** Click Export all and return the downloaded file's text. */
+/** Choose an item from the header's ☰ menu, by its role and accessible name. */
+export async function chooseFromMenu(page: Page, name: string, role: 'menuitem' | 'menuitemradio' = 'menuitem'): Promise<void> {
+  await page.locator('header').getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole(role, { name, exact: true }).click();
+}
+
+/** Choose Export all and return the downloaded file's text. */
 export async function exportToText(page: Page): Promise<string> {
   const waitForDownload = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export all calendars' }).click();
+  await chooseFromMenu(page, 'Export all calendars');
   const download = await waitForDownload;
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];

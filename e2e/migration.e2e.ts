@@ -174,7 +174,8 @@ test('Case 2: a version-2 payload keeps its theme and colour', async ({ page }) 
   // Step 3: dark applied, and the selector says so.
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme-resolved', 'dark');
-  await expect(page.getByRole('button', { name: 'Theme: Dark' })).toBeVisible();
+  await page.locator('header').getByRole('button', { name: 'Menu' }).click();
+  await expect(page.getByRole('menuitemradio', { name: 'Dark', exact: true })).toHaveAttribute('aria-checked', 'true');
 
   // Step 4.
   const cal = await page.evaluate(() => window.__store!.activeCalendars[0]);
@@ -200,7 +201,8 @@ test('Case 2: a version-1 payload with no theme resolves to system', async ({ pa
 
   expect(await page.evaluate(() => window.__store!.theme)).toBe('system');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'system');
-  await expect(page.getByRole('button', { name: 'Theme: System' })).toBeVisible();
+  await page.locator('header').getByRole('button', { name: 'Menu' }).click();
+  await expect(page.getByRole('menuitemradio', { name: 'System', exact: true })).toHaveAttribute('aria-checked', 'true');
 
   const cal = await page.evaluate(() => window.__store!.activeCalendars[0]);
   expect(cal.color).toBe('#40c463');

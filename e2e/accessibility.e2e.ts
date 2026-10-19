@@ -59,7 +59,7 @@ for (const version of [5, 999]) {
       await page.keyboard.press(key);
       expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
     }
-    await page.locator('.add-cal-btn').evaluate((el: HTMLButtonElement) => el.focus());
+    await page.locator('.header-menu-trigger').evaluate((el: HTMLButtonElement) => el.focus());
     expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
   });
 }
@@ -73,8 +73,8 @@ test('import dialog traps focus and returns it on cancel', async ({ page }) => {
   await page.getByRole('button', { name: 'Cancel', exact: true }).focus();
   await page.keyboard.press('Tab');
   expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
-  await page.locator('.add-cal-btn').evaluate((el: HTMLButtonElement) => el.focus());
+  await page.locator('.header-menu-trigger').evaluate((el: HTMLButtonElement) => el.focus());
   expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: 'Import calendars' })).toBeFocused();
+  await expect(page.locator('header').getByRole('button', { name: 'Menu' })).toBeFocused();
 });

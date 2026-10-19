@@ -16,10 +16,12 @@ Every flow is reachable by keyboard alone, in both themes.
 - The column's accessible name carries its date and values; a pinned breakdown is referenced from
   the column with `aria-describedby`.
 
-## Overflow menu
-- The "…" trigger carries `aria-haspopup="menu"` and `aria-expanded` reflecting open state.
+## Menus
+The header's ☰ menu and each calendar's ⋮ overflow menu behave alike.
+- The trigger carries `aria-haspopup="menu"` and `aria-expanded` reflecting open state.
 - The popup carries `role="menu"`; each control inside it is a `role="menuitem"` (or the
-  matching `menuitemcheckbox` / `menuitemradio` where the control has a state).
+  matching `menuitemcheckbox` / `menuitemradio` where the control has a state). The theme items
+  are `menuitemradio`, with `aria-checked` marking the current theme.
 - `ArrowDown` / `ArrowUp` move focus between items and wrap at the ends.
 - `Home` / `End` move to the first and last item.
 - `Escape` closes the menu, as does a click outside it.
@@ -46,7 +48,8 @@ Common behaviour:
 - Closing returns focus to the element that opened the dialog, however it was closed.
 
 ### Import review modal
-- `Escape` is a Cancel: nothing is written, and focus returns to the import control that started it.
+- `Escape` is a Cancel: nothing is written, and focus returns to the header's ☰ menu button, from
+  which the import started.
 - Opening moves focus to the first row's own control, so the first thing read is a row and not the
   surrounding chrome.
 
@@ -104,5 +107,5 @@ Actions:
   clear is audible without moving focus.
 - The region announces the changed value only; it does not re-read the surrounding grid.
 - The same region announces an import outcome after the review modal closes, since the result
-  appears on the status line once focus has already returned to the import control.
+  appears on the status line once focus has already returned to the menu button.
 - The latest event supplies the announcement, including day changes while an import outcome is still visible.

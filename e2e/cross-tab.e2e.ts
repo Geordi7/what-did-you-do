@@ -13,7 +13,7 @@
  * for such an echo to have landed.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { EXPORT_KEY, STORAGE_KEY, THEME_KEY, open, readKey, readState, seed } from './harness';
+import { EXPORT_KEY, STORAGE_KEY, THEME_KEY, chooseFromMenu, open, readKey, readState, seed } from './harness';
 
 const SEED_VERSION = 5;
 
@@ -128,8 +128,7 @@ test('a theme change in one tab lands in the other', async ({ context }) => {
   await recordStorageEvents(writer);
   await recordStorageEvents(reader);
 
-  await writer.getByRole('button', { name: /^Theme:/ }).click();
-  await writer.getByRole('button', { name: 'Dark', exact: true }).click();
+  await chooseFromMenu(writer, 'Dark', 'menuitemradio');
 
   await expect.poll(() => reader.evaluate(() => window.__store!.theme)).toBe('dark');
   await expect(reader.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -158,7 +157,7 @@ test('an export in one tab lands in the other', async ({ context }) => {
   await expect(reader.locator('.backup-banner')).toBeVisible();
 
   const download = writer.waitForEvent('download');
-  await writer.getByRole('button', { name: 'Export all calendars' }).click();
+  await chooseFromMenu(writer, 'Export all calendars');
   await download;
 
   await expect.poll(() => reader.evaluate(() => window.__store!.lastExport)).not.toBeNull();

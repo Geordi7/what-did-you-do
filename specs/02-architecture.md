@@ -10,7 +10,9 @@ SolidJS single-page app with Vite build.
 - `src/main.tsx` mounts `App` into `#root`.
 - `src/App.tsx` composes shell, calendar list, create flow, trash flow.
 - `src/components/CalendarGrid.tsx` renders heatmap grid and day detail panel.
-- `src/components/CalendarMenu.tsx` is the per-calendar "…" menu.
+- `src/components/HeaderMenu.tsx` is the header's ☰ menu.
+- `src/components/CalendarMenu.tsx` is the per-calendar ⋮ menu.
+- `src/components/menu.ts` holds the open state and keyboard behaviour both menus share.
 - `src/components/ScoreChart.tsx` renders score bars over the selected range.
 - `src/components/CalendarNameInput.tsx` edits a calendar name inline.
 - `src/components/ActivityValueInput.tsx` edits a calendar's activity value.

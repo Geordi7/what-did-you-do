@@ -40,7 +40,7 @@ the check on anything a script cannot judge.
 ]}
 ```
 2. Reload.
-3. Verify the dark theme is applied and the theme selector reads Dark.
+3. Verify the dark theme is applied and the header menu marks Dark as the checked theme.
 4. Verify `Reading` keeps color `#40c463` and gains an activity value of `1.0`.
 5. Read back `achievement-calendars`: `version` is `STORAGE_VERSION`, `chartRange` reads `'28d'`,
    and `Reading` has an `updatedAt`.

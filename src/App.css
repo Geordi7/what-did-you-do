@@ -188,96 +188,75 @@ body {
   margin-top: 0.25rem;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+.header-menu {
+  position: relative;
   flex-shrink: 0;
 }
 
-.theme-dropdown {
-  position: relative;
-}
-
-.theme-btn {
+.header-menu-trigger {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
-  padding: 0.4rem 0.6rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.35rem 0.55rem;
   cursor: pointer;
-  font-size: 0.8rem;
   transition: border-color 0.15s;
-  white-space: nowrap;
 
-  &:hover {
+  &:hover,
+  &[aria-expanded='true'] {
     border-color: var(--accent);
   }
 }
 
-.theme-dropdown-menu {
+.header-menu-dropdown {
   position: absolute;
   right: 0;
   top: 100%;
   z-index: 20;
   margin-top: 4px;
-  min-width: 120px;
+  min-width: 180px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
+  padding: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.theme-option {
+/* The theme radios sit under a rule, apart from the actions. */
+.header-menu-group {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+}
+
+.header-menu-item {
   display: block;
   width: 100%;
   background: none;
   border: none;
   color: var(--text);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   padding: 0.4rem 0.75rem;
   cursor: pointer;
   text-align: left;
   transition: background 0.1s;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  &.active {
-    background: var(--accent);
-    color: #fff;
+  &:hover,
+  &:focus-visible {
+    background: rgba(127, 127, 127, 0.12);
+    outline: none;
   }
 }
 
-.new-cal-section {
-  display: flex;
-  align-items: center;
-}
-
-.add-cal-btn {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.4rem 0.6rem;
-  cursor: pointer;
-  line-height: 1;
-  transition: border-color 0.15s, color 0.15s;
-  white-space: nowrap;
-
-  &:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  &.active {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+.header-menu-check {
+  display: inline-block;
+  width: 1.1em;
 }
 
 .new-cal-bar {
@@ -398,22 +377,6 @@ body {
   font-size: 0.75rem;
   white-space: nowrap;
   margin-left: auto;
-}
-
-.header-icon-btn {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0.3rem 0.5rem;
-  line-height: 1;
-  transition: border-color 0.15s;
-
-  &:hover {
-    border-color: var(--accent);
-  }
 }
 
 .hidden-input {
@@ -1499,15 +1462,6 @@ button.blocking-diagnostic {
 @media (max-width: 600px) {
   .app {
     padding: 1rem 0.75rem;
-  }
-
-  .title-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .header-actions {
-    flex-wrap: wrap;
   }
 
   .grid-with-detail {

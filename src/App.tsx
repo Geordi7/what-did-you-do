@@ -4,12 +4,13 @@ import { createDayClock } from './day-clock';
 import { MAX_IMPORT_BYTES } from './persistence-contract';
 import CalendarGrid from './components/CalendarGrid';
 import CalendarMenu from './components/CalendarMenu';
+import HeaderMenu from './components/HeaderMenu';
 import ScoreChart from './components/ScoreChart';
 import CalendarNameInput from './components/CalendarNameInput';
 import BackupBanner from './components/BackupBanner';
 import ImportReviewModal from './components/ImportReviewModal';
 import BlockingMessage from './components/BlockingMessage';
-import { totalActivities, hexToRgb, downloadFile, exportFilename, onClickOutside } from './utils';
+import { totalActivities, hexToRgb, downloadFile, exportFilename } from './utils';
 import type { ImportRow, ThemeMode } from './types';
 import './App.css';
 
@@ -19,12 +20,6 @@ function applyTheme(mode: ThemeMode) {
   root.dataset.theme = mode;
   root.dataset.themeResolved = mode === 'system' ? (systemDark ? 'dark' : 'light') : mode;
 }
-
-const THEME_LABELS: Record<ThemeMode, string> = {
-  light: 'Light',
-  dark: 'Dark',
-  system: 'System',
-};
 
 /** How long a success status stays on the inline line — `specs/04-02-copy.md`. */
 const STATUS_CLEAR_MS = 5000;
@@ -37,7 +32,6 @@ function App() {
   const [newName, setNewName] = createSignal('');
   const [showNewCal, setShowNewCal] = createSignal(false);
   const [showRecover, setShowRecover] = createSignal(false);
-  const [themeOpen, setThemeOpen] = createSignal(false);
   const [importRows, setImportRows] = createSignal<ImportRow[] | null>(null);
   const [importStatus, setImportStatus] = createSignal<ImportStatus | null>(null);
   const [announcement, setAnnouncement] = createSignal('');
@@ -58,9 +52,8 @@ function App() {
   });
 
   let fileInput: HTMLInputElement | undefined;
-  let importBtn: HTMLButtonElement | undefined;
+  let menuBtn: HTMLButtonElement | undefined;
   let newNameInput: HTMLInputElement | undefined;
-  let themeRoot: HTMLDivElement | undefined;
   let activeReader: FileReader | undefined;
   let fileSelection = 0;
   onCleanup(() => { fileSelection++; activeReader?.abort(); });
@@ -78,14 +71,6 @@ function App() {
 
   createEffect(() => {
     applyTheme(store.theme);
-  });
-
-  // The theme dropdown's document listener exists only while it is open, and is
-  // disposed when it closes — specs/02-01-coding-standard.md.
-  createEffect(() => {
-    if (!themeOpen()) return;
-    const el = themeRoot;
-    if (el !== undefined) onCleanup(onClickOutside(el, () => setThemeOpen(false)));
   });
 
   // A success status clears itself after about 5s; a failure persists until it is
@@ -195,16 +180,7 @@ function App() {
       });
     }
     // Focus returns to the control that opened the dialog — specs/06-accessibility.md.
-    importBtn?.focus();
-  }
-
-  function toggleThemeDropdown() {
-    setThemeOpen(v => !v);
-  }
-
-  function selectTheme(mode: ThemeMode) {
-    store.setTheme(mode);
-    setThemeOpen(false);
+    menuBtn?.focus();
   }
 
   return (
@@ -216,58 +192,19 @@ function App() {
               <h1>😱 What did you do!?</h1>
               <p class="subtitle">Track daily wins</p>
             </div>
-            <div class="header-actions">
-              <div class="theme-dropdown" role="group" aria-label="Theme" ref={el => { themeRoot = el; }}>
-                <button class="theme-btn" onClick={toggleThemeDropdown} aria-expanded={themeOpen()}>
-                  Theme: {THEME_LABELS[store.theme]}
-                </button>
-                <Show when={themeOpen()}>
-                  <div class="theme-dropdown-menu">
-                    <For each={['light', 'dark', 'system'] as ThemeMode[]}>
-                      {mode => (
-                        <button
-                          class="theme-option"
-                          classList={{ active: store.theme === mode }}
-                          onClick={() => selectTheme(mode)}
-                        >
-                          {THEME_LABELS[mode]}
-                        </button>
-                      )}
-                    </For>
-                  </div>
-                </Show>
-              </div>
-              <div class="new-cal-section">
-                <button
-                  class="add-cal-btn"
-                  classList={{ active: showNewCal() }}
-                  onClick={() => setShowNewCal(v => !v)}
-                  title="Create new calendar"
-                  aria-label="Create new calendar"
-                >
-                  + New calendar
-                </button>
-              </div>
-              <button
-                class="header-icon-btn"
-                ref={el => { importBtn = el; }}
-                onClick={handleImportClick}
-                title="Import calendars"
-                aria-label="Import calendars"
-              >
-                📥
-              </button>
-              <input
-                ref={el => { fileInput = el; }}
-                type="file"
-                accept=".json"
-                class="hidden-input"
-                onChange={handleFileChange}
-              />
-              <button class="header-icon-btn" onClick={handleExportAll} title="Export all calendars" aria-label="Export all calendars">
-                📤
-              </button>
-            </div>
+            <HeaderMenu
+              onNewCalendar={() => setShowNewCal(true)}
+              onImport={handleImportClick}
+              onExportAll={handleExportAll}
+              triggerRef={el => { menuBtn = el; }}
+            />
+            <input
+              ref={el => { fileInput = el; }}
+              type="file"
+              accept=".json"
+              class="hidden-input"
+              onChange={handleFileChange}
+            />
           </div>
         </header>
 

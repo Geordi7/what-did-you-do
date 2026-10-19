@@ -44,6 +44,9 @@ file that restates them goes stale the moment a case is added.
   each way of closing closes it; the pinned tooltip takes the pointer; and an edge column's
   breakdown keeps its natural width inside the card. Whether colours and shapes
   read right stays manual.
+- Menus, in `e2e/menus.e2e.ts`: the header holds only the ☰ button; its menu carries every header
+  action with the theme as checked radios, follows the menu keys, and its items act and close it;
+  the calendar menu opens from a ⋮ trigger.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
   pointer timing rather than a faked timer.
 - Midnight rollover, in `e2e/day-clock.e2e.ts`: grid and chart advance together under a controlled browser clock.

@@ -24,7 +24,7 @@ tester's reach.
   sum and last-update columns match what each calendar section shows.
 - Import review modal by keyboard alone: focus enters on the first row's control, Tab reaches one
   control per row in payload order with none disabled, the dropdown opens and commits with the
-  keyboard, focus is trapped while open, and Escape cancels and returns focus to the import control.
+  keyboard, focus is trapped while open, and Escape cancels and returns focus to the header menu button.
 - A payload holding no calendars offers only Cancel, with a line saying the file holds none.
 - Exercise each of the four merge actions on a colliding row, confirming the outcome reports
   afterwards on the inline import status line rather than inside the modal.
