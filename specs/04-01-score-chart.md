@@ -4,12 +4,12 @@ Combined daily score from all active calendars, shown above the calendar section
 
 ## Ranges
 - **Last 28 days** — one column per day, 28 columns.
-- **Last 26 weeks** — one column per Monday-start week, 26 columns, each the sum of its days.
+- **Last 22 weeks** — one column per Monday-start week, 22 columns ending with the current week,
+  each the sum of its days. It matches the calendar grid's history and has no future columns.
 - Every column splits into positive, negative, and net components; the weekly range aggregates
   that same split over the week.
 - Default range is last 28 days on first run. The selected range persists.
 - A range toggle in the chart header selects the range. The chart carries no total label.
-- The chart owns its two spans; the calendar grid's 26-week window is independent of them.
 - Aggregation queries only dates in the selected span. All stored history remains available and calendar totals cover full history.
 
 ## Marks

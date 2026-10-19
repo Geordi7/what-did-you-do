@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   INTENSITY_EXPONENT,
   buildGrid,
+  calendarGrid,
   cellColor,
   dateKey,
   exportFilename,
@@ -25,6 +26,17 @@ function nextDayKey(key: string): string {
 function flatKeys(weeks: Date[][]): string[] {
   return weeks.flat().map(dateKey);
 }
+
+describe('calendarGrid', () => {
+  it('runs 22 weeks ending with the current week, then 4 weeks ahead', () => {
+    // 2026-10-19 is a Monday; 2026-10-21 a Wednesday in the same week.
+    const weeks = calendarGrid(new Date(2026, 9, 21, 15, 30));
+    expect(weeks).toHaveLength(26);
+    expect(dateKey(weeks[21][0])).toBe('2026-10-19');
+    expect(dateKey(weeks[0][0])).toBe('2026-05-25');
+    expect(dateKey(weeks[25][6])).toBe('2026-11-22');
+  });
+});
 
 describe('buildGrid', () => {
   // 2025-03-12 is a Wednesday; the Monday of its week is 2025-03-10.

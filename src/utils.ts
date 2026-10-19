@@ -19,8 +19,16 @@ export function startOfWeek(d: Date): Date {
   return result;
 }
 
-/** Weeks each calendar grid shows, ending with the current week. */
-export const GRID_WEEKS = 26;
+/** Weeks each calendar grid shows up to and including the current week (`specs/04-05-calendar-grid.md`). */
+export const GRID_HISTORY_WEEKS = 22;
+/** Weeks each calendar grid shows after the current week. */
+export const GRID_FUTURE_WEEKS = 4;
+
+/** The shared calendar grid window around `now`: history weeks, then future weeks. */
+export function calendarGrid(now: Date): Date[][] {
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7 * GRID_FUTURE_WEEKS);
+  return buildGrid(end, GRID_HISTORY_WEEKS + GRID_FUTURE_WEEKS);
+}
 
 export function buildGrid(endDate: Date, numWeeks: number): Date[][] {
   const mon = startOfWeek(endDate);

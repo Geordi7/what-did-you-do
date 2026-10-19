@@ -13,7 +13,7 @@ Refines `04-design.md`. A sort bar sits between the score chart and the calendar
 
 ## Order
 Sorting is a view: the stored order of calendars never changes, and Custom shows it.
-- **Activities** — each calendar's total count over its visible 26-week grid.
+- **Activities** — each calendar's total count over its visible grid.
 - **Score** — that visible total times the calendar's activity value.
 - **Recent, most recent first** — by the latest date with a count above zero, over full history;
   ties by `updatedAt`, most recent first. Calendars with no counts at all go last.

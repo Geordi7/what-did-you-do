@@ -8,6 +8,8 @@ Every flow is reachable by keyboard alone, in both themes.
 - `Enter` or `Space` increments the focused day's count.
 - `Backspace` or `Delete` clears the focused day's count.
 - Focus is visible on every cell, distinct from hover and from the today outline.
+- Future days still take focus and highlight, are marked `aria-disabled`, and name themselves
+  as upcoming; keys and clicks leave them unchanged.
 
 ## Score chart
 - Each chart column is a button with `aria-expanded` reflecting whether its breakdown is pinned.

@@ -1,7 +1,7 @@
 import { createMemo, For, onCleanup, Show } from 'solid-js';
 import type { Calendar } from '../types';
 import { store } from '../store';
-import { GRID_WEEKS, buildGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
+import { calendarGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
 import { visibleMaximum } from '../scores';
 
 const CELL_PX = 12;
@@ -15,7 +15,7 @@ interface Props {
 }
 
 function CalendarGrid(props: Props) {
-  const weeks = createMemo(() => buildGrid(props.now(), GRID_WEEKS));
+  const weeks = createMemo(() => calendarGrid(props.now()));
   const todayKey = createMemo(() => dateKey(props.now()));
 
   let pressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -27,8 +27,11 @@ function CalendarGrid(props: Props) {
     if (pressTimer) clearTimeout(pressTimer);
   });
 
+  /** Days after today never change, per specs/04-05-calendar-grid.md "Window". */
+  const isFuture = (key: string) => key > todayKey();
+
   function startPress(key: string) {
-    if (pressStarted) return;
+    if (pressStarted || isFuture(key)) return;
     pressStarted = true;
     longPressFired = false;
     pressedKey = key;
@@ -85,6 +88,8 @@ function CalendarGrid(props: Props) {
         lastMonth = m;
       }
     }
+    // A leading partial month too narrow for its label gives way to the next month's.
+    if (labels.length > 1 && labels[1].col - labels[0].col < 3) labels.shift();
     return labels;
   });
 
@@ -107,6 +112,7 @@ function CalendarGrid(props: Props) {
   };
 
   function handleKeyDown(e: KeyboardEvent, key: string) {
+    if (isFuture(key)) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       store.incrementDay(props.calendar.id, key);
@@ -137,20 +143,25 @@ function CalendarGrid(props: Props) {
                     const val = () => props.calendar.days[key] ?? 0;
                     const intensity = () => val() / maxVal();
                     const isToday = () => key === todayKey();
+                    const future = () => isFuture(key);
+                    const score = () => `${val()} × ${props.calendar.activityValue} = ${(val() * props.calendar.activityValue).toFixed(1)}`;
                     return (
+                      <div class="cell-slot" classList={{ 'month-alt': (date.getFullYear() * 12 + date.getMonth()) % 2 === 1 }}>
                       <button
                         class="cell"
                         classList={{
                           today: isToday(),
+                          future: future(),
                           highlighted: store.highlightedKey === key,
                         }}
                         data-key={key}
                         style={{
                           width: `${CELL_PX}px`,
                           height: `${CELL_PX}px`,
-                          background: cellColor(props.calendar.color, intensity(), props.isLight),
+                          'background-color': cellColor(props.calendar.color, intensity(), props.isLight),
                         }}
-                        aria-label={`${formatDate(date)}: ${val()} × ${props.calendar.activityValue} = ${(val() * props.calendar.activityValue).toFixed(1)}. Click to add, long press to reset.`}
+                        aria-disabled={future() ? 'true' : undefined}
+                        aria-label={future() ? `${formatDate(date)}: upcoming, ${score()}.` : `${formatDate(date)}: ${score()}. Click to add, long press to reset.`}
                         onPointerDown={() => startPress(key)}
                         onPointerUp={endPress}
                         onPointerLeave={cancelPress}
@@ -161,6 +172,7 @@ function CalendarGrid(props: Props) {
                         onKeyDown={(e) => handleKeyDown(e, key)}
                         tabindex="0"
                       />
+                      </div>
                     );
                   }}
                 </For>

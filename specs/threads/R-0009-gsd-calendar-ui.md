@@ -1,7 +1,7 @@
 ---
 id: 0009
 affects:
-  specs: [04-design.md, 02-architecture.md, 06-accessibility.md, 04-02-copy.md]
+  specs: [04-design.md, 04-05-calendar-grid.md, 04-01-score-chart.md, 01-requirements.md, 02-architecture.md, 06-accessibility.md, 04-02-copy.md]
   paths: [src/App.tsx, src/components/, src/App.css]
 tags: [gsd, todo, ui, navigation, accessibility]
 links: {related: [0008]}

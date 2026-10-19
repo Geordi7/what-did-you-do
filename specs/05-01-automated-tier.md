@@ -51,7 +51,8 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
   - Every mutator stamps only its own calendar's `updatedAt`.
   - Unavailable or full storage surfaces an error and keeps the in-memory state usable.
   - A `storage` event from another tab converges without the write loop re-firing.
-- `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels.
+- `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels; the calendar grid
+  window runs 22 weeks back and 4 ahead.
 - Shared day clock — repeated midnight ticks and cancellation of the latest timer on disposal.
 - Score computation — both ranges match an independent full-history reference with positive, negative, zero and deleted calendars; heatmap maxima use visible dates even with a 200,000-day history.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at

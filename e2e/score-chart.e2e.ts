@@ -166,11 +166,12 @@ test('28-day total bars and net diamonds are placed on their values inside the c
   expect(Math.abs(centre(upNet) - (zero - (zero - fullPos.y) * 0.75))).toBeLessThanOrEqual(EPSILON);
 });
 
-test('26-week total bars and net diamonds stay inside the chart', async ({ page }) => {
+test('22-week total bars and net diamonds stay inside the chart', async ({ page }) => {
   await seedState(page, chartState('26w'));
   await open(page);
 
-  await expect(page.locator('.score-bar-col')).toHaveCount(26);
+  await expect(page.getByRole('button', { name: 'Last 22 weeks' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.score-bar-col')).toHaveCount(22);
   await expectBarGeometry(page);
 });
 
@@ -348,11 +349,11 @@ test('Enter and Space toggle a focused column\'s breakdown and Escape keeps focu
   await expect(hit(page, 27)).toBeFocused();
 });
 
-test('a 26-week column breaks its week down', async ({ page }) => {
+test('a weekly column breaks its week down', async ({ page }) => {
   await seedState(page, chartState('26w'));
   await open(page);
 
-  await hit(page, 25).click();
+  await hit(page, 21).click();
   await expect(rows(page).first()).toBeVisible();
   await expect(rows(page).filter({ hasText: 'Wins' }).locator('.score-activity-count')).toHaveText(/^×[1-9]/);
 });

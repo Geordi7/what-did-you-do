@@ -34,7 +34,7 @@ tester's reach.
 - Reload page and confirm state persists.
 - Toggle theme light/dark/system and confirm heatmap zero cells adapt.
 - Reload after theme change and confirm preference persists.
-- Switch the chart range between 28 days and 26 weeks, then reload and confirm the choice persists.
+- Switch the chart range between 28 days and 22 weeks, then reload and confirm the choice persists.
 - Hover a date in one calendar and confirm the same date highlights in every calendar.
 - Backup banner: with a last export 24 or more hours old it appears on load; exporting now hides it;
   dismissing hides it for the rest of the session.

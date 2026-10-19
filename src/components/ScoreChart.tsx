@@ -10,7 +10,7 @@ const HALF_SCALE = 50;
 
 const RANGES: Array<{ value: ChartRange; label: string }> = [
   { value: '28d', label: 'Last 28 days' },
-  { value: '26w', label: 'Last 26 weeks' },
+  { value: '26w', label: 'Last 22 weeks' },
 ];
 
 export default function ScoreChart(props: { isLight: boolean; now: () => Date }) {

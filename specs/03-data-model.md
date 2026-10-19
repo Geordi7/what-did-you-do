@@ -31,7 +31,7 @@ interface AppState {
   version: number;
   theme: ThemeMode;
   calendars: Calendar[];
-  chartRange?: '28d' | '26w';
+  chartRange?: '28d' | '26w';   // '26w' names the weekly range
   calendarSort?: CalendarSort;
 }
 ```

@@ -1,5 +1,5 @@
 import type { Calendar, ChartRange } from './types';
-import { buildGrid, dateKey, formatDate } from './utils';
+import { GRID_HISTORY_WEEKS, buildGrid, dateKey, formatDate } from './utils';
 
 /** One active calendar's share of a column: its total count and score (count × activity value). Columns list these highest score first. */
 export interface ScoreActivity { id: string; name: string; count: number; score: number }
@@ -8,7 +8,7 @@ export interface ScoreBar { key: string; label: string; pos: number; neg: number
 
 export function scoreBars(calendars: readonly Calendar[], today: Date, range: ChartRange): ScoreBar[] {
   const windows = range === '26w'
-    ? buildGrid(today, 26)
+    ? buildGrid(today, GRID_HISTORY_WEEKS)
     : Array.from({ length: 28 }, (_, i) => [new Date(today.getFullYear(), today.getMonth(), today.getDate() - 27 + i)]);
   const active = calendars.filter(cal => !cal.deleted);
   return windows.map(dates => {

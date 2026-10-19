@@ -9,11 +9,12 @@ Project: achievement calendar app.
 
 ## Features
 - Calendars — any number, each with a name, a color, and an activity value.
-- Heatmap grid per calendar over the trailing 26 weeks, with a per-calendar activity total.
+- Heatmap grid per calendar over 26 weeks: 22 ending with the current week, then 4 ahead, so every
+  grid lines up; with a per-calendar activity total.
 - Detail view for the hovered day.
 - Score chart above the calendars, with a range toggle:
   - Last 28 days — one bar per day, 28 bars.
-  - Last 26 weeks — one bar per Monday-start week, 26 bars, each the sum of its days.
+  - Last 22 weeks — one bar per Monday-start week, 22 bars, each the sum of its days.
   - Both ranges split each bar into positive, negative, and net score.
   - Last 28 days is the range on first run; the choice persists.
 - Trash — soft-deleted calendars stay recoverable, and each can be permanently deleted on its

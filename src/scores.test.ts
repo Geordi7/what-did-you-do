@@ -24,7 +24,7 @@ for (const range of ['28d', '26w'] as const) {
         else day.neg += score;
       }
     }
-    const windows = range === '26w' ? buildGrid(today, 26) : Array.from({ length: 28 }, (_, i) => [new Date(2026, 9, 19 - 27 + i)]);
+    const windows = range === '26w' ? buildGrid(today, 22) : Array.from({ length: 28 }, (_, i) => [new Date(2026, 9, 19 - 27 + i)]);
     const expected = windows.map(dates => {
       const pos = dates.reduce((sum, day) => sum + (map[dateKey(day)]?.pos ?? 0), 0);
       const neg = dates.reduce((sum, day) => sum + (map[dateKey(day)]?.neg ?? 0), 0);
@@ -47,7 +47,7 @@ for (const range of ['28d', '26w'] as const) {
     const today = new Date(2026, 9, 19);
     const cals = calendars();
     cals[1].days = { [dateKey(new Date(2026, 9, 18))]: 3 };
-    const windows = range === '26w' ? buildGrid(today, 26) : Array.from({ length: 28 }, (_, i) => [new Date(2026, 9, 19 - 27 + i)]);
+    const windows = range === '26w' ? buildGrid(today, 22) : Array.from({ length: 28 }, (_, i) => [new Date(2026, 9, 19 - 27 + i)]);
     const expected = windows.map(dates => cals
       .filter(cal => !cal.deleted)
       .map(cal => {

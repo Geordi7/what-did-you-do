@@ -12,7 +12,7 @@ import CalendarNameInput from './components/CalendarNameInput';
 import BackupBanner from './components/BackupBanner';
 import ImportReviewModal from './components/ImportReviewModal';
 import BlockingMessage from './components/BlockingMessage';
-import { GRID_WEEKS, buildGrid, dateKey, totalActivities, hexToRgb, downloadFile, exportFilename } from './utils';
+import { calendarGrid, dateKey, totalActivities, hexToRgb, downloadFile, exportFilename } from './utils';
 import type { ImportRow, ThemeMode } from './types';
 import './App.css';
 
@@ -39,7 +39,7 @@ function App() {
   const [announcement, setAnnouncement] = createSignal('');
   const [systemDark, setSystemDark] = createSignal(window.matchMedia('(prefers-color-scheme: dark)').matches);
   /** The calendar view's order: the stored order, sorted per the sort bar over the visible grid. */
-  const visibleKeys = createMemo(() => buildGrid(now(), GRID_WEEKS).flat().map(dateKey));
+  const visibleKeys = createMemo(() => calendarGrid(now()).flat().map(dateKey));
   const shownCalendars = createMemo(() => sortCalendars(store.activeCalendars, store.calendarSort, visibleKeys()));
   const isLight = createMemo(() => {
     const mode = store.theme;
