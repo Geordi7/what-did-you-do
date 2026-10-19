@@ -6,6 +6,40 @@ affects:
 tags: [gsd, todo, scoring, data-model, migration]
 links: {related: [0009, 0007]}
 ---
+## Outcome
+Decision: calendars come in two kinds. Existing calendars are **scoring** calendars. A **Getting
+Stuff Done** (GSD) calendar is a hierarchical todo list whose daily points are derived from its
+todos, never stored as counts. Any number of each may exist; the create bar offers the kind.
+- A todo has a title, a bounty, an optional due date, a creation date and an optional done date.
+- Adding a root todo earns 1 point on its creation day. Its bounty is prefilled from the calendar's
+  **default bounty** (a per-calendar setting, default 1, changed from the calendar menu) and stays
+  editable. Its due date is prefilled one week from today; it may be changed or removed.
+- **Nudge** ("smallest thing I can do to move this forwards") adds a child todo to any todo, at any
+  depth. A Nudge earns 0.5 on its creation day and has a fixed bounty of 0.5, whatever the calendar
+  default. Its due date starts as its parent's and stays editable.
+- Marking a todo done asks for the done date: today by default, or an earlier day not before its
+  creation day. Done on or before the due date (or with no due date) earns the full bounty on the
+  done date; after it, half. Un-ticking removes those points; deleting a todo deletes its subtree
+  and every point it earned, creation included.
+- A todo with an open child cannot be marked done.
+- Promote moves a Nudge, with its subtree, up one level to its grandparent's children. Promotion
+  between Nudge levels changes no points. Promotion to root makes it a root todo: creation earns 1
+  on its original creation day, and its bounty becomes the larger of 0.5 and the calendar default.
+- A GSD day's **activity count** is the number of root todos done that day; it colours the heatmap
+  and feeds sorting's Activities. Its **score** is the points earned that day: it joins the chart,
+  the header total and sorting's Score. Recent uses the latest day with any points.
+- The sort bar gains a filter, All / Scoring / GSD, persisted with the sort.
+- A GSD calendar travels in export/import and goes to trash like any calendar. Storage version 7
+  adds `kind` (existing calendars become `scoring`), GSD todos and default bounty, and the filter.
+Rejected:
+1. Earned points kept after un-ticking or deleting: the score always matches the list.
+2. Required bounty entry (empty field blocking Add): a prefilled default pushes without friction.
+3. A Nudge bounty of half the parent's or half the calendar default: a Nudge is a fixed incentive
+   to break tasks down; a task's value lives in its bounty.
+4. Completing a parent with open children: work is finished bottom-up.
+5. Heatmap colour by points: activity count keeps the colour consistent with scoring calendars.
+6. Stored daily counts for GSD calendars: derived points can never disagree with the todos.
+Reopen if: points need to survive todo deletion, or Nudge bounties need to vary.
 ## Thread
 > Operator asked in chat for a second kind of calendar. Existing calendars become "scoring"
 > calendars; the new kind is "Getting Stuff Done" (GSD): an ADHD-oriented hierarchical todo list
@@ -108,3 +142,13 @@ decided or discuss Q8 further?
 >   default (Q9), and the creation point is topped up to 1.
 >
 > If that reading holds, say "decided".
+
+Nudges are worth 0.5 to create and 0.5 to complete, that's just an incentive to break down your big tasks into little ones. The task's value is in its bounty.
+
+Everything else yes.
+
+decided
+
+> Decided. Reading recorded in the Outcome: a Nudge's bounty is a fixed 0.5 (not editable, not
+> tied to the calendar default); a root todo's bounty is editable; promotion to root gives the
+> larger of 0.5 and the calendar default.

@@ -6,6 +6,34 @@ affects:
 tags: [gsd, todo, ui, navigation, accessibility]
 links: {related: [0008]}
 ---
+## Outcome
+Decision: a GSD calendar shows in the calendar list, visually distinct (a checkbox icon before the
+name, a "GSD" tag, a left edge in its colour). Clicking its section opens a full-page todo tool at
+hash URL `#/gsd/<id>`; Back and a visible "← Calendars" control return to the list. Its day cells
+never change counts.
+- Every grid, scoring and GSD alike, shows 22 weeks back and 4 weeks forward (26 columns), so all
+  grids line up. Future days are hatched; on scoring calendars they are not clickable.
+- The background behind the cells alternates by calendar month; cell colours are unchanged.
+- A day with open todos due shows a thick dot in its centre in the foreground colour, red once the
+  day has passed with todos still open, nothing once all are done.
+- The score chart's weekly view becomes "Last 22 weeks", with no future columns.
+- GSD day hover detail: date, then "Created N · Finished M · Due K · +P points".
+- Todo page: the GSD calendar at the top; a compact add row (title, bounty, due date); then the
+  tree, by due date then creation, done todos sinking to the bottom of their sibling group. Each
+  todo has a done checkbox, title, bounty, due date, and Nudge; children indent and collapse.
+- Clicking a day on the todo page filters the list to todos created, finished or due that day;
+  clicking it again, or any interaction outside the list, clears the filter.
+- The GSD calendar menu matches a scoring calendar's, with default bounty in place of activity
+  value.
+Rejected:
+1. Path URLs via the History API: every host would need an index.html rewrite, and the deploy
+   target is still open (thread 0002). Hash URLs work on any host and from `file://`.
+2. Clicking a GSD day to add counts: its counts come from todos.
+3. Upcoming due dates only listed on the page (grid unchanged): due dates belong on the grid.
+4. Forward extension only as far as the latest due date, or on GSD grids only: grids must line up.
+5. Month shown by alternating empty-cell shades: the month shows behind the cells only.
+6. Ring due markers: a thick dot reads better at cell size.
+Reopen if: a deploy host with rewrites is chosen and clean URLs are wanted.
 ## Thread
 > Operator asked in chat: the GSD calendar is visible in the calendars list, visually distinct;
 > clicking it opens a full-page todo tool with the same calendar at the top; hovering a day tells
@@ -98,3 +126,10 @@ decided or needs more?
 > grid's history, and shows no future columns.
 >
 > If those hold, say "decided".
+
+Q5c: only the background behind the cells, not the cell colors themselves
+Q5d: agree
+
+decided
+
+> Decided. Month background goes behind the cells only; chart becomes "Last 22 weeks".
