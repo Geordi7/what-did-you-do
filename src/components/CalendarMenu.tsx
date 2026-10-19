@@ -52,7 +52,9 @@ export default function CalendarMenu(props: Props) {
               onChange={(e) => store.setColor(props.cal.id, e.currentTarget.value)}
             />
           </label>
-          <ActivityValueInput cal={props.cal} />
+          <Show when={props.cal.kind === 'scoring' ? props.cal : null}>
+            {cal => <ActivityValueInput cal={cal()} />}
+          </Show>
           <button
             class="cal-menu-item"
             role="menuitem"

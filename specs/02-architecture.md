@@ -19,6 +19,12 @@ SolidJS single-page app with Vite build.
 - `src/components/ActivityValueInput.tsx` edits a calendar's activity value.
 - `src/components/BackupBanner.tsx` renders the backup reminder.
 
+## Calendar kinds
+- `src/gsd.ts` derives a GSD calendar's per-day figures from its todo tree and holds the todo
+  rules, as pure functions over a todo array.
+- `src/calendar-figures.ts` gives per-day counts and scores for either kind, so chart, sort and
+  totals never branch on `kind`.
+
 ## Clock
 - One shared midnight clock drives every current-day and trailing-window derivation, grid and chart alike.
 - App owns the clock and passes its reactive getter to chart and grids. The clock cancels its latest timer on disposal and refreshes when the tab becomes visible.

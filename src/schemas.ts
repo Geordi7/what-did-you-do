@@ -22,6 +22,8 @@ export const DEFAULT_THEME = 'system';
 export const DEFAULT_ACTIVITY_VALUE = 1.0;
 export const DEFAULT_CHART_RANGE = '28d';
 export const DEFAULT_CALENDAR_SORT = { by: 'custom', dir: 'desc' } as const;
+export const DEFAULT_CALENDAR_FILTER = 'all';
+export const DEFAULT_BOUNTY = 1;
 
 /** `YYYY-MM-DD`, the only shape a `days` key ever takes. */
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -103,7 +105,7 @@ const isoInstant = v.string().assert(isIsoInstant, 'expected an ISO 8601 instant
 const canonicalIsoInstant = isoInstant.map(value => new Date(value).toISOString());
 
 /** Markers a version-0 payload must never carry; see `appStateV0Schema`. */
-const KNOWN_LATER_VERSIONS = new Set([1, 2, 3, 4, 5, 6]);
+const KNOWN_LATER_VERSIONS = new Set([1, 2, 3, 4, 5, 6, 7]);
 
 /* ── version 0: unversioned ──────────────────────────────────────────────── */
 
@@ -211,10 +213,77 @@ export const appStateV5Schema = v.object({
   chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
 });
 
-/* ── version 6 (current) ─────────────────────────────────────────────────── */
+/* ── version 6 ───────────────────────────────────────────────────────────── */
 
 /** Version 6 adds `calendarSort` to the state; the calendar shape is version 5's. */
 export const calendarV6Schema = calendarV5Schema;
+
+export const appStateV6Schema = v.object({
+  version: v.literal(6),
+  theme: themeMode.optional(),
+  calendars: v.array(calendarV6Schema),
+  chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
+  calendarSort: calendarSort.optional(() => ({ ...DEFAULT_CALENDAR_SORT })),
+});
+
+/* ── version 7 (current) ─────────────────────────────────────────────────── */
+
+const calendarFilter = v.union(v.literal('all'), v.literal('scoring'), v.literal('gsd'));
+
+/** Bounties are finite and never negative: points are never negative. */
+const bounty = v.number().assert(n => Number.isFinite(n) && n >= 0, 'expected a finite bounty >= 0');
+
+const dayKey = v.string().assert(isCalendarDate, 'expected a real YYYY-MM-DD calendar date');
+
+type TodoShape = {
+  id: string;
+  title: string;
+  bounty: number;
+  due?: string;
+  created: string;
+  done?: string;
+  children: TodoShape[];
+};
+
+/** One todo and, recursively, its Nudges. */
+const todoSchema: v.Type<TodoShape> = v.lazy(() =>
+  v
+    .object({
+      id: calendarId,
+      title: v.string(),
+      bounty,
+      due: dayKey.optional(),
+      created: dayKey,
+      done: dayKey.optional(),
+      children: v.array(todoSchema),
+    })
+    .assert(todo => todo.done === undefined || todo.done >= todo.created, 'expected done on or after created'),
+);
+
+function todoIds(todos: readonly TodoShape[]): string[] {
+  return todos.flatMap(todo => [todo.id, ...todoIds(todo.children)]);
+}
+
+/** Version 7 marks each calendar with its kind; existing calendars are scoring calendars. */
+export const scoringCalendarV7Schema = calendarV6Schema.extend({ kind: v.literal('scoring') });
+
+export const gsdCalendarV7Schema = v
+  .object({
+    kind: v.literal('gsd'),
+    id: calendarId,
+    name: calendarName,
+    color: hexColor,
+    defaultBounty: bounty.optional(() => DEFAULT_BOUNTY),
+    todos: v.array(todoSchema),
+    updatedAt: canonicalIsoInstant,
+    deleted: deleted.optional(),
+  })
+  .assert(cal => {
+    const ids = todoIds(cal.todos);
+    return new Set(ids).size === ids.length;
+  }, 'expected todo ids to be unique within a calendar');
+
+export const calendarV7Schema = v.union(scoringCalendarV7Schema, gsdCalendarV7Schema);
 
 /**
  * The current version. This is the only schema that supplies state-level
@@ -224,21 +293,22 @@ export const calendarV6Schema = calendarV5Schema;
  * ids unique across the array, so a duplicate is a defect and takes the load
  * path's failure route.
  */
-export const appStateV6Schema = v
+export const appStateV7Schema = v
   .object({
-    version: v.literal(6).optional(() => 6),
+    version: v.literal(7).optional(() => 7),
     theme: themeMode.optional(() => DEFAULT_THEME),
-    calendars: v.array(calendarV6Schema),
+    calendars: v.array(calendarV7Schema),
     chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
     calendarSort: calendarSort.optional(() => ({ ...DEFAULT_CALENDAR_SORT })),
+    calendarFilter: calendarFilter.optional(() => DEFAULT_CALENDAR_FILTER),
   })
   .assert(
     state => new Set(state.calendars.map(cal => cal.id)).size === state.calendars.length,
     'expected calendar ids to be unique',
   );
 
-export const calendarCurrentSchema = calendarV6Schema;
-export const appStateCurrentSchema = appStateV6Schema;
+export const calendarCurrentSchema = calendarV7Schema;
+export const appStateCurrentSchema = appStateV7Schema;
 
 export type CalendarV0 = v.Infer<typeof calendarV0Schema>;
 export type AppStateV0 = v.Infer<typeof appStateV0Schema>;
@@ -252,6 +322,8 @@ export type CalendarV5 = v.Infer<typeof calendarV5Schema>;
 export type AppStateV5 = v.Infer<typeof appStateV5Schema>;
 export type CalendarV6 = v.Infer<typeof calendarV6Schema>;
 export type AppStateV6 = v.Infer<typeof appStateV6Schema>;
+export type CalendarV7 = v.Infer<typeof calendarV7Schema>;
+export type AppStateV7 = v.Infer<typeof appStateV7Schema>;
 
 /**
  * `Sub` unchanged, but only if it is assignable to `Super`. Used below so that
@@ -260,8 +332,8 @@ export type AppStateV6 = v.Infer<typeof appStateV6Schema>;
  */
 type Satisfies<Super, Sub extends Super> = Sub;
 
-export type CurrentCalendar = Satisfies<Calendar, CalendarV6>;
-export type CurrentAppState = Satisfies<AppState, AppStateV6>;
+export type CurrentCalendar = Satisfies<Calendar, CalendarV7>;
+export type CurrentAppState = Satisfies<AppState, AppStateV7>;
 
 /** Throws `v.ValitaError` when the value is not a version-0 state. */
 export function parseAppStateV0(value: unknown): AppStateV0 {
@@ -286,6 +358,11 @@ export function parseAppStateV4(value: unknown): AppStateV4 {
 /** Throws `v.ValitaError` when the value is not a version-5 state. */
 export function parseAppStateV5(value: unknown): AppStateV5 {
   return appStateV5Schema.parse(value, STRIP);
+}
+
+/** Throws `v.ValitaError` when the value is not a version-6 state. */
+export function parseAppStateV6(value: unknown): AppStateV6 {
+  return appStateV6Schema.parse(value, STRIP);
 }
 
 /**

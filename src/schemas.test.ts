@@ -14,8 +14,17 @@ import {
   parseCurrentCalendar,
 } from './schemas';
 import { totalActivities } from './utils';
+import type { Calendar, GsdCalendar, ScoringCalendar, Todo } from './types';
+
+/** Narrow a parsed calendar to the scoring kind, failing the test otherwise. */
+function asScoring(cal: Calendar): ScoringCalendar {
+  if (cal.kind !== 'scoring') throw new Error(`expected a scoring calendar, got ${cal.kind}`);
+  return cal;
+}
+
 
 const validCalendar = () => ({
+  kind: 'scoring' as const,
   id: 'cal-a',
   name: '😱 Wins',
   color: '#40c463',
@@ -43,28 +52,29 @@ describe('defaults', () => {
 describe('current-version parse', () => {
   it('accepts a valid payload and keeps every field', () => {
     const parsed = parseCurrentAppState({
-      version: 6,
+      version: 7,
       theme: 'dark',
       calendars: [validCalendar(), { ...validCalendar(), id: 'cal-b', deleted: true }],
       chartRange: '26w',
       calendarSort: { by: 'recent', dir: 'asc' },
     });
-    expect(parsed.version).toBe(6);
+    expect(parsed.version).toBe(7);
     expect(parsed.theme).toBe('dark');
     expect(parsed.chartRange).toBe('26w');
     expect(parsed.calendarSort).toEqual({ by: 'recent', dir: 'asc' });
     expect(parsed.calendars).toHaveLength(2);
     expect(parsed.calendars[0].name).toBe('😱 Wins');
     expect(parsed.calendars[1].deleted).toBe(true);
-    expect(totalActivities(parsed.calendars[0].days)).toBe(4);
+    expect(totalActivities(asScoring(parsed.calendars[0]).days)).toBe(4);
   });
 
   it('supplies the defaults a bare calendar list omits', () => {
     const parsed = parseCurrentAppState({ calendars: [] });
-    expect(parsed.version).toBe(6);
+    expect(parsed.version).toBe(7);
     expect(parsed.theme).toBe('system');
     expect(parsed.chartRange).toBe('28d');
     expect(parsed.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
+    expect(parsed.calendarFilter).toBe('all');
     expect(parsed.calendars).toEqual([]);
   });
 
@@ -72,7 +82,7 @@ describe('current-version parse', () => {
     const { activityValue, ...noValue } = validCalendar();
     expect(activityValue).toBe(1);
     const parsed = parseCurrentAppState({ calendars: [noValue] });
-    expect(parsed.calendars[0].activityValue).toBe(1.0);
+    expect(asScoring(parsed.calendars[0]).activityValue).toBe(1.0);
   });
 
   it('rejects a calendarSort outside the four sorts and two directions', () => {
@@ -86,7 +96,7 @@ describe('current-version parse', () => {
       leftover: 'from an older build',
     });
     expect(parsed.calendars[0]).toEqual(validCalendar());
-    expect(Object.keys(parsed).sort()).toEqual(['calendarSort', 'calendars', 'chartRange', 'theme', 'version']);
+    expect(Object.keys(parsed).sort()).toEqual(['calendarFilter', 'calendarSort', 'calendars', 'chartRange', 'theme', 'version']);
   });
 
   it('rejects a calendar with no days, instead of handing a totals helper a hole', () => {
@@ -116,7 +126,7 @@ describe('current-version parse', () => {
       const parsed = parseCurrentAppState({
         calendars: [{ ...validCalendar(), activityValue: value }],
       });
-      expect(parsed.calendars[0].activityValue).toBe(value);
+      expect(asScoring(parsed.calendars[0]).activityValue).toBe(value);
     }
   });
 
@@ -219,7 +229,7 @@ describe('single-calendar parse', () => {
   it('accepts one calendar object and applies the activityValue default', () => {
     const { activityValue, ...noValue } = validCalendar();
     expect(activityValue).toBe(1);
-    expect(parseCurrentCalendar(noValue).activityValue).toBe(1.0);
+    expect(asScoring(parseCurrentCalendar(noValue)).activityValue).toBe(1.0);
     expect(parseCurrentCalendar(validCalendar())).toEqual(validCalendar());
   });
 
@@ -297,7 +307,89 @@ describe('per-version schemas accept their own shape', () => {
     );
   });
 
-  it('version 5 is the current schema', () => {
+  it('version 7 is the current schema', () => {
     expect(appStateCurrentSchema.parse({ calendars: [] }, { mode: 'strip' }).chartRange).toBe('28d');
+  });
+});
+
+/* ── version 7: calendar kinds and GSD todos ─────────────────────────────── */
+
+const todo = (id: string, extra: Partial<Todo> = {}): Todo => ({
+  id, title: `Todo ${id}`, bounty: 1, created: '2026-10-01', children: [], ...extra,
+});
+
+const gsdCalendar = (): GsdCalendar => ({
+  kind: 'gsd',
+  id: 'gsd-a',
+  name: 'Chores',
+  color: '#40c463',
+  defaultBounty: 2,
+  updatedAt: '2026-10-05T10:00:00.000Z',
+  todos: [
+    todo('t1', { due: '2026-10-08', done: '2026-10-04', children: [todo('t1a', { bounty: 0.5, done: '2026-10-02' })] }),
+    todo('t2', { children: [todo('t2a', { bounty: 0.5, children: [todo('t2a1', { bounty: 0.5 })] })] }),
+  ],
+});
+
+describe('version 7 calendars', () => {
+  it('accepts scoring and GSD calendars side by side, keeping every todo field', () => {
+    const parsed = parseCurrentAppState({ calendars: [validCalendar(), gsdCalendar()], calendarFilter: 'gsd' });
+    expect(parsed.calendarFilter).toBe('gsd');
+    expect(parsed.calendars[0]).toEqual(validCalendar());
+    expect(parsed.calendars[1]).toEqual(gsdCalendar());
+  });
+
+  it('requires a kind, and the fields of that kind', () => {
+    const { kind, ...noKind } = validCalendar();
+    expect(kind).toBe('scoring');
+    expect(() => parseCurrentAppState({ calendars: [noKind] })).toThrow(v.ValitaError);
+    expect(() => parseCurrentAppState({ calendars: [{ ...validCalendar(), kind: 'todo' }] })).toThrow(v.ValitaError);
+    const { todos, ...noTodos } = gsdCalendar();
+    expect(todos).toHaveLength(2);
+    expect(() => parseCurrentAppState({ calendars: [noTodos] })).toThrow(v.ValitaError);
+    expect(() => parseCurrentAppState({ calendars: [{ ...gsdCalendar(), kind: 'scoring' }] })).toThrow(v.ValitaError);
+  });
+
+  it('defaults defaultBounty to 1 and rejects a negative or non-finite one', () => {
+    const { defaultBounty, ...noDefault } = gsdCalendar();
+    expect(defaultBounty).toBe(2);
+    expect(parseCurrentAppState({ calendars: [noDefault] }).calendars[0]).toMatchObject({ defaultBounty: 1 });
+    for (const bad of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => parseCurrentAppState({ calendars: [{ ...gsdCalendar(), defaultBounty: bad }] })).toThrow(v.ValitaError);
+    }
+  });
+
+  it('rejects a todo with a negative or non-finite bounty, at any depth', () => {
+    for (const bad of [-0.5, Number.NaN]) {
+      const cal = gsdCalendar();
+      cal.todos[1].children[0].children[0].bounty = bad;
+      expect(() => parseCurrentAppState({ calendars: [cal] })).toThrow(v.ValitaError);
+    }
+  });
+
+  it('rejects todo dates that are not real calendar dates', () => {
+    for (const field of ['created', 'due', 'done'] as const) {
+      const cal = gsdCalendar();
+      // Later than `created`, so only the real-date rule can reject it.
+      cal.todos[1].children[0] = { ...cal.todos[1].children[0], [field]: '2026-11-31' };
+      expect(() => parseCurrentAppState({ calendars: [cal] })).toThrow(v.ValitaError);
+    }
+  });
+
+  it('rejects a done date before the created date', () => {
+    const cal = gsdCalendar();
+    cal.todos[0].children[0].done = '2026-09-30';
+    expect(() => parseCurrentAppState({ calendars: [cal] })).toThrow(v.ValitaError);
+  });
+
+  it('rejects two todos sharing an id anywhere in one calendar, but not across calendars', () => {
+    const cal = gsdCalendar();
+    cal.todos[1].children[0].children[0].id = 't1';
+    expect(() => parseCurrentAppState({ calendars: [cal] })).toThrow(/unique/);
+    expect(() => parseCurrentAppState({ calendars: [gsdCalendar(), { ...gsdCalendar(), id: 'gsd-b' }] })).not.toThrow();
+  });
+
+  it('rejects a calendarFilter outside all, scoring and gsd', () => {
+    expect(() => parseCurrentAppState({ calendars: [], calendarFilter: 'todo' })).toThrow(v.ValitaError);
   });
 });

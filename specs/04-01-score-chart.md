@@ -10,6 +10,7 @@ Combined daily score from all active calendars, shown above the calendar section
   that same split over the week.
 - Default range is last 28 days on first run. The selected range persists.
 - A range toggle in the chart header selects the range. The chart carries no total label.
+- A GSD calendar's points count as positive score on the day they were earned.
 - Aggregation queries only dates in the selected span. All stored history remains available and calendar totals cover full history.
 
 ## Marks
@@ -31,10 +32,10 @@ Combined daily score from all active calendars, shown above the calendar section
 
 ## Breakdown
 - Clicking a column pins its tooltip open and expands it with a breakdown of that day or week:
-  one row per active calendar with a non-zero count in it, giving the calendar's name, its total
-  count, and its score (count × activity value). Rows run from highest score to lowest; equal
-  scores keep calendar order. A column with no
-  counts reads "No activity".
+  one row per active calendar with a non-zero count or score in it, giving the calendar's name,
+  its total count, and its score (count × activity value, or a GSD calendar's points). Rows run
+  from highest score to lowest; equal scores keep calendar order. A column with no rows reads
+  "No activity".
 - The pinned tooltip stays open when the pointer leaves. Clicking the same column again, pressing
   `Escape`, or clicking anywhere outside the chart columns and the tooltip closes it; clicking
   another column pins that one instead.

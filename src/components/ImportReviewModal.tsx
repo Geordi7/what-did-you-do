@@ -51,6 +51,16 @@ const SKIP_OPTION_DESCRIBES =
 /** The select's value space: `'skip'` plus the four merge actions. */
 type MergeChoice = 'skip' | MergeAction;
 
+/**
+ * The merge actions a colliding row offers. Todo trees do not merge, so with a GSD
+ * calendar on either side only `replace` is offered — `specs/03-02-import-export.md`.
+ */
+function mergeOptionsFor(row: ImportRow): typeof MERGE_OPTIONS {
+  const live = store.calendars.find(cal => cal.id === row.collidesWithId);
+  if (row.calendar.kind === 'gsd' || live?.kind === 'gsd') return MERGE_OPTIONS.filter(option => option.action === 'replace');
+  return MERGE_OPTIONS;
+}
+
 function isMergeAction(value: string): value is MergeAction {
   return MERGE_OPTIONS.some(option => option.action === value);
 }
@@ -219,7 +229,7 @@ export default function ImportReviewModal(props: {
                               <option value="skip" aria-label={SKIP_OPTION_DESCRIBES}>
                                 {SKIP_OPTION_LABEL}
                               </option>
-                              <For each={MERGE_OPTIONS}>
+                              <For each={mergeOptionsFor(row)}>
                                 {option => (
                                   <option value={option.action} aria-label={option.describes}>
                                     {option.label}

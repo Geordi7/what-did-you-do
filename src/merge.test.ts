@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { Calendar, MergeAction } from './types';
+import type { GsdCalendar, MergeAction, ScoringCalendar } from './types';
 import { mergeCalendars } from './merge';
 
 const NOW = '2026-09-30T12:00:00Z';
 
-const live = (over: Partial<Calendar> = {}): Calendar => ({
+const live = (over: Partial<ScoringCalendar> = {}): ScoringCalendar => ({
+  kind: 'scoring',
   id: 'cal-live',
   name: 'Live name',
   color: '#40c463',
@@ -14,7 +15,8 @@ const live = (over: Partial<Calendar> = {}): Calendar => ({
   ...over,
 });
 
-const imported = (over: Partial<Calendar> = {}): Calendar => ({
+const imported = (over: Partial<ScoringCalendar> = {}): ScoringCalendar => ({
+  kind: 'scoring',
   // Same id: every case here is a collision, which is the only time a merge runs.
   id: 'cal-live',
   name: 'Imported name',
@@ -193,5 +195,39 @@ describe('mergeCalendars invariants', () => {
       expect(merged.days).not.toBe(l.days);
       expect(merged.days).not.toBe(i.days);
     }
+  });
+});
+
+/* ── GSD calendars: todo trees do not merge, only replace ───────────────── */
+
+const gsd = (over: Partial<GsdCalendar> = {}): GsdCalendar => ({
+  kind: 'gsd',
+  id: 'cal-live',
+  name: 'Chores',
+  color: '#216e39',
+  defaultBounty: 2,
+  todos: [{ id: 't1', title: 'Taxes', bounty: 3, created: '2025-01-01', children: [{ id: 't1a', title: 'Find forms', bounty: 0.5, created: '2025-01-02', children: [] }] }],
+  updatedAt: '2025-03-01T00:00:00Z',
+  ...over,
+});
+
+describe('a GSD calendar on either side', () => {
+  const actions: MergeAction[] = ['replace', 'merge-by-sum', 'merge-prefer-import', 'merge-prefer-live'];
+
+  for (const action of actions) {
+    it(`${action} takes the imported calendar whole, keeping the live id and trash flag`, () => {
+      expect(mergeCalendars(live({ deleted: true }), gsd({ id: 'other' }), action, NOW)).toEqual({ ...gsd(), deleted: true, updatedAt: NOW });
+      expect(mergeCalendars(gsd(), imported(), action, NOW)).toEqual({ ...imported(), updatedAt: NOW });
+      const fromGsd = gsd({ name: 'Imported chores', todos: [] });
+      expect(mergeCalendars(gsd({ deleted: false }), fromGsd, action, NOW)).toEqual({ ...fromGsd, deleted: false, updatedAt: NOW });
+    });
+  }
+
+  it('copies the imported todo tree rather than sharing it', () => {
+    const source = gsd();
+    const merged = mergeCalendars(gsd({ todos: [] }), source, 'replace', NOW);
+    if (merged.kind !== 'gsd') throw new Error('expected a GSD calendar');
+    merged.todos[0].children[0].title = 'Changed';
+    expect(source.todos[0].children[0].title).toBe('Find forms');
   });
 });

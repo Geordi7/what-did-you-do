@@ -1,7 +1,7 @@
 ---
 id: 0007
 affects:
-  specs: [01-requirements.md, 04-design.md, 03-data-model.md, 03-01-migrations.md, 06-accessibility.md]
+  specs: [01-requirements.md, 04-design.md, 03-data-model.md, 03-03-calendars.md, 03-01-migrations.md, 06-accessibility.md]
   paths: [src/App.tsx, src/store.ts, src/types.ts]
 tags: [ui, sorting, calendars, persistence]
 links: {}

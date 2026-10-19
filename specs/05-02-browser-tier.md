@@ -26,7 +26,8 @@ The two manual suites are the source of truth for the cases; this tier executes 
 Counts and case lists are deliberately absent below: each suite is its own source of truth, and a
 file that restates them goes stale the moment a case is added.
 
-- `03-01-T00-migration.md`, in `e2e/migration.e2e.ts` — every case in that suite.
+- `03-01-T00-migration.md` and `03-01-T01-gsd-migration.md`, in `e2e/migration.e2e.ts` — every
+  case in both suites.
 - `03-02-T00-import-export.md` and `03-02-T01-collisions.md`, in `e2e/import-export.e2e.ts` — every
   case in both. Export is captured from the real download event and import drives the real file
   input, so each case takes the path a user's file takes.

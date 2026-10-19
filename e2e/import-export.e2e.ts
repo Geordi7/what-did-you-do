@@ -28,6 +28,15 @@ const IMPORT_COLOR = '#216e39';
 /** Seeds are written in the store's own canonical shape, so loading rewrites nothing. */
 const SEED_VERSION = 5;
 
+/**
+ * An import payload as JSON. From version 7 every calendar carries its kind, so a payload stamped
+ * with that version gets `kind: 'scoring'` on any calendar that does not name one.
+ */
+function payloadJson(payload: { version: number; calendars: Array<Record<string, unknown>> } & Record<string, unknown>): string {
+  const calendars = payload.version >= 7 ? payload.calendars.map(cal => ({ kind: 'scoring', ...cal })) : payload.calendars;
+  return JSON.stringify({ ...payload, calendars });
+}
+
 /** A local date key `offset` days from today, matching `utils.dateKey`. */
 function dayKey(offset: number): string {
   const d = new Date();
@@ -97,7 +106,7 @@ function collisionState() {
 
 /** The collision fixture's Payload, reusing the live `id` read back from storage. */
 function collisionPayload(version: number, liveId: string): string {
-  return JSON.stringify({
+  return payloadJson({
     version,
     exportedAt: '2025-06-01T12:00:00.000Z',
     calendars: [
@@ -487,7 +496,7 @@ test('Case 9 — a review row shows name, event count and last update', async ({
   await importFile(
     page,
     'empty-days.json',
-    JSON.stringify({
+    payloadJson({
       version,
       exportedAt: '2025-06-02T00:00:00.000Z',
       calendars: [
@@ -512,7 +521,7 @@ test('Case 10 — rejecting a non-colliding row imports nothing for it', async (
   await open(page);
   const version = CURRENT_STORAGE_VERSION;
 
-  const payload = JSON.stringify({
+  const payload = payloadJson({
     version,
     exportedAt: '2025-06-03T00:00:00.000Z',
     calendars: [
@@ -564,7 +573,7 @@ test('Case 11 — an appended calendar lands undeleted', async ({ page }) => {
   await importFile(
     page,
     'deleted-source.json',
-    JSON.stringify({
+    payloadJson({
       version,
       exportedAt: '2025-06-04T00:00:00.000Z',
       calendars: [
@@ -597,7 +606,7 @@ test('Case 11 — an appended calendar lands undeleted', async ({ page }) => {
  * `today` is passed in rather than recomputed, so one test uses one day key throughout.
  */
 function mixedPayload(version: number, today: string): string {
-  return JSON.stringify({
+  return payloadJson({
     version,
     exportedAt: '2025-06-05T00:00:00.000Z',
     calendars: [
@@ -651,7 +660,7 @@ test('Case 12 — a mixed payload resolves row by row', async ({ page }) => {
   // payload the app had rewritten in some other shape, which is the failure being watched for.
   const beforeState = await readState(page);
   const beforeRaw = (await readKey(page, 'achievement-calendars')) as string;
-  const retiredStart = beforeRaw.indexOf('{"id":"fx-retired"');
+  const retiredStart = beforeRaw.indexOf('{"kind":"scoring","id":"fx-retired"');
   expect(retiredStart).toBeGreaterThan(-1);
   const retiredBytes = beforeRaw.slice(retiredStart, beforeRaw.lastIndexOf('}]') + 1);
   const winsUpdatedAt = beforeState.calendars[0].updatedAt;
@@ -741,7 +750,7 @@ test('Case 13 — an import failure reports inline, and a success clears itself'
   await importFile(
     page,
     'good.json',
-    JSON.stringify({
+    payloadJson({
       version,
       exportedAt: '2025-06-06T00:00:00.000Z',
       calendars: [
@@ -813,4 +822,34 @@ test('Case 14 — Escape writes nothing', async ({ page }) => {
   const before = await stageAbandonedImport(page);
   await page.keyboard.press('Escape');
   await expectNothingWritten(page, before);
+});
+
+/* ── Case 15: a GSD calendar on either side merges only by replace ──────── */
+
+test('Case 15 — a colliding GSD calendar offers only skip and replace', async ({ page }) => {
+  const { liveId } = await openCollisionFixture(page);
+  const chores = {
+    kind: 'gsd', id: liveId, name: 'Chores', color: IMPORT_COLOR, defaultBounty: 2, updatedAt: '2025-06-01T12:00:00.000Z',
+    todos: [{ id: 't1', title: 'Taxes', bounty: 2, created: '2025-05-20', children: [] }],
+  };
+  const optionValues = (rowLocator: Locator) =>
+    rowLocator.getByRole('combobox').locator('option').evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
+
+  // Steps 1-2.
+  await importFile(page, 'gsd.json', payloadJson({ version: CURRENT_STORAGE_VERSION, exportedAt: '2025-06-01T12:00:00.000Z', calendars: [chores] }));
+  const gsdRow = row(page, 'Chores');
+  await expect.poll(() => optionValues(gsdRow)).toEqual(['skip', 'replace']);
+
+  // Steps 3-4.
+  await gsdRow.getByRole('combobox').selectOption('replace');
+  await apply(page);
+  const stored = await readState(page);
+  expect(stored.calendars).toHaveLength(1);
+  const { updatedAt, ...kept } = stored.calendars[0];
+  expect(kept).toEqual({ ...chores, updatedAt: undefined, id: liveId });
+  expect(updatedAt).not.toBe(chores.updatedAt);
+
+  // Step 5: now the live calendar is the GSD one, and the import is a scoring calendar.
+  await importFile(page, 'scoring.json', collisionPayload(CURRENT_STORAGE_VERSION, liveId));
+  await expect.poll(() => optionValues(row(page, 'Imported Wins'))).toEqual(['skip', 'replace']);
 });

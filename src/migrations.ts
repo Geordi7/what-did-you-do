@@ -1,4 +1,4 @@
-import type { CalendarSort, ChartRange } from './types';
+import type { CalendarFilter, CalendarSort, ChartRange } from './types';
 import { randomColor } from './utils';
 import {
   DEFAULT_ACTIVITY_VALUE,
@@ -11,6 +11,8 @@ import {
   parseAppStateV3,
   parseAppStateV4,
   parseAppStateV5,
+  parseAppStateV6,
+  DEFAULT_CALENDAR_FILTER,
 } from './schemas';
 
 /**
@@ -23,7 +25,7 @@ import {
  */
 
 /** The version of the persisted shape. Bumps only when that shape changes. */
-export const STORAGE_VERSION = 6;
+export const STORAGE_VERSION = 7;
 
 /**
  * Single key holding the raw pre-migration string, overwritten on each
@@ -116,6 +118,18 @@ const migrateV5ToV6: Migration = state => {
   return { ...prev, version: 6, calendarSort };
 };
 
+/** 6 -> 7: every existing calendar is a scoring calendar; `calendarFilter` defaults to all. */
+const migrateV6ToV7: Migration = state => {
+  const prev = parseAppStateV6(state);
+  const calendarFilter: CalendarFilter = DEFAULT_CALENDAR_FILTER;
+  return {
+    ...prev,
+    version: 7,
+    calendars: prev.calendars.map(cal => ({ kind: 'scoring', ...cal })),
+    calendarFilter,
+  };
+};
+
 /** Keyed by source version; one entry per row of the version log. */
 export const MIGRATIONS: Record<number, Migration> = {
   0: migrateV0ToV1,
@@ -124,6 +138,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   3: migrateV3ToV4,
   4: migrateV4ToV5,
   5: migrateV5ToV6,
+  6: migrateV6ToV7,
 };
 
 /**

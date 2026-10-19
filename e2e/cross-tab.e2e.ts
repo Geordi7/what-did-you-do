@@ -109,7 +109,7 @@ test('a count change in one tab lands in the other', async ({ context }) => {
   await writer.locator(`.cell[data-key="${key}"]`).first().click();
 
   await expect
-    .poll(() => reader.evaluate(k => window.__store!.calendars[0].days[k] ?? 0, key))
+    .poll(() => reader.evaluate(k => (c => (c.kind === 'scoring' ? c.days[k] ?? 0 : 0))(window.__store!.calendars[0]), key))
     .toBe(1);
   expect(await seenKeys(reader)).toContain(STORAGE_KEY);
 
@@ -244,8 +244,8 @@ test('two tabs writing in the same turn resolve last-write-wins', async ({ conte
     .poll(() =>
       first.evaluate(
         k => [
-          window.__store!.calendars[0].days[k] ?? 0,
-          window.__store!.calendars[1].days[k] ?? 0,
+          (c => (c.kind === 'scoring' ? c.days[k] ?? 0 : 0))(window.__store!.calendars[0]),
+          (c => (c.kind === 'scoring' ? c.days[k] ?? 0 : 0))(window.__store!.calendars[1]),
         ],
         key,
       ),

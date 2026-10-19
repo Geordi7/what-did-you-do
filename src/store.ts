@@ -3,7 +3,10 @@ import { createStore, produce, reconcile } from 'solid-js/store';
 import type {
   AppState,
   Calendar,
+  CalendarFilter,
   CalendarSort,
+  GsdCalendar,
+  ScoringCalendar,
   ChartRange,
   Diagnostic,
   ImportRow,
@@ -12,6 +15,8 @@ import type {
 } from './types';
 import { STORAGE_VERSION } from './migrations';
 import {
+  DEFAULT_BOUNTY,
+  DEFAULT_CALENDAR_FILTER,
   DEFAULT_CALENDAR_SORT,
   DEFAULT_CHART_RANGE,
   DEFAULT_THEME,
@@ -19,7 +24,9 @@ import {
 } from './schemas';
 import { buildDiagnostic } from './diagnostic';
 import { mergeCalendars } from './merge';
-import { newId, randomColor, totalActivities } from './utils';
+import { dateKey, newId, randomColor } from './utils';
+import { calendarTotal } from './calendar-figures';
+import * as gsd from './gsd';
 import { BACKUP_KEY, STORAGE_KEY, THEME_KEY, EXPORT_KEY, MAX_IMPORT_BYTES } from './persistence-contract';
 import { probe, startVersion, interpretParsed, interpret, byteLength, serializeCalendar } from './payload';
 
@@ -62,11 +69,18 @@ export interface StoreState {
   version: number;
   chartRange: ChartRange;
   calendarSort: CalendarSort;
+  calendarFilter: CalendarFilter;
   calendars: Calendar[];
 }
 
 function emptyState(): StoreState {
-  return { version: STORAGE_VERSION, chartRange: DEFAULT_CHART_RANGE, calendarSort: { ...DEFAULT_CALENDAR_SORT }, calendars: [] };
+  return {
+    version: STORAGE_VERSION,
+    chartRange: DEFAULT_CHART_RANGE,
+    calendarSort: { ...DEFAULT_CALENDAR_SORT },
+    calendarFilter: DEFAULT_CALENDAR_FILTER,
+    calendars: [],
+  };
 }
 
 function toStoreState(parsed: CurrentAppState): StoreState {
@@ -74,7 +88,8 @@ function toStoreState(parsed: CurrentAppState): StoreState {
     version: STORAGE_VERSION,
     chartRange: parsed.chartRange,
     calendarSort: { ...parsed.calendarSort },
-    calendars: parsed.calendars.map(cal => ({ ...cal, days: { ...cal.days } })),
+    calendarFilter: parsed.calendarFilter,
+    calendars: parsed.calendars.map(serializeCalendar),
   };
 }
 
@@ -203,7 +218,7 @@ export function createAppStore(options: StoreOptions = {}) {
 
   function announceDay(id: string, key: string) {
     const cal = state.calendars.find(candidate => candidate.id === id);
-    if (!cal) return;
+    if (!cal || cal.kind !== 'scoring') return;
     const count = cal.days[key] ?? 0;
     setDayAnnouncement(`${cal.name}, ${key}: ${count} ${count === 1 ? 'activity' : 'activities'}.`);
   }
@@ -221,6 +236,7 @@ export function createAppStore(options: StoreOptions = {}) {
       theme: theme(),
       chartRange: state.chartRange,
       calendarSort: { by: state.calendarSort.by, dir: state.calendarSort.dir },
+      calendarFilter: state.calendarFilter,
       calendars: state.calendars.map(serializeCalendar),
     };
     return JSON.stringify(envelope);
@@ -299,6 +315,37 @@ export function createAppStore(options: StoreOptions = {}) {
     );
   }
 
+  /** `editCalendar` for scoring calendars only: a GSD calendar is left wholly untouched. */
+  function editScoring(id: string, edit: (cal: ScoringCalendar) => void) {
+    if (state.calendars.find(candidate => candidate.id === id)?.kind !== 'scoring') return;
+    editCalendar(id, cal => { if (cal.kind === 'scoring') edit(cal); });
+  }
+
+  /** `editCalendar` for GSD calendars only: a scoring calendar is left wholly untouched. */
+  function editGsd(id: string, edit: (cal: GsdCalendar) => void) {
+    if (state.calendars.find(candidate => candidate.id === id)?.kind !== 'gsd') return;
+    editCalendar(id, cal => { if (cal.kind === 'gsd') edit(cal); });
+  }
+
+  /**
+   * Run one todo rule on a GSD calendar's tree, stamping `updatedAt` only when the
+   * rule changed something: a refused rule is not a change.
+   */
+  function editTodos(id: string, rule: (cal: GsdCalendar, today: string) => boolean): boolean {
+    const stamp = now().toISOString();
+    const today = dateKey(now());
+    let changed = false;
+    setState(
+      produce(draft => {
+        const cal = draft.calendars.find(candidate => candidate.id === id);
+        if (cal === undefined || cal.kind !== 'gsd') return;
+        changed = rule(cal, today);
+        if (changed) cal.updatedAt = stamp;
+      }),
+    );
+    return changed;
+  }
+
   function envelope(calendars: Calendar[]): string {
     return JSON.stringify({
       version: STORAGE_VERSION,
@@ -320,6 +367,9 @@ export function createAppStore(options: StoreOptions = {}) {
     },
     get calendarSort(): CalendarSort {
       return state.calendarSort;
+    },
+    get calendarFilter(): CalendarFilter {
+      return state.calendarFilter;
     },
     get calendars(): Calendar[] {
       return state.calendars;
@@ -364,19 +414,19 @@ export function createAppStore(options: StoreOptions = {}) {
       setState('calendarSort', { by: sort.by, dir: sort.dir });
     },
 
+    setCalendarFilter(filter: CalendarFilter) {
+      setState('calendarFilter', filter);
+    },
+
     setHighlightedKey(key: string | null) {
       setHighlightedKey(key);
     },
 
-    addCalendar(name: string) {
-      const cal: Calendar = {
-        id: newId(),
-        name,
-        color: randomColor(),
-        days: {},
-        activityValue: 1.0,
-        updatedAt: now().toISOString(),
-      };
+    addCalendar(name: string, kind: Calendar['kind'] = 'scoring') {
+      const base = { id: newId(), name, color: randomColor(), updatedAt: now().toISOString() };
+      const cal: Calendar = kind === 'scoring'
+        ? { kind, ...base, days: {}, activityValue: 1.0 }
+        : { kind, ...base, defaultBounty: DEFAULT_BOUNTY, todos: [] };
       setState(
         produce(draft => {
           draft.calendars.push(cal);
@@ -432,8 +482,14 @@ export function createAppStore(options: StoreOptions = {}) {
     },
 
     setActivityValue(id: string, value: number) {
-      editCalendar(id, cal => {
+      editScoring(id, cal => {
         cal.activityValue = value;
+      });
+    },
+
+    setDefaultBounty(id: string, value: number) {
+      editGsd(id, cal => {
+        cal.defaultBounty = value;
       });
     },
 
@@ -444,7 +500,7 @@ export function createAppStore(options: StoreOptions = {}) {
     },
 
     incrementDay(calId: string, dateKey: string) {
-      editCalendar(calId, cal => {
+      editScoring(calId, cal => {
         cal.days[dateKey] = (cal.days[dateKey] ?? 0) + 1;
       });
       announceDay(calId, dateKey);
@@ -456,7 +512,7 @@ export function createAppStore(options: StoreOptions = {}) {
       setState(
         produce(draft => {
           const cal = draft.calendars.find(candidate => candidate.id === calId);
-          if (cal === undefined) return;
+          if (cal === undefined || cal.kind !== 'scoring') return;
           // An absent key already reads as zero, so zeroing it changes nothing
           // and must not advance the calendar's last-update reading.
           if (!Object.prototype.hasOwnProperty.call(cal.days, dateKey)) return;
@@ -465,6 +521,45 @@ export function createAppStore(options: StoreOptions = {}) {
         }),
       );
       announceDay(calId, dateKey);
+    },
+
+    /* ── GSD todos: specs/03-04-gsd-points.md "Rules for todos" ───────────── */
+
+    /** Adds a root todo created today; returns its id. */
+    addTodo(calId: string, fields: { title: string; bounty: number; due?: string }): string {
+      const id = newId();
+      editTodos(calId, (cal, today) => {
+        gsd.addRootTodo(cal.todos, { id, ...fields }, today);
+        return true;
+      });
+      return id;
+    },
+
+    /** Adds a Nudge under `parentId`; returns its id, or `null` when refused. */
+    addNudge(calId: string, parentId: string, title: string): string | null {
+      const id = newId();
+      return editTodos(calId, (cal, today) => gsd.addNudge(cal.todos, parentId, { id, title }, today)) ? id : null;
+    },
+
+    markTodoDone(calId: string, todoId: string, date: string): boolean {
+      return editTodos(calId, (cal, today) => gsd.markDone(cal.todos, todoId, date, today));
+    },
+
+    reopenTodo(calId: string, todoId: string): boolean {
+      return editTodos(calId, cal => gsd.reopenTodo(cal.todos, todoId));
+    },
+
+    deleteTodo(calId: string, todoId: string): boolean {
+      return editTodos(calId, cal => gsd.deleteTodo(cal.todos, todoId));
+    },
+
+    promoteTodo(calId: string, todoId: string): boolean {
+      return editTodos(calId, cal => gsd.promoteTodo(cal.todos, todoId, cal.defaultBounty));
+    },
+
+    /** Edits a todo's title, bounty or due date; `due: null` removes it. A Nudge's bounty is fixed. */
+    editTodo(calId: string, todoId: string, fields: { title?: string; bounty?: number; due?: string | null }): boolean {
+      return editTodos(calId, cal => gsd.editTodo(cal.todos, todoId, fields));
     },
 
     /* ── export ──────────────────────────────────────────────────────────── */
@@ -514,7 +609,7 @@ export function createAppStore(options: StoreOptions = {}) {
       const liveIds = new Set(state.calendars.map(cal => cal.id));
       const rows: ImportRow[] = result.state.calendars.map(cal => ({
         calendar: cal,
-        events: totalActivities(cal.days),
+        events: calendarTotal(cal),
         collidesWithId: liveIds.has(cal.id) ? cal.id : null,
       }));
       return { ok: true, rows };
@@ -552,14 +647,8 @@ export function createAppStore(options: StoreOptions = {}) {
             // said. An id already present would break the uniqueness the model
             // requires, so such a row is left out rather than corrupting state.
             if (seen.has(row.calendar.id)) continue;
-            const appended: Calendar = {
-              id: row.calendar.id,
-              name: row.calendar.name,
-              color: row.calendar.color,
-              days: { ...row.calendar.days },
-              activityValue: row.calendar.activityValue,
-              updatedAt: row.calendar.updatedAt,
-            };
+            const appended = serializeCalendar(row.calendar);
+            delete appended.deleted;
             draft.calendars.push(appended);
             seen.add(appended.id);
             imported++;

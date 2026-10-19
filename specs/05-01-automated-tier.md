@@ -36,6 +36,8 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
     `merge-prefer-import`, and from the live calendar under `merge-prefer-live` and `merge-by-sum`.
   - Trash — a merged calendar keeps the live `deleted` flag, so no action moves a calendar into or
     out of trash.
+  - A GSD calendar on either side: every action takes the imported calendar whole, as a copy,
+    with the live id and trash flag.
   - Leaving a live calendar untouched is a skipped row, not a merge action; a disposition is store
     behaviour and is exercised in the browser tier.
 - Store — against a `localStorage` fake, with the clock injected:
@@ -48,13 +50,20 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
     row's event total and whether its id collides.
   - `applyImport` commits every disposition as one write: skip changes nothing, append lands at the
     end undeleted, and a merge keeps the live id, index and trash state.
-  - Every mutator stamps only its own calendar's `updatedAt`.
+  - Every mutator stamps only its own calendar's `updatedAt`; a refused todo rule, or a mutator
+    meant for the other calendar kind, changes and stamps nothing.
+  - GSD calendars: creation, the calendar filter and todo trees persist across a reload; each todo
+    rule applies through the store; an import row's events are its root todos done.
   - Unavailable or full storage surfaces an error and keeps the in-memory state usable.
   - A `storage` event from another tab converges without the write loop re-firing.
 - `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels; the calendar grid
   window runs 22 weeks back and 4 ahead.
 - Shared day clock — repeated midnight ticks and cancellation of the latest timer on disposal.
 - Score computation — both ranges match an independent full-history reference with positive, negative, zero and deleted calendars; heatmap maxima use visible dates even with a 200,000-day history.
+- GSD points (`src/gsd.ts`) — creation, on-time and late completion points, per-day activities,
+  created, finished and due counts; and every todo rule, including each refusal.
+- Calendar figures — the chart and sort read GSD points and activity counts alongside scoring
+  calendars' counts.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at
   25% and 50% of max.
 

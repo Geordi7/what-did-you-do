@@ -13,7 +13,8 @@ Refines `03-data-model.md`.
 | 3 | `activityValue` added, default `1.0` |
 | 4 | `chartRange` added, default `'28d'` |
 | 5 | `updatedAt` added to `Calendar`, seeded per the rule below |
-| 6 (current) | `calendarSort` added, default `{ by: 'custom', dir: 'desc' }` |
+| 6 | `calendarSort` added, default `{ by: 'custom', dir: 'desc' }` |
+| 7 (current) | `kind` added to `Calendar`; GSD calendars (`kind: 'gsd'`, `defaultBounty`, `todos`); `calendarFilter` added, default `'all'` |
 
 - `STORAGE_VERSION` bumps only on a change to the persisted shape.
 - A bump adds its row above in the same commit as the code.
@@ -43,6 +44,7 @@ const migrations: Record<number, Migration>;
 | 3 -> 4 | adds `chartRange`, `'28d'` |
 | 4 -> 5 | adds `updatedAt` to each calendar |
 | 5 -> 6 | adds `calendarSort`, `{ by: 'custom', dir: 'desc' }` |
+| 6 -> 7 | marks every calendar `kind: 'scoring'`; adds `calendarFilter`, `'all'` |
 
 ### Seeding `updatedAt`
 
@@ -66,6 +68,8 @@ date the user entered, not a time the calendar was edited.
 - Validation runs after migration on every load and on every import.
 - From version 5 the schema requires `updatedAt` on every calendar and rejects a string that is not a
   parseable ISO 8601 instant.
+- From version 7 the schema validates each calendar by its `kind`, and a GSD calendar's todo tree
+  per `03-03-calendars.md`, with todo ids unique within the calendar.
 - The current-version schema asserts that calendar ids are unique. The data model requires unique ids,
   so a duplicate is a defect and takes the failure path below.
 - Day keys are validated as real dates in every version. Previously accepted impossible dates take the protected failure path: the original remains byte-intact, and Download saved data offers the raw JSON for repair and re-import after preserving a copy and clearing the invalid local state.

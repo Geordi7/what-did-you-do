@@ -1,4 +1,4 @@
-import type { Calendar } from './types';
+import type { Calendar, Todo } from './types';
 import { STORAGE_VERSION, runMigrations } from './migrations';
 import { parseCurrentAppState, type CurrentAppState } from './schemas';
 import { MAX_IMPORT_BYTES } from './persistence-contract';
@@ -143,16 +143,36 @@ function serializeDays(days: Record<string, number>): Record<string, number> {
   return out;
 }
 
+/** A plain todo with its fields, and its Nudges', in one fixed order. */
+function serializeTodo(todo: Todo): Todo {
+  const out: Todo = { id: todo.id, title: todo.title, bounty: todo.bounty, created: todo.created, children: [] };
+  if (todo.due !== undefined) out.due = todo.due;
+  if (todo.done !== undefined) out.done = todo.done;
+  out.children = todo.children.map(serializeTodo);
+  return out;
+}
+
 /** A plain, canonically ordered copy of a calendar. Used for writes and exports. */
 export function serializeCalendar(cal: Calendar): Calendar {
-  const out: Calendar = {
-    id: cal.id,
-    name: cal.name,
-    color: cal.color,
-    days: serializeDays(cal.days),
-    activityValue: cal.activityValue,
-    updatedAt: cal.updatedAt,
-  };
+  const out: Calendar = cal.kind === 'scoring'
+    ? {
+      kind: 'scoring',
+      id: cal.id,
+      name: cal.name,
+      color: cal.color,
+      days: serializeDays(cal.days),
+      activityValue: cal.activityValue,
+      updatedAt: cal.updatedAt,
+    }
+    : {
+      kind: 'gsd',
+      id: cal.id,
+      name: cal.name,
+      color: cal.color,
+      defaultBounty: cal.defaultBounty,
+      todos: cal.todos.map(serializeTodo),
+      updatedAt: cal.updatedAt,
+    };
   // Absent and `false` are different stored shapes; carry only the flag it had.
   if (cal.deleted !== undefined) out.deleted = cal.deleted;
   return out;

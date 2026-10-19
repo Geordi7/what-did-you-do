@@ -1,7 +1,7 @@
 ---
 id: 0008
 affects:
-  specs: [01-requirements.md, 03-data-model.md, 03-01-migrations.md, 03-02-import-export.md, 04-01-score-chart.md]
+  specs: [01-requirements.md, 03-data-model.md, 03-03-calendars.md, 03-04-gsd-points.md, 03-01-migrations.md, 03-02-import-export.md, 04-01-score-chart.md]
   paths: [src/types.ts, src/scores.ts, src/schemas.ts, src/migrations.ts, src/store.ts]
 tags: [gsd, todo, scoring, data-model, migration]
 links: {related: [0009, 0007]}

@@ -5,6 +5,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
   BACKUP_KEY,
+  asScoring,
   STORAGE_KEY,
   THEME_KEY,
   open,
@@ -140,7 +141,7 @@ test('Case 1: an unversioned payload migrates to the current version', async ({ 
   await expect(page.locator('.recover-name')).toHaveText('Retired');
 
   // Step 4: a colour, and the default activity value.
-  const active = await page.evaluate(() => window.__store!.activeCalendars[0]);
+  const active = asScoring(await page.evaluate(() => window.__store!.activeCalendars[0]));
   expect(active.name).toBe('Runs');
   expect(active.color).toMatch(/^#[0-9a-fA-F]{6}$/);
   expect(active.activityValue).toBe(1.0);
@@ -178,7 +179,7 @@ test('Case 2: a version-2 payload keeps its theme and colour', async ({ page }) 
   await expect(page.getByRole('menuitemradio', { name: 'Dark', exact: true })).toHaveAttribute('aria-checked', 'true');
 
   // Step 4.
-  const cal = await page.evaluate(() => window.__store!.activeCalendars[0]);
+  const cal = asScoring(await page.evaluate(() => window.__store!.activeCalendars[0]));
   expect(cal.color).toBe('#40c463');
   expect(cal.activityValue).toBe(1.0);
 
@@ -204,7 +205,7 @@ test('Case 2: a version-1 payload with no theme resolves to system', async ({ pa
   await page.locator('header').getByRole('button', { name: 'Menu' }).click();
   await expect(page.getByRole('menuitemradio', { name: 'System', exact: true })).toHaveAttribute('aria-checked', 'true');
 
-  const cal = await page.evaluate(() => window.__store!.activeCalendars[0]);
+  const cal = asScoring(await page.evaluate(() => window.__store!.activeCalendars[0]));
   expect(cal.color).toBe('#40c463');
   expect(cal.activityValue).toBe(1.0);
 
@@ -224,7 +225,7 @@ test('Case 3: a version-3 payload keeps a negative activity value', async ({ pag
 
   // Step 3: the negative weight survives, and the chart reads today as negative
   // score — 10 counts at -2.5 is -25.0 negative, nothing positive, net -25.0.
-  const cal = await page.evaluate(() => window.__store!.activeCalendars[0]);
+  const cal = asScoring(await page.evaluate(() => window.__store!.activeCalendars[0]));
   expect(cal.name).toBe('Pushups');
   expect(cal.activityValue).toBe(-2.5);
   expect(cal.days[day]).toBe(10);
@@ -424,5 +425,58 @@ test('Case 8: the 5 -> 6 step adds custom order and changes nothing else', async
 
   // Step 4.
   expect(stored.chartRange).toBe('26w');
-  expect(stored.calendars).toEqual([runs]);
+  expect(stored.calendars).toEqual([{ kind: 'scoring', ...runs }]);
+});
+
+/* ── Case 9 — version 6 -> 7, per specs/03-01-T01-gsd-migration.md ───────── */
+
+test('Case 9: the 6 -> 7 step marks calendars scoring, defaults the filter, and changes nothing else', async ({ page }) => {
+  const runs = { id: 'v6-a', name: 'Runs', color: '#40c463', days: { '2025-06-02': 3 }, activityValue: 1, updatedAt: '2025-06-02T08:00:00.000Z' };
+  const retired = { id: 'v6-b', name: 'Retired', color: '#216e39', days: {}, activityValue: 2, updatedAt: '2025-06-01T08:00:00.000Z', deleted: true };
+  const raw = JSON.stringify({ version: 6, theme: 'light', chartRange: '26w', calendarSort: { by: 'score', dir: 'asc' }, calendars: [runs, retired] });
+  await seed(page, { [STORAGE_KEY]: raw });
+  await open(page);
+
+  // Step 3.
+  const stored = await readState(page);
+  expect(stored.version).toBe(CURRENT_STORAGE_VERSION);
+  expect(stored.calendarFilter).toBe('all');
+  // Step 4.
+  expect(stored.calendarSort).toEqual({ by: 'score', dir: 'asc' });
+  expect(stored.chartRange).toBe('26w');
+  expect(stored.calendars).toEqual([{ kind: 'scoring', ...runs }, { kind: 'scoring', ...retired }]);
+  // Step 5.
+  expect(await readKey(page, BACKUP_KEY)).toBe(raw);
+});
+
+/* ── Case 10 — a GSD calendar at version 7 ─────────────────────────────────── */
+
+const gsdChores = (done: string) => ({
+  kind: 'gsd', id: 'v7-g', name: 'Chores', color: '#40c463', defaultBounty: 2, updatedAt: '2026-10-01T08:00:00.000Z',
+  todos: [{ id: 't1', title: 'Taxes', bounty: 2, due: '2026-10-08', created: '2026-10-01', children: [
+    { id: 't1a', title: 'Find the forms', bounty: 0.5, created: '2026-10-02', done, children: [] },
+  ] }],
+});
+
+test('Case 10: a GSD calendar loads unchanged, and a done date before its creation blocks', async ({ page }) => {
+  await seed(page, { [STORAGE_KEY]: JSON.stringify({ version: 7, theme: 'light', calendarFilter: 'gsd', calendars: [gsdChores('2026-10-02')] }) });
+  await open(page);
+
+  // Step 2.
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  expect(await page.evaluate(() => window.__store!.blocked)).toBe(false);
+  expect(await readKey(page, BACKUP_KEY)).toBeNull();
+  // Step 3.
+  const stored = await readState(page);
+  expect(stored.calendarFilter).toBe('gsd');
+  expect(stored.calendars).toEqual([gsdChores('2026-10-02')]);
+
+  // Step 4.
+  const bad = JSON.stringify({ version: 7, theme: 'light', calendars: [gsdChores('2026-09-30')] });
+  await seed(page, { [STORAGE_KEY]: bad });
+  await reopen(page);
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog.getByRole('heading', { name: 'Your saved data could not be read' })).toBeVisible();
+  await expect(dialog.locator('.blocking-diagnostic')).toContainText('phase: validate');
+  expect(await readKey(page, STORAGE_KEY)).toBe(bad);
 });

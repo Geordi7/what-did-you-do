@@ -7,6 +7,7 @@
  * affordance `specs/02-02-state-store.md` records for exactly this purpose.
  */
 import type { Page } from '@playwright/test';
+import type { Calendar, ScoringCalendar } from '../src/types';
 
 import { STORAGE_KEY } from '../src/persistence-contract';
 export { BACKUP_KEY, STORAGE_KEY, THEME_KEY, EXPORT_KEY } from '../src/persistence-contract';
@@ -20,7 +21,7 @@ export { BACKUP_KEY, STORAGE_KEY, THEME_KEY, EXPORT_KEY } from '../src/persisten
  * with itself and holds however wrong the constant becomes. A bump has to be typed
  * here, which is the same discipline the migration suite already asks for.
  */
-export const CURRENT_STORAGE_VERSION = 6;
+export const CURRENT_STORAGE_VERSION = 7;
 
 /**
  * Queue a seed for the next navigation: clear every `achievement-calendars*` key,
@@ -103,4 +104,10 @@ export async function exportToText(page: Page): Promise<string> {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(chunk as Buffer);
   return Buffer.concat(chunks).toString('utf8');
+}
+
+/** Narrow a calendar read off the page to the scoring kind, failing the test otherwise. */
+export function asScoring(cal: Calendar): ScoringCalendar {
+  if (cal.kind !== 'scoring') throw new Error(`expected a scoring calendar, got ${cal.kind}`);
+  return cal;
 }

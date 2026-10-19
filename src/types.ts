@@ -1,13 +1,38 @@
-export interface Calendar {
+/** Fields every calendar kind shares; `specs/03-03-calendars.md`. */
+interface CalendarBase {
   id: string;
   name: string;
   color: string;
-  days: Record<string, number>;
-  activityValue: number;
   /** ISO 8601 instant recording when this calendar was last changed. */
   updatedAt: string;
   deleted?: boolean;
 }
+
+export interface ScoringCalendar extends CalendarBase {
+  kind: 'scoring';
+  days: Record<string, number>;
+  activityValue: number;
+}
+
+/** A todo in a GSD calendar's tree. Dates are `YYYY-MM-DD` day keys. */
+export interface Todo {
+  id: string;
+  title: string;
+  bounty: number;
+  due?: string;
+  created: string;
+  done?: string;
+  children: Todo[];
+}
+
+/** A Getting Stuff Done calendar: its points derive from its todos (`specs/03-04-gsd-points.md`). */
+export interface GsdCalendar extends CalendarBase {
+  kind: 'gsd';
+  defaultBounty: number;
+  todos: Todo[];
+}
+
+export type Calendar = ScoringCalendar | GsdCalendar;
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -19,12 +44,15 @@ export interface CalendarSort {
   dir: 'desc' | 'asc';
 }
 
+export type CalendarFilter = 'all' | 'scoring' | 'gsd';
+
 export interface AppState {
   version: number;
   theme: ThemeMode;
   calendars: Calendar[];
   chartRange?: ChartRange;
   calendarSort?: CalendarSort;
+  calendarFilter?: CalendarFilter;
 }
 
 /* ── import review ───────────────────────────────────────────────────────── */

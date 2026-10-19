@@ -12,7 +12,8 @@ import CalendarNameInput from './components/CalendarNameInput';
 import BackupBanner from './components/BackupBanner';
 import ImportReviewModal from './components/ImportReviewModal';
 import BlockingMessage from './components/BlockingMessage';
-import { calendarGrid, dateKey, totalActivities, hexToRgb, downloadFile, exportFilename } from './utils';
+import { calendarGrid, dateKey, hexToRgb, downloadFile, exportFilename } from './utils';
+import { calendarTotal } from './calendar-figures';
 import type { ImportRow, ThemeMode } from './types';
 import './App.css';
 
@@ -287,12 +288,14 @@ function App() {
                 <div class="cal-info">
                   <CalendarNameInput id={cal.id} name={cal.name} />
                   <span class="cal-stat">
-                    {totalActivities(cal.days)} activities
+                    {calendarTotal(cal)} activities
                   </span>
                 </div>
                 <CalendarMenu cal={cal} idx={idx()} total={store.activeCalendars.length} sorted={store.calendarSort.by !== 'custom'} />
               </div>
-              <CalendarGrid calendar={cal} isLight={isLight()} now={now} />
+              <Show when={cal.kind === 'scoring' ? cal : null}>
+                {scoringCal => <CalendarGrid calendar={scoringCal()} isLight={isLight()} now={now} />}
+              </Show>
             </div>
           )}
         </For>
@@ -313,7 +316,7 @@ function App() {
                   {(cal) => (
                     <div class="recover-item">
                       <span class="recover-name">{cal.name}</span>
-                      <span class="recover-stat">{totalActivities(cal.days)} activities</span>
+                      <span class="recover-stat">{calendarTotal(cal)} activities</span>
                       <div class="recover-actions">
                         <button class="recover-btn" onClick={() => store.recoverCalendar(cal.id)}>Recover</button>
                         <button class="recover-delete-btn" onClick={() => permanentlyDelete(cal.id, cal.name)}>Delete forever</button>

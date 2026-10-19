@@ -1,4 +1,5 @@
-import type { Calendar, MergeAction } from './types';
+import type { Calendar, MergeAction, ScoringCalendar } from './types';
+import { serializeCalendar } from './payload';
 
 /**
  * The four collision-resolution actions of an import, as pure functions of the
@@ -58,8 +59,8 @@ function unionDays(
 }
 
 function mergedDays(
-  live: Calendar,
-  imported: Calendar,
+  live: ScoringCalendar,
+  imported: ScoringCalendar,
   action: MergeAction,
 ): Record<string, number> {
   switch (action) {
@@ -93,14 +94,25 @@ function importWinsMetadata(action: MergeAction): boolean {
  * never moves a calendar into or out of trash, and the caller keeps its index —
  * and stamps `updatedAt` with `now`, the caller's instant.
  */
+export function mergeCalendars(live: ScoringCalendar, imported: ScoringCalendar, action: MergeAction, now: string): ScoringCalendar;
+export function mergeCalendars(live: Calendar, imported: Calendar, action: MergeAction, now: string): Calendar;
 export function mergeCalendars(
   live: Calendar,
   imported: Calendar,
   action: MergeAction,
   now: string,
 ): Calendar {
+  // Todo trees do not merge: with a GSD calendar on either side, the only merge is `replace`,
+  // which takes the imported calendar whole, kind included.
+  if (live.kind !== 'scoring' || imported.kind !== 'scoring') {
+    const replaced: Calendar = { ...serializeCalendar(imported), id: live.id, updatedAt: now };
+    delete replaced.deleted;
+    if (live.deleted !== undefined) replaced.deleted = live.deleted;
+    return replaced;
+  }
   const source = importWinsMetadata(action) ? imported : live;
-  const merged: Calendar = {
+  const merged: ScoringCalendar = {
+    kind: 'scoring',
     id: live.id,
     name: source.name,
     color: source.color,

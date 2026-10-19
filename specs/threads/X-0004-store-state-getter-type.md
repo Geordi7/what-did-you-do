@@ -1,7 +1,7 @@
 ---
 id: 0004
 affects:
-  specs: [02-02-state-store.md, 03-data-model.md]
+  specs: [02-02-state-store.md, 03-data-model.md, 03-03-calendars.md]
   paths: [src/store.ts, src/types.ts, e2e/harness.ts]
 tags: [store, types]
 links: {}

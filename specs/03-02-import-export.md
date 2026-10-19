@@ -45,7 +45,7 @@ user applies it.
 
 - The modal lists **every** calendar in the payload, colliding or not, one row each.
 - A row shows the calendar's name, its number of events, and its last update.
-- Number of events is the sum of all its day counts — the same number a calendar section shows.
+- Number of events is the calendar's total activities — the same number a calendar section shows.
 - Last update is the calendar's `updatedAt` as it arrives in the payload.
 - A row whose `id` collides with a live calendar also carries a dropdown of merge actions.
 - Any row can be rejected, colliding or not. A rejected row is not imported.
@@ -75,6 +75,9 @@ A colliding row that is not rejected merges under one of four actions.
 | `merge-prefer-import` | union of dates; a date present in both takes the imported count | import wins |
 | `merge-prefer-live` | union of dates; a date present in both keeps the live count | live wins |
 
+- When either side is a GSD calendar, the dropdown offers only skip and `replace`: todo trees do not
+  merge, and a scoring calendar's days cannot merge into todos. `replace` takes the imported
+  calendar whole, kind included.
 - A merged calendar keeps the live calendar's `id`, its index in the array, and its `deleted`
   flag; merging never reorders, appends, or moves a calendar into or out of trash.
 - `merge-by-sum` keeps the live metadata: summing is about history, and renaming a calendar the

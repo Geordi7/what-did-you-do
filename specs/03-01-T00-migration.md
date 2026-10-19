@@ -2,7 +2,8 @@
 
 Manual suite for `03-01-migrations.md`. Run the cases in order.
 
-Every `STORAGE_VERSION` bump adds a case here: seed the old shape, reload, verify.
+Every `STORAGE_VERSION` bump adds a case here, or to its continuation `03-01-T01-gsd-migration.md`:
+seed the old shape, reload, verify.
 
 The browser tier executes these cases too, in `e2e/migration.e2e.ts` (`05-02-browser-tier.md`). This file stays
 the source of truth: a case is added here first and the tier follows, and walking it by hand remains
@@ -142,4 +143,5 @@ is tested with the storage-unavailable behaviour, not here.
 2. Reload.
 3. Read back `achievement-calendars`: `version` is `STORAGE_VERSION` and `calendarSort` reads
    `{ "by": "custom", "dir": "desc" }`; the sort bar shows Custom selected.
-4. Verify `chartRange` still reads `'26w'` and `v5-a` is unchanged, `updatedAt` included.
+4. Verify `chartRange` still reads `'26w'` and `v5-a` is unchanged, `updatedAt` included, apart
+   from the `kind` a later step adds.

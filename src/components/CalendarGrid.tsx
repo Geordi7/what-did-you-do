@@ -1,5 +1,5 @@
 import { createMemo, For, onCleanup, Show } from 'solid-js';
-import type { Calendar } from '../types';
+import type { ScoringCalendar } from '../types';
 import { store } from '../store';
 import { calendarGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
 import { visibleMaximum } from '../scores';
@@ -9,7 +9,7 @@ const GAP_PX = 2;
 const STEP = CELL_PX + GAP_PX;
 
 interface Props {
-  calendar: Calendar;
+  calendar: ScoringCalendar;
   isLight: boolean;
   now: () => Date;
 }

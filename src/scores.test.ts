@@ -1,13 +1,13 @@
 import { expect, it } from 'vitest';
 import { scoreBars, visibleMaximum } from './scores';
 import { buildGrid, dateKey } from './utils';
-import type { Calendar, ChartRange } from './types';
+import type { GsdCalendar, ScoringCalendar } from './types';
 
-function calendars(): Calendar[] {
+function calendars(): ScoringCalendar[] {
   return [2, -0.5, 0, 3].map((activityValue, index) => {
     const days: Record<string, number> = {};
     for (let offset = 0; offset < 500; offset++) days[dateKey(new Date(2026, 9, 19 - offset))] = offset % 7;
-    return { id: String(index), name: String(index), days, activityValue, color: '#40c463', updatedAt: '2026-10-18T00:00:00.000Z', deleted: index === 3 };
+    return { kind: 'scoring' as const, id: String(index), name: String(index), days, activityValue, color: '#40c463', updatedAt: '2026-10-18T00:00:00.000Z', deleted: index === 3 };
   });
 }
 
@@ -64,3 +64,25 @@ for (const range of ['28d', '26w'] as const) {
     if (range === '28d') expect(bars.some(bar => bar.activities.length === 0)).toBe(true);
   });
 }
+
+it('adds a GSD calendar\'s points as positive score, with its root todos done as its count', () => {
+  const today = new Date(2026, 9, 19);
+  const chores: GsdCalendar = {
+    kind: 'gsd', id: 'g', name: 'Chores', color: '#40c463', defaultBounty: 1, updatedAt: '2026-10-18T00:00:00.000Z',
+    todos: [
+      { id: 'a', title: 'a', bounty: 2, due: '2026-10-19', created: '2026-10-18', done: '2026-10-19', children: [
+        { id: 'b', title: 'b', bounty: 0.5, created: '2026-10-19', done: '2026-10-19', children: [] },
+      ] },
+    ],
+  };
+  const runs: ScoringCalendar = { kind: 'scoring', id: 'r', name: 'Runs', color: '#40c463', activityValue: -1, updatedAt: '2026-10-18T00:00:00.000Z', days: { '2026-10-19': 1 } };
+  const bars = scoreBars([runs, chores], today, '28d');
+  // 10-18: the root todo's creation point. 10-19: its bounty 2, the Nudge's 0.5 to create and 0.5 to finish.
+  expect(bars[26]).toMatchObject({ key: '2026-10-18', pos: 1, neg: 0, net: 1 });
+  expect(bars[26].activities).toEqual([{ id: 'g', name: 'Chores', count: 0, score: 1 }]);
+  expect(bars[27]).toMatchObject({ key: '2026-10-19', pos: 3, neg: -1, net: 2 });
+  expect(bars[27].activities).toEqual([
+    { id: 'g', name: 'Chores', count: 1, score: 3 },
+    { id: 'r', name: 'Runs', count: 1, score: -1 },
+  ]);
+});

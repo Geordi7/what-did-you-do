@@ -94,3 +94,13 @@ Cases 4–9 all start from the same two states. Rebuild both before each case.
 5. Verify the non-colliding calendar was **not** appended: Cancel abandons the whole import, merges
    and appends alike, as one write that never happened.
 6. Repeat with `Escape` instead of Cancel, and verify the same outcome.
+
+## Case 15 — a colliding GSD calendar
+1. Seed the collision fixture's Live state, then import an envelope at `STORAGE_VERSION` holding a
+   GSD calendar named `Chores` with the live calendar's `id`, one todo, and `defaultBounty` 2.
+2. Verify the colliding row's dropdown offers exactly skip and `replace`, in that order.
+3. Choose `replace` and Apply.
+4. Verify the live calendar is now that GSD calendar, todo and default bounty included, keeping its
+   `id` and index, with `updatedAt` stamped at the apply.
+5. Repeat from a live GSD calendar and an imported scoring calendar: the dropdown again offers
+   exactly skip and `replace`.

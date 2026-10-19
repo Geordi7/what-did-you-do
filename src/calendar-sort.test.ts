@@ -1,12 +1,12 @@
 import { expect, it } from 'vitest';
 import { sortCalendars } from './calendar-sort';
-import type { Calendar, CalendarSort } from './types';
+import type { Calendar, CalendarSort, GsdCalendar } from './types';
 
 /** The visible window: two dates. `2026-01-01` is outside it, so it counts only towards recency. */
 const VISIBLE = ['2026-10-18', '2026-10-19'];
 
 function cal(id: string, days: Record<string, number>, activityValue = 1, updatedAt = '2026-10-01T00:00:00.000Z'): Calendar {
-  return { id, name: id, color: '#40c463', days, activityValue, updatedAt };
+  return { kind: 'scoring', id, name: id, color: '#40c463', days, activityValue, updatedAt };
 }
 
 const ids = (cals: Calendar[]) => cals.map(c => c.id);
@@ -65,4 +65,16 @@ it('sorts least recent first with empties first in custom order, then oldest dat
     cal('empty2', {}, 1, '2026-10-01T00:00:00.000Z'),
   ];
   expect(sorted(cals, { by: 'recent', dir: 'asc' })).toEqual(['empty1', 'empty2', 'old', 'tieOlder', 'tieNewer', 'newest']);
+});
+
+it('sorts a GSD calendar by its root todos done, its points, and its latest day with points', () => {
+  const chores = (id: string, created: string, done?: string): GsdCalendar => ({
+    kind: 'gsd', id, name: id, color: '#40c463', defaultBounty: 1, updatedAt: '2026-10-01T00:00:00.000Z',
+    todos: [{ id: 't', title: 't', bounty: 5, created, children: [], ...(done ? { done } : {}) }],
+  });
+  // g1: created long ago, done in view: 1 activity, 5 points visible. g2: created in view, open: 0 activities, 1 point.
+  const cals = [chores('g2', '2026-10-18'), cal('s', { '2026-10-19': 2 }, 1.5), chores('g1', '2026-01-01', '2026-10-18')];
+  expect(sorted(cals, { by: 'activities', dir: 'desc' })).toEqual(['s', 'g1', 'g2']);
+  expect(sorted(cals, { by: 'score', dir: 'desc' })).toEqual(['g1', 's', 'g2']);
+  expect(sorted(cals, { by: 'recent', dir: 'desc' })).toEqual(['s', 'g2', 'g1']);
 });

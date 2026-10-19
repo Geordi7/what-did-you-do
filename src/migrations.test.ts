@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { BACKUP_KEY, MIGRATIONS, STORAGE_VERSION, migrate } from './migrations';
 import { parseCurrentAppState } from './schemas';
+import type { Calendar, ScoringCalendar } from './types';
+
+/** Narrow a parsed calendar to the scoring kind, failing the test otherwise. */
+function asScoring(cal: Calendar): ScoringCalendar {
+  if (cal.kind !== 'scoring') throw new Error(`expected a scoring calendar, got ${cal.kind}`);
+  return cal;
+}
+
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -108,14 +116,16 @@ const v5State = () => ({
   ],
 });
 
+const v6State = () => ({ ...v5State(), version: 6, calendarSort: { by: 'score', dir: 'asc' } });
+
 describe('version log', () => {
-  it('is at version 6 and keys the backup under a single name', () => {
-    expect(STORAGE_VERSION).toBe(6);
+  it('is at version 7 and keys the backup under a single name', () => {
+    expect(STORAGE_VERSION).toBe(7);
     expect(BACKUP_KEY).toBe('achievement-calendars-backup');
   });
 
   it('holds one stepwise entry per from-version, and none at the current version', () => {
-    expect(Object.keys(MIGRATIONS).map(Number).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(Object.keys(MIGRATIONS).map(Number).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6]);
     expect(MIGRATIONS[STORAGE_VERSION]).toBeUndefined();
   });
 });
@@ -290,8 +300,30 @@ describe('step 5 -> 6: calendarSort', () => {
   it('leaves duplicate ids to the current-version parse, so they fail validation, not migration', () => {
     const dup = v5State();
     dup.calendars[1].id = 'v5-a';
-    const out = step(5)(dup);
+    const out = step(6)(step(5)(dup));
     expect(() => parseCurrentAppState(out)).toThrow(/unique/);
+  });
+});
+
+describe('step 6 -> 7: calendar kinds and the filter', () => {
+  it('marks every calendar a scoring calendar, defaults the filter, and leaves everything else alone', () => {
+    const out = asRecord(step(6)(v6State()));
+    expect(out.version).toBe(7);
+    expect(out.calendarFilter).toBe('all');
+    expect(out.calendarSort).toEqual({ by: 'score', dir: 'asc' });
+    expect(out.chartRange).toBe('26w');
+    expect(out.theme).toBe('light');
+    expect(out.calendars).toEqual(v6State().calendars.map(cal => ({ kind: 'scoring', ...cal })));
+  });
+
+  it('does not mutate the state it was given', () => {
+    const input = v6State();
+    step(6)(input);
+    expect(input).toEqual(v6State());
+  });
+
+  it('rejects a state that is not version 6', () => {
+    expect(() => step(6)(v5State())).toThrow();
   });
 });
 
@@ -317,7 +349,7 @@ describe('migrate', () => {
     expect(parsed.version).toBe(STORAGE_VERSION);
     expect(parsed.theme).toBe('system');
     expect(parsed.chartRange).toBe('28d');
-    expect(parsed.calendars[0].activityValue).toBe(1.0);
+    expect(asScoring(parsed.calendars[0]).activityValue).toBe(1.0);
     expect(parsed.calendars[0].color).toBe('#40c463');
   });
 
@@ -326,7 +358,7 @@ describe('migrate', () => {
     expect(parsed.version).toBe(STORAGE_VERSION);
     expect(parsed.theme).toBe('dark');
     expect(parsed.chartRange).toBe('28d');
-    expect(parsed.calendars[0].activityValue).toBe(1.0);
+    expect(asScoring(parsed.calendars[0]).activityValue).toBe(1.0);
   });
 
   it('walks from version 3, keeping a negative activity value', () => {
@@ -334,7 +366,7 @@ describe('migrate', () => {
     expect(parsed.version).toBe(STORAGE_VERSION);
     expect(parsed.theme).toBe('light');
     expect(parsed.chartRange).toBe('28d');
-    expect(parsed.calendars[0].activityValue).toBe(-2.5);
+    expect(asScoring(parsed.calendars[0]).activityValue).toBe(-2.5);
     expect(parsed.calendars[0].updatedAt).toBe(NOW);
   });
 
@@ -354,12 +386,15 @@ describe('migrate', () => {
       [v3State(), 3],
       [v4State(), 4],
       [v5State(), 5],
+      [v6State(), 6],
     ];
     for (const [state, from] of cases) {
       const parsed = parseCurrentAppState(migrate(state, from, CTX));
       expect(parsed.version).toBe(STORAGE_VERSION);
       if (from < 5) for (const cal of parsed.calendars) expect(cal.updatedAt).toBe(NOW);
-      expect(parsed.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
+      if (from < 6) expect(parsed.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
+      expect(parsed.calendarFilter).toBe('all');
+      for (const cal of parsed.calendars) expect(cal.kind).toBe('scoring');
     }
   });
 
@@ -372,8 +407,8 @@ describe('migrate', () => {
   });
 
   it('leaves a state already at the current version untouched', () => {
-    const current = { version: 6, theme: 'dark', calendars: [], chartRange: '26w', calendarSort: { by: 'score', dir: 'asc' } };
-    expect(migrate(current, 6, CTX)).toBe(current);
+    const current = { version: 7, theme: 'dark', calendars: [], chartRange: '26w', calendarSort: { by: 'score', dir: 'asc' }, calendarFilter: 'gsd' };
+    expect(migrate(current, 7, CTX)).toBe(current);
   });
 
   it('leaves a newer-than-current state untouched, so the load path can refuse it', () => {

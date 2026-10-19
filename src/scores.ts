@@ -1,5 +1,6 @@
 import type { Calendar, ChartRange } from './types';
 import { GRID_HISTORY_WEEKS, buildGrid, dateKey, formatDate } from './utils';
+import { dayCounts, dayScores } from './calendar-figures';
 
 /** One active calendar's share of a column: its total count and score (count × activity value). Columns list these highest score first. */
 export interface ScoreActivity { id: string; name: string; count: number; score: number }
@@ -11,18 +12,20 @@ export function scoreBars(calendars: readonly Calendar[], today: Date, range: Ch
     ? buildGrid(today, GRID_HISTORY_WEEKS)
     : Array.from({ length: 28 }, (_, i) => [new Date(today.getFullYear(), today.getMonth(), today.getDate() - 27 + i)]);
   const active = calendars.filter(cal => !cal.deleted);
+  const figures = active.map(cal => ({ counts: dayCounts(cal), scores: dayScores(cal) }));
   return windows.map(dates => {
     let pos = 0;
     let neg = 0;
     const counts = active.map(() => 0);
+    const scores = active.map(() => 0);
     for (const date of dates) {
       const key = dateKey(date);
       let dayPos = 0;
       let dayNeg = 0;
-      active.forEach((cal, i) => {
-        const count = cal.days[key] ?? 0;
-        counts[i] += count;
-        const contribution = count * cal.activityValue;
+      figures.forEach((figure, i) => {
+        counts[i] += figure.counts[key] ?? 0;
+        const contribution = figure.scores[key] ?? 0;
+        scores[i] += contribution;
         if (contribution > 0) dayPos += contribution;
         else if (contribution < 0) dayNeg += contribution;
       });
@@ -30,8 +33,8 @@ export function scoreBars(calendars: readonly Calendar[], today: Date, range: Ch
       neg += dayNeg;
     }
     const activities = active
-      .map((cal, i) => ({ id: cal.id, name: cal.name, count: counts[i], score: counts[i] * cal.activityValue }))
-      .filter(activity => activity.count !== 0)
+      .map((cal, i) => ({ id: cal.id, name: cal.name, count: counts[i], score: scores[i] }))
+      .filter(activity => activity.count !== 0 || activity.score !== 0)
       .sort((a, b) => b.score - a.score);
     return { key: dateKey(dates[0]), label: `${range === '26w' ? 'Week of ' : ''}${formatDate(dates[0])}`, pos, neg, net: pos + neg, activities };
   });

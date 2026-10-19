@@ -1,9 +1,9 @@
 import { createSignal, createEffect } from 'solid-js';
 import { store } from '../store';
-import type { Calendar } from '../types';
+import type { ScoringCalendar } from '../types';
 
 interface Props {
-  cal: Calendar;
+  cal: ScoringCalendar;
 }
 
 export default function ActivityValueInput(props: Props) {

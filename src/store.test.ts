@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BACKUP_KEY, STORAGE_VERSION } from './migrations';
-import type { Calendar, CalendarSort, ChartRange, ImportRow, RowDisposition, ThemeMode } from './types';
+import type { Calendar, CalendarFilter, CalendarSort, ChartRange, ImportRow, RowDisposition, ScoringCalendar, ThemeMode } from './types';
+
+/** Narrow a store calendar to the scoring kind, failing the test otherwise. */
+function scoring(cal: Calendar): ScoringCalendar {
+  if (cal.kind !== 'scoring') throw new Error(`expected a scoring calendar, got ${cal.kind}`);
+  return cal;
+}
 
 /**
  * The store, against a `localStorage` fake with the clock fixed.
@@ -14,6 +20,8 @@ import type { Calendar, CalendarSort, ChartRange, ImportRow, RowDisposition, The
  */
 
 import { STORAGE_KEY, THEME_KEY, EXPORT_KEY, MAX_IMPORT_BYTES } from './persistence-contract';
+import { dateKey } from './utils';
+import type { GsdCalendar } from './types';
 
 /* ── the fakes ───────────────────────────────────────────────────────────── */
 
@@ -141,8 +149,9 @@ const SEEDED_AT = '2026-01-01T00:00:00.000Z';
 
 const SENTINEL_BACKUP = '{"sentinel":"the one backup a failing load exists for"}';
 
-function calendar(over: Partial<Calendar> & { id: string }): Calendar {
+function calendar(over: Partial<ScoringCalendar> & { id: string }): ScoringCalendar {
   return {
+    kind: 'scoring',
     name: 'Runs',
     color: '#40c463',
     days: {},
@@ -153,7 +162,7 @@ function calendar(over: Partial<Calendar> & { id: string }): Calendar {
 }
 
 /** Calendar `a` is live, `b` is trashed — enough to pin index and trash state. */
-function seededCalendars(): Calendar[] {
+function seededCalendars(): ScoringCalendar[] {
   return [
     calendar({ id: 'a', name: 'Runs', days: { '2025-01-02': 3, '2025-01-01': 1 } }),
     calendar({ id: 'b', name: 'Retired', days: { '2025-02-01': 5 }, deleted: true }),
@@ -182,10 +191,11 @@ function currentSeed(): string {
  * order it writes them. The cross-tab loop guard compares strings, so an incoming
  * value has to be canonical for "no re-write" to mean anything.
  */
-function canonicalCalendar(cal: Calendar): Record<string, unknown> {
+function canonicalCalendar(cal: ScoringCalendar): Record<string, unknown> {
   const days: Record<string, number> = {};
   for (const key of Object.keys(cal.days).sort()) days[key] = cal.days[key];
   const out: Record<string, unknown> = {
+    kind: 'scoring',
     id: cal.id,
     name: cal.name,
     color: cal.color,
@@ -201,19 +211,21 @@ function canonicalEnvelope(parts: {
   theme: ThemeMode;
   chartRange: ChartRange;
   calendarSort?: CalendarSort;
-  calendars: Calendar[];
+  calendarFilter?: CalendarFilter;
+  calendars: ScoringCalendar[];
 }): string {
   return JSON.stringify({
     version: STORAGE_VERSION,
     theme: parts.theme,
     chartRange: parts.chartRange,
     calendarSort: parts.calendarSort ?? { by: 'custom', dir: 'desc' },
+    calendarFilter: parts.calendarFilter ?? 'all',
     calendars: parts.calendars.map(canonicalCalendar),
   });
 }
 
 /** An import envelope, as `specs/03-02-import-export.md` defines it. */
-function exportEnvelope(calendars: Array<Partial<Calendar> & { id: string }>): string {
+function exportEnvelope(calendars: Array<Partial<ScoringCalendar> & { id: string }>): string {
   return JSON.stringify({
     version: STORAGE_VERSION,
     exportedAt: SEEDED_AT,
@@ -287,7 +299,7 @@ describe('load', () => {
     const { store } = await boot({ [STORAGE_KEY]: raw });
     expect(store.blocked).toBe(false);
     expect(ids(store.calendars)).toEqual(['v3']);
-    expect(store.calendars[0].activityValue).toBe(1);
+    expect(scoring(store.calendars[0]).activityValue).toBe(1);
     expect(store.calendars[0].updatedAt).toBe(BOOT_NOW);
     expect(store.chartRange).toBe('28d');
     expect(store.theme).toBe('light');
@@ -577,7 +589,7 @@ describe('applyImport', () => {
     expect(ids(store.calendars)).toEqual(['a', 'b', 'fresh']);
     const appended = store.calendars[2];
     expect(appended.deleted).toBeUndefined();
-    expect(appended.days).toEqual({ '2025-05-05': 4 });
+    expect(scoring(appended).days).toEqual({ '2025-05-05': 4 });
     expect(ids(store.deletedCalendars)).toEqual(['b']);
   });
 
@@ -605,9 +617,9 @@ describe('applyImport', () => {
     expect(merged.id).toBe('b');
     expect(merged.deleted).toBe(true);
     // merge-by-sum: union of dates, a shared date summed, live metadata kept.
-    expect(merged.days).toEqual({ '2025-02-01': 7, '2025-03-03': 4 });
+    expect(scoring(merged).days).toEqual({ '2025-02-01': 7, '2025-03-03': 4 });
     expect(merged.name).toBe('Retired');
-    expect(merged.activityValue).toBe(1);
+    expect(scoring(merged).activityValue).toBe(1);
     expect(merged.updatedAt).toBe(LATER);
     // The other calendar is untouched, timestamp included.
     expect(store.calendars[0].updatedAt).toBe(SEEDED_AT);
@@ -632,7 +644,7 @@ describe('applyImport', () => {
     expect(imported).toBe(2);
     expect(storage.writesTo(STORAGE_KEY).length).toBe(writesBefore + 1);
     expect(ids(store.calendars)).toEqual(['a', 'b', 'fresh']);
-    expect(store.calendars[0].days).toEqual({ '2025-01-01': 4 });
+    expect(scoring(store.calendars[0]).days).toEqual({ '2025-01-01': 4 });
   });
 });
 
@@ -717,7 +729,7 @@ describe('cross-tab sync', () => {
     const writesBefore = storage.writesTo(STORAGE_KEY).length;
     fire(handlers, STORAGE_KEY, incoming);
     expect(ids(store.calendars)).toEqual(['a', 'b']);
-    expect(store.calendars[0].days).toEqual({ '2025-01-01': 1, '2025-01-02': 4 });
+    expect(scoring(store.calendars[0]).days).toEqual({ '2025-01-01': 1, '2025-01-02': 4 });
     expect(store.calendars[0].updatedAt).toBe(LATER);
     expect(storage.writesTo(STORAGE_KEY).length).toBe(writesBefore);
   });
@@ -894,4 +906,126 @@ it('protects a previously accepted impossible-date history', async () => {
   expect(store.blocked).toBe(true);
   expect(storage.getItem(STORAGE_KEY)).toBe(raw);
   expect(store.previewImport(raw).ok).toBe(false);
+});
+
+/* ── GSD calendars: specs/03-03-calendars.md, specs/03-04-gsd-points.md ── */
+
+/** Narrow a store calendar to the GSD kind, failing the test otherwise. */
+function gsdOf(cal: Calendar): GsdCalendar {
+  if (cal.kind !== 'gsd') throw new Error(`expected a GSD calendar, got ${cal.kind}`);
+  return cal;
+}
+
+function gsdSeed(): string {
+  const chores: GsdCalendar = {
+    kind: 'gsd',
+    id: 'g',
+    name: 'Chores',
+    color: '#40c463',
+    defaultBounty: 3,
+    updatedAt: SEEDED_AT,
+    todos: [
+      { id: 't1', title: 'Taxes', bounty: 5, due: '2026-04-30', created: '2026-04-01', done: '2026-04-20', children: [] },
+      { id: 't2', title: 'Garage', bounty: 2, created: '2026-04-01', children: [
+        { id: 't2a', title: 'Find the key', bounty: 0.5, created: '2026-04-02', children: [] },
+      ] },
+    ],
+  };
+  return pretty({ version: STORAGE_VERSION, theme: 'dark', chartRange: '28d', calendars: [...seededCalendars(), chores] });
+}
+
+describe('GSD calendars', () => {
+  it('adds a GSD calendar with the default bounty and no todos', async () => {
+    const { store } = await boot();
+    store.addCalendar('Chores', 'gsd');
+    const cal = gsdOf(store.calendars[0]);
+    expect(cal).toMatchObject({ kind: 'gsd', name: 'Chores', defaultBounty: 1, todos: [], updatedAt: BOOT_NOW });
+    expect(cal).not.toHaveProperty('days');
+    store.addCalendar('Runs');
+    expect(store.calendars[1]).toMatchObject({ kind: 'scoring', days: {}, activityValue: 1 });
+  });
+
+  it('persists the calendar filter and a GSD calendar, todos included, across a reload', async () => {
+    const { store, storage } = await boot({ [STORAGE_KEY]: gsdSeed() });
+    expect(store.calendarFilter).toBe('all');
+    store.setCalendarFilter('gsd');
+    const written = storage.getItem(STORAGE_KEY)!;
+    expect(JSON.parse(written).calendarFilter).toBe('gsd');
+    const { store: reloaded } = await boot({ [STORAGE_KEY]: written });
+    expect(reloaded.calendarFilter).toBe('gsd');
+    expect(gsdOf(reloaded.calendars[2])).toEqual(JSON.parse(gsdSeed()).calendars[2]);
+  });
+
+  it('adds root todos and Nudges created today, stamping only that calendar', async () => {
+    const { store } = await boot({ [STORAGE_KEY]: gsdSeed() });
+    vi.setSystemTime(new Date(LATER));
+    const today = dateKey(new Date(LATER));
+    const id = store.addTodo('g', { title: 'Plan', bounty: 3, due: '2026-06-09' });
+    const nudge = store.addNudge('g', id, 'Open a doc');
+    const cal = gsdOf(store.calendars[2]);
+    expect(cal.todos[2]).toMatchObject({ id, title: 'Plan', bounty: 3, due: '2026-06-09', created: today });
+    expect(cal.todos[2].children).toEqual([{ id: nudge, title: 'Open a doc', bounty: 0.5, due: '2026-06-09', created: today, children: [] }]);
+    expect(cal.updatedAt).toBe(LATER);
+    expect(store.calendars[0].updatedAt).toBe(SEEDED_AT);
+  });
+
+  const changing: Array<[string, (store: Store) => boolean]> = [
+    ['markTodoDone', store => store.markTodoDone('g', 't2a', '2026-05-01')],
+    ['reopenTodo', store => store.reopenTodo('g', 't1')],
+    ['deleteTodo', store => store.deleteTodo('g', 't2')],
+    ['promoteTodo', store => store.promoteTodo('g', 't2a')],
+    ['editTodo', store => store.editTodo('g', 't2', { due: '2026-07-01' })],
+  ];
+  for (const [label, mutate] of changing) {
+    it(`${label} applies its rule and stamps the calendar`, async () => {
+      const { store } = await boot({ [STORAGE_KEY]: gsdSeed() });
+      const before = JSON.stringify(gsdOf(store.calendars[2]).todos);
+      vi.setSystemTime(new Date(LATER));
+      expect(mutate(store)).toBe(true);
+      expect(JSON.stringify(gsdOf(store.calendars[2]).todos)).not.toBe(before);
+      expect(store.calendars[2].updatedAt).toBe(LATER);
+      expect(store.calendars[0].updatedAt).toBe(SEEDED_AT);
+    });
+  }
+
+  const refused: Array<[string, (store: Store) => unknown]> = [
+    ['marking done a todo with an open Nudge', store => store.markTodoDone('g', 't2', '2026-05-01')],
+    ['a Nudge on a done todo', store => store.addNudge('g', 't1', 'Too late')],
+    ['promoting a root todo', store => store.promoteTodo('g', 't1')],
+    ['a Nudge bounty edit', store => store.editTodo('g', 't2a', { bounty: 4 })],
+    ['a todo rule on a scoring calendar', store => store.deleteTodo('a', 't1')],
+    ['counting a day on a GSD calendar', store => store.incrementDay('g', '2026-05-01')],
+    ['an activity value on a GSD calendar', store => store.setActivityValue('g', 4)],
+  ];
+  for (const [label, mutate] of refused) {
+    it(`refuses ${label}, stamping nothing`, async () => {
+      const { store } = await boot({ [STORAGE_KEY]: gsdSeed() });
+      const before = JSON.stringify(store.calendars);
+      vi.setSystemTime(new Date(LATER));
+      const result = mutate(store);
+      if (result !== undefined) expect(result === false || result === null).toBe(true);
+      expect(JSON.stringify(store.calendars)).toBe(before);
+    });
+  }
+
+  it('sets a default bounty on a GSD calendar only', async () => {
+    const { store } = await boot({ [STORAGE_KEY]: gsdSeed() });
+    vi.setSystemTime(new Date(LATER));
+    store.setDefaultBounty('g', 2.5);
+    expect(gsdOf(store.calendars[2])).toMatchObject({ defaultBounty: 2.5, updatedAt: LATER });
+    store.setDefaultBounty('a', 2.5);
+    expect(store.calendars[0]).not.toHaveProperty('defaultBounty');
+    expect(store.calendars[0].updatedAt).toBe(SEEDED_AT);
+  });
+
+  it('previews a GSD row with its root todos done as events, and appends it whole', async () => {
+    const { store } = await boot({ [STORAGE_KEY]: currentSeed() });
+    const chores = { ...JSON.parse(gsdSeed()).calendars[2], deleted: true };
+    const rows = rowsOf(store, JSON.stringify({ version: STORAGE_VERSION, exportedAt: SEEDED_AT, calendars: [chores] }));
+    expect(rows[0].events).toBe(1);
+    store.applyImport([decide(rows[0], { kind: 'append' })]);
+    const expected = { ...chores };
+    delete expected.deleted;
+    expect(store.calendars[2]).toEqual(expected);
+  });
 });
