@@ -408,3 +408,21 @@ test('Case 7: a duplicate id blocks with a diagnostic and writes nothing', async
   await expect(page.getByRole('heading', { name: 'Your saved data could not be read' })).toBeVisible();
   expect(await readKey(page, STORAGE_KEY)).toBe(CASE_7_SEED);
 });
+
+/* ── Case 8 — version 5 -> 6 ──────────────────────────────────────────────── */
+
+test('Case 8: the 5 -> 6 step adds custom order and changes nothing else', async ({ page }) => {
+  const runs = { id: 'v5-a', name: 'Runs', color: '#40c463', days: { '2025-06-02': 3 }, activityValue: 1, updatedAt: '2025-06-02T08:00:00.000Z' };
+  await seed(page, { [STORAGE_KEY]: JSON.stringify({ version: 5, theme: 'light', chartRange: '26w', calendars: [runs] }) });
+  await open(page);
+
+  // Step 3.
+  const stored = await readState(page);
+  expect(stored.version).toBe(CURRENT_STORAGE_VERSION);
+  expect(stored.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
+  await expect(page.getByRole('group', { name: 'Sort calendars' }).getByRole('button', { name: 'Custom' })).toHaveAttribute('aria-pressed', 'true');
+
+  // Step 4.
+  expect(stored.chartRange).toBe('26w');
+  expect(stored.calendars).toEqual([runs]);
+});

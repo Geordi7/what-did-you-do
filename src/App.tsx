@@ -5,12 +5,14 @@ import { MAX_IMPORT_BYTES } from './persistence-contract';
 import CalendarGrid from './components/CalendarGrid';
 import CalendarMenu from './components/CalendarMenu';
 import HeaderMenu from './components/HeaderMenu';
+import SortBar from './components/SortBar';
+import { sortCalendars } from './calendar-sort';
 import ScoreChart from './components/ScoreChart';
 import CalendarNameInput from './components/CalendarNameInput';
 import BackupBanner from './components/BackupBanner';
 import ImportReviewModal from './components/ImportReviewModal';
 import BlockingMessage from './components/BlockingMessage';
-import { totalActivities, hexToRgb, downloadFile, exportFilename } from './utils';
+import { GRID_WEEKS, buildGrid, dateKey, totalActivities, hexToRgb, downloadFile, exportFilename } from './utils';
 import type { ImportRow, ThemeMode } from './types';
 import './App.css';
 
@@ -36,6 +38,9 @@ function App() {
   const [importStatus, setImportStatus] = createSignal<ImportStatus | null>(null);
   const [announcement, setAnnouncement] = createSignal('');
   const [systemDark, setSystemDark] = createSignal(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  /** The calendar view's order: the stored order, sorted per the sort bar over the visible grid. */
+  const visibleKeys = createMemo(() => buildGrid(now(), GRID_WEEKS).flat().map(dateKey));
+  const shownCalendars = createMemo(() => sortCalendars(store.activeCalendars, store.calendarSort, visibleKeys()));
   const isLight = createMemo(() => {
     const mode = store.theme;
     if (mode !== 'system') return mode === 'light';
@@ -271,7 +276,11 @@ function App() {
           </form>
         </Show>
 
-        <For each={store.activeCalendars} fallback={<div class="empty-state">No calendars yet. Create one above!</div>}>
+        <Show when={store.activeCalendars.length > 0}>
+          <SortBar />
+        </Show>
+
+        <For each={shownCalendars()} fallback={<div class="empty-state">No calendars yet. Create one above!</div>}>
           {(cal, idx) => (
             <div class="cal-card" style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}>
               <div class="cal-card-header">
@@ -281,7 +290,7 @@ function App() {
                     {totalActivities(cal.days)} activities
                   </span>
                 </div>
-                <CalendarMenu cal={cal} idx={idx()} total={store.activeCalendars.length} />
+                <CalendarMenu cal={cal} idx={idx()} total={store.activeCalendars.length} sorted={store.calendarSort.by !== 'custom'} />
               </div>
               <CalendarGrid calendar={cal} isLight={isLight()} now={now} />
             </div>

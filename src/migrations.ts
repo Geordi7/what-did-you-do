@@ -1,7 +1,8 @@
-import type { ChartRange } from './types';
+import type { CalendarSort, ChartRange } from './types';
 import { randomColor } from './utils';
 import {
   DEFAULT_ACTIVITY_VALUE,
+  DEFAULT_CALENDAR_SORT,
   DEFAULT_CHART_RANGE,
   DEFAULT_THEME,
   isIsoInstant,
@@ -9,6 +10,7 @@ import {
   parseAppStateV1V2,
   parseAppStateV3,
   parseAppStateV4,
+  parseAppStateV5,
 } from './schemas';
 
 /**
@@ -21,7 +23,7 @@ import {
  */
 
 /** The version of the persisted shape. Bumps only when that shape changes. */
-export const STORAGE_VERSION = 5;
+export const STORAGE_VERSION = 6;
 
 /**
  * Single key holding the raw pre-migration string, overwritten on each
@@ -107,6 +109,13 @@ const migrateV4ToV5: Migration = (state, ctx) => {
   };
 };
 
+/** 5 -> 6: `calendarSort` on the state, default custom order. */
+const migrateV5ToV6: Migration = state => {
+  const prev = parseAppStateV5(state);
+  const calendarSort: CalendarSort = { ...DEFAULT_CALENDAR_SORT };
+  return { ...prev, version: 6, calendarSort };
+};
+
 /** Keyed by source version; one entry per row of the version log. */
 export const MIGRATIONS: Record<number, Migration> = {
   0: migrateV0ToV1,
@@ -114,6 +123,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   2: migrateV2ToV3,
   3: migrateV3ToV4,
   4: migrateV4ToV5,
+  5: migrateV5ToV6,
 };
 
 /**

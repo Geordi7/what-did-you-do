@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BACKUP_KEY, STORAGE_VERSION } from './migrations';
-import type { Calendar, ChartRange, ImportRow, RowDisposition, ThemeMode } from './types';
+import type { Calendar, CalendarSort, ChartRange, ImportRow, RowDisposition, ThemeMode } from './types';
 
 /**
  * The store, against a `localStorage` fake with the clock fixed.
@@ -200,12 +200,14 @@ function canonicalCalendar(cal: Calendar): Record<string, unknown> {
 function canonicalEnvelope(parts: {
   theme: ThemeMode;
   chartRange: ChartRange;
+  calendarSort?: CalendarSort;
   calendars: Calendar[];
 }): string {
   return JSON.stringify({
     version: STORAGE_VERSION,
     theme: parts.theme,
     chartRange: parts.chartRange,
+    calendarSort: parts.calendarSort ?? { by: 'custom', dir: 'desc' },
     calendars: parts.calendars.map(canonicalCalendar),
   });
 }

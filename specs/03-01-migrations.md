@@ -12,7 +12,8 @@ Refines `03-data-model.md`.
 | 1–2 | `color` added to `Calendar`; `theme` added to `AppState`. The two cannot be distinguished from stored data, so they are documented as one range |
 | 3 | `activityValue` added, default `1.0` |
 | 4 | `chartRange` added, default `'28d'` |
-| 5 (current) | `updatedAt` added to `Calendar`, seeded per the rule below |
+| 5 | `updatedAt` added to `Calendar`, seeded per the rule below |
+| 6 (current) | `calendarSort` added, default `{ by: 'custom', dir: 'desc' }` |
 
 - `STORAGE_VERSION` bumps only on a change to the persisted shape.
 - A bump adds its row above in the same commit as the code.
@@ -41,6 +42,7 @@ const migrations: Record<number, Migration>;
 | 1–2 -> 3 | adds `activityValue`, `1.0` |
 | 3 -> 4 | adds `chartRange`, `'28d'` |
 | 4 -> 5 | adds `updatedAt` to each calendar |
+| 5 -> 6 | adds `calendarSort`, `{ by: 'custom', dir: 'desc' }` |
 
 ### Seeding `updatedAt`
 

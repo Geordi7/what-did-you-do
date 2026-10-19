@@ -13,11 +13,18 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 
 export type ChartRange = '28d' | '26w';
 
+/** The sort bar's selection; `desc` is high to low, or most recent first. */
+export interface CalendarSort {
+  by: 'custom' | 'activities' | 'score' | 'recent';
+  dir: 'desc' | 'asc';
+}
+
 export interface AppState {
   version: number;
   theme: ThemeMode;
   calendars: Calendar[];
   chartRange?: ChartRange;
+  calendarSort?: CalendarSort;
 }
 
 /* ── import review ───────────────────────────────────────────────────────── */

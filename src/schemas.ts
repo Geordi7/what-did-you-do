@@ -21,6 +21,7 @@ const STRIP: v.ParseOptions = { mode: 'strip' };
 export const DEFAULT_THEME = 'system';
 export const DEFAULT_ACTIVITY_VALUE = 1.0;
 export const DEFAULT_CHART_RANGE = '28d';
+export const DEFAULT_CALENDAR_SORT = { by: 'custom', dir: 'desc' } as const;
 
 /** `YYYY-MM-DD`, the only shape a `days` key ever takes. */
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -84,6 +85,11 @@ const themeMode = v.union(v.literal('light'), v.literal('dark'), v.literal('syst
 
 const chartRange = v.union(v.literal('28d'), v.literal('26w'));
 
+const calendarSort = v.object({
+  by: v.union(v.literal('custom'), v.literal('activities'), v.literal('score'), v.literal('recent')),
+  dir: v.union(v.literal('desc'), v.literal('asc')),
+});
+
 const deleted = v.boolean();
 
 const isoInstant = v.string().assert(isIsoInstant, 'expected an ISO 8601 instant');
@@ -97,7 +103,7 @@ const isoInstant = v.string().assert(isIsoInstant, 'expected an ISO 8601 instant
 const canonicalIsoInstant = isoInstant.map(value => new Date(value).toISOString());
 
 /** Markers a version-0 payload must never carry; see `appStateV0Schema`. */
-const KNOWN_LATER_VERSIONS = new Set([1, 2, 3, 4, 5]);
+const KNOWN_LATER_VERSIONS = new Set([1, 2, 3, 4, 5, 6]);
 
 /* ── version 0: unversioned ──────────────────────────────────────────────── */
 
@@ -191,12 +197,24 @@ export const appStateV4Schema = v.object({
   chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
 });
 
-/* ── version 5 (current) ─────────────────────────────────────────────────── */
+/* ── version 5 ───────────────────────────────────────────────────────────── */
 
 /** `updatedAt` required, and required to be a parseable ISO 8601 instant. */
 export const calendarV5Schema = calendarV4Schema.extend({
   updatedAt: canonicalIsoInstant,
 });
+
+export const appStateV5Schema = v.object({
+  version: v.literal(5),
+  theme: themeMode.optional(),
+  calendars: v.array(calendarV5Schema),
+  chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
+});
+
+/* ── version 6 (current) ─────────────────────────────────────────────────── */
+
+/** Version 6 adds `calendarSort` to the state; the calendar shape is version 5's. */
+export const calendarV6Schema = calendarV5Schema;
 
 /**
  * The current version. This is the only schema that supplies state-level
@@ -206,20 +224,21 @@ export const calendarV5Schema = calendarV4Schema.extend({
  * ids unique across the array, so a duplicate is a defect and takes the load
  * path's failure route.
  */
-export const appStateV5Schema = v
+export const appStateV6Schema = v
   .object({
-    version: v.literal(5).optional(() => 5),
+    version: v.literal(6).optional(() => 6),
     theme: themeMode.optional(() => DEFAULT_THEME),
-    calendars: v.array(calendarV5Schema),
+    calendars: v.array(calendarV6Schema),
     chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
+    calendarSort: calendarSort.optional(() => ({ ...DEFAULT_CALENDAR_SORT })),
   })
   .assert(
     state => new Set(state.calendars.map(cal => cal.id)).size === state.calendars.length,
     'expected calendar ids to be unique',
   );
 
-export const calendarCurrentSchema = calendarV5Schema;
-export const appStateCurrentSchema = appStateV5Schema;
+export const calendarCurrentSchema = calendarV6Schema;
+export const appStateCurrentSchema = appStateV6Schema;
 
 export type CalendarV0 = v.Infer<typeof calendarV0Schema>;
 export type AppStateV0 = v.Infer<typeof appStateV0Schema>;
@@ -231,6 +250,8 @@ export type CalendarV4 = v.Infer<typeof calendarV4Schema>;
 export type AppStateV4 = v.Infer<typeof appStateV4Schema>;
 export type CalendarV5 = v.Infer<typeof calendarV5Schema>;
 export type AppStateV5 = v.Infer<typeof appStateV5Schema>;
+export type CalendarV6 = v.Infer<typeof calendarV6Schema>;
+export type AppStateV6 = v.Infer<typeof appStateV6Schema>;
 
 /**
  * `Sub` unchanged, but only if it is assignable to `Super`. Used below so that
@@ -239,8 +260,8 @@ export type AppStateV5 = v.Infer<typeof appStateV5Schema>;
  */
 type Satisfies<Super, Sub extends Super> = Sub;
 
-export type CurrentCalendar = Satisfies<Calendar, CalendarV5>;
-export type CurrentAppState = Satisfies<AppState, AppStateV5>;
+export type CurrentCalendar = Satisfies<Calendar, CalendarV6>;
+export type CurrentAppState = Satisfies<AppState, AppStateV6>;
 
 /** Throws `v.ValitaError` when the value is not a version-0 state. */
 export function parseAppStateV0(value: unknown): AppStateV0 {
@@ -260,6 +281,11 @@ export function parseAppStateV3(value: unknown): AppStateV3 {
 /** Throws `v.ValitaError` when the value is not a version-4 state. */
 export function parseAppStateV4(value: unknown): AppStateV4 {
   return appStateV4Schema.parse(value, STRIP);
+}
+
+/** Throws `v.ValitaError` when the value is not a version-5 state. */
+export function parseAppStateV5(value: unknown): AppStateV5 {
+  return appStateV5Schema.parse(value, STRIP);
 }
 
 /**

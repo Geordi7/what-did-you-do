@@ -43,14 +43,16 @@ describe('defaults', () => {
 describe('current-version parse', () => {
   it('accepts a valid payload and keeps every field', () => {
     const parsed = parseCurrentAppState({
-      version: 5,
+      version: 6,
       theme: 'dark',
       calendars: [validCalendar(), { ...validCalendar(), id: 'cal-b', deleted: true }],
       chartRange: '26w',
+      calendarSort: { by: 'recent', dir: 'asc' },
     });
-    expect(parsed.version).toBe(5);
+    expect(parsed.version).toBe(6);
     expect(parsed.theme).toBe('dark');
     expect(parsed.chartRange).toBe('26w');
+    expect(parsed.calendarSort).toEqual({ by: 'recent', dir: 'asc' });
     expect(parsed.calendars).toHaveLength(2);
     expect(parsed.calendars[0].name).toBe('😱 Wins');
     expect(parsed.calendars[1].deleted).toBe(true);
@@ -59,9 +61,10 @@ describe('current-version parse', () => {
 
   it('supplies the defaults a bare calendar list omits', () => {
     const parsed = parseCurrentAppState({ calendars: [] });
-    expect(parsed.version).toBe(5);
+    expect(parsed.version).toBe(6);
     expect(parsed.theme).toBe('system');
     expect(parsed.chartRange).toBe('28d');
+    expect(parsed.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
     expect(parsed.calendars).toEqual([]);
   });
 
@@ -72,13 +75,18 @@ describe('current-version parse', () => {
     expect(parsed.calendars[0].activityValue).toBe(1.0);
   });
 
+  it('rejects a calendarSort outside the four sorts and two directions', () => {
+    expect(() => parseCurrentAppState({ calendars: [], calendarSort: { by: 'name', dir: 'desc' } })).toThrow();
+    expect(() => parseCurrentAppState({ calendars: [], calendarSort: { by: 'score', dir: 'up' } })).toThrow();
+  });
+
   it('strips unknown keys rather than rejecting them', () => {
     const parsed = parseCurrentAppState({
       calendars: [{ ...validCalendar(), legacyFlag: true }],
       leftover: 'from an older build',
     });
     expect(parsed.calendars[0]).toEqual(validCalendar());
-    expect(Object.keys(parsed).sort()).toEqual(['calendars', 'chartRange', 'theme', 'version']);
+    expect(Object.keys(parsed).sort()).toEqual(['calendarSort', 'calendars', 'chartRange', 'theme', 'version']);
   });
 
   it('rejects a calendar with no days, instead of handing a totals helper a hole', () => {

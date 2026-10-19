@@ -833,6 +833,49 @@ body {
   }
 }
 
+/* Sort bar (specs/04-04-calendar-sort.md): one segmented row, styled like the range toggle. */
+.sort-bar {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 0.75rem auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sort-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  & + & {
+    border-left: 1px solid var(--border);
+  }
+
+  &:hover {
+    color: var(--text);
+    background: rgba(127, 127, 127, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  &.active {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
 .score-bar-wrap {
   --score-marker: 6px;
   /* Bars sit this far left of column centre and diamonds this far right. */

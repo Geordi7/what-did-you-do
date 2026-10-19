@@ -130,3 +130,16 @@ the check on anything a script cannot judge.
 
 Storage being unavailable or full is not this case: it shows an error banner and keeps running, and
 is tested with the storage-unavailable behaviour, not here.
+
+## Case 8 — version 5 -> 6
+1. Seed:
+```json
+{"version":5,"theme":"light","chartRange":"26w","calendars":[
+  {"id":"v5-a","name":"Runs","color":"#40c463","days":{"2025-06-02":3},"activityValue":1,
+   "updatedAt":"2025-06-02T08:00:00.000Z"}
+]}
+```
+2. Reload.
+3. Read back `achievement-calendars`: `version` is `STORAGE_VERSION` and `calendarSort` reads
+   `{ "by": "custom", "dir": "desc" }`; the sort bar shows Custom selected.
+4. Verify `chartRange` still reads `'26w'` and `v5-a` is unchanged, `updatedAt` included.

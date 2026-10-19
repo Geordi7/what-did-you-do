@@ -9,6 +9,8 @@ interface Props {
   cal: Calendar;
   idx: number;
   total: number;
+  /** A sort other than Custom is selected, so reordering is disabled — specs/04-04-calendar-sort.md. */
+  sorted: boolean;
 }
 
 export default function CalendarMenu(props: Props) {
@@ -55,7 +57,7 @@ export default function CalendarMenu(props: Props) {
             class="cal-menu-item"
             role="menuitem"
             onClick={() => { store.moveCalendar(props.cal.id, -1); close(); }}
-            disabled={props.idx === 0}
+            disabled={props.sorted || props.idx === 0}
           >
             Move up
           </button>
@@ -63,7 +65,7 @@ export default function CalendarMenu(props: Props) {
             class="cal-menu-item"
             role="menuitem"
             onClick={() => { store.moveCalendar(props.cal.id, 1); close(); }}
-            disabled={props.idx === props.total - 1}
+            disabled={props.sorted || props.idx === props.total - 1}
           >
             Move down
           </button>

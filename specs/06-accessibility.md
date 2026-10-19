@@ -16,6 +16,11 @@ Every flow is reachable by keyboard alone, in both themes.
 - The column's accessible name carries its date and values; a pinned breakdown is referenced from
   the column with `aria-describedby`.
 
+## Sort bar
+- The sort buttons form a group named "Sort calendars"; each carries `aria-pressed`, and the
+  selected one's accessible name states its direction.
+- A disabled Move up or Move down drops out of the calendar menu's arrow-key stops.
+
 ## Menus
 The header's ☰ menu and each calendar's ⋮ overflow menu behave alike.
 - The trigger carries `aria-haspopup="menu"` and `aria-expanded` reflecting open state.

@@ -22,17 +22,24 @@ interface Calendar {
 ```ts
 type ThemeMode = 'light' | 'dark' | 'system';
 
+interface CalendarSort {
+  by: 'custom' | 'activities' | 'score' | 'recent';
+  dir: 'desc' | 'asc';           // desc: high to low, most recent first
+}
+
 interface AppState {
   version: number;
   theme: ThemeMode;
   calendars: Calendar[];
   chartRange?: '28d' | '26w';
+  calendarSort?: CalendarSort;
 }
 ```
 
 - `version` is the `STORAGE_VERSION` of the stored shape, unrelated to the `package.json` version.
 - `calendars` holds active and trashed calendars in one ordered array.
-- `theme` is the persisted theme preference, default `'system'`; `chartRange` is the score-chart span, default `'28d'`.
+- `theme` is the persisted theme preference, default `'system'`; `chartRange` is the score-chart span, default `'28d'`;
+  `calendarSort` is the sort bar's selection, default `{ by: 'custom', dir: 'desc' }`.
 
 ## Trash
 - A trashed calendar has `deleted === true`, stays in the array, and keeps its index, so recovery returns it to its original position.

@@ -3,6 +3,7 @@ import { createStore, produce, reconcile } from 'solid-js/store';
 import type {
   AppState,
   Calendar,
+  CalendarSort,
   ChartRange,
   Diagnostic,
   ImportRow,
@@ -11,6 +12,7 @@ import type {
 } from './types';
 import { STORAGE_VERSION } from './migrations';
 import {
+  DEFAULT_CALENDAR_SORT,
   DEFAULT_CHART_RANGE,
   DEFAULT_THEME,
   type CurrentAppState,
@@ -59,17 +61,19 @@ function storageMessage(error: unknown): string {
 export interface StoreState {
   version: number;
   chartRange: ChartRange;
+  calendarSort: CalendarSort;
   calendars: Calendar[];
 }
 
 function emptyState(): StoreState {
-  return { version: STORAGE_VERSION, chartRange: DEFAULT_CHART_RANGE, calendars: [] };
+  return { version: STORAGE_VERSION, chartRange: DEFAULT_CHART_RANGE, calendarSort: { ...DEFAULT_CALENDAR_SORT }, calendars: [] };
 }
 
 function toStoreState(parsed: CurrentAppState): StoreState {
   return {
     version: STORAGE_VERSION,
     chartRange: parsed.chartRange,
+    calendarSort: { ...parsed.calendarSort },
     calendars: parsed.calendars.map(cal => ({ ...cal, days: { ...cal.days } })),
   };
 }
@@ -216,6 +220,7 @@ export function createAppStore(options: StoreOptions = {}) {
       version: STORAGE_VERSION,
       theme: theme(),
       chartRange: state.chartRange,
+      calendarSort: { by: state.calendarSort.by, dir: state.calendarSort.dir },
       calendars: state.calendars.map(serializeCalendar),
     };
     return JSON.stringify(envelope);
@@ -313,6 +318,9 @@ export function createAppStore(options: StoreOptions = {}) {
     get chartRange(): ChartRange {
       return state.chartRange;
     },
+    get calendarSort(): CalendarSort {
+      return state.calendarSort;
+    },
     get calendars(): Calendar[] {
       return state.calendars;
     },
@@ -350,6 +358,10 @@ export function createAppStore(options: StoreOptions = {}) {
 
     setChartRange(range: ChartRange) {
       setState('chartRange', range);
+    },
+
+    setCalendarSort(sort: CalendarSort) {
+      setState('calendarSort', { by: sort.by, dir: sort.dir });
     },
 
     setHighlightedKey(key: string | null) {

@@ -4,6 +4,7 @@
 - `04-01-score-chart.md` — score chart ranges, marks, tooltip, and the click-to-pin breakdown.
 - `04-02-copy.md` — title, favicon, subtitle, hint, and the banner region's messages.
 - `04-03-dialogs.md` — the import review modal and the unrecoverable-data blocking message.
+- `04-04-calendar-sort.md` — the sort bar: Custom, Activities, Score, Recent, and their order.
 
 ## Visual style
 - Light, dark, and system themes, selectable from the header menu. `system` is the default.
@@ -29,7 +30,7 @@
 - Header contains title, subtitle, and a ☰ menu button: New calendar, Import, Export all, and the
   theme as Light / Dark / System radio items.
 - Banner region sits directly below the header and carries all app notifications.
-- Score chart above the calendar sections.
+- Score chart, then the sort bar, above the calendar sections.
 - Collapsible create bar, calendar sections, hint, trash section.
 - Calendar section header is one row: name on the left; total in small dim text and a ⋮
   overflow menu on the right.

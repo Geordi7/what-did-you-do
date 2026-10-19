@@ -47,6 +47,9 @@ file that restates them goes stale the moment a case is added.
 - Menus, in `e2e/menus.e2e.ts`: the header holds only the ☰ button; its menu carries every header
   action with the theme as checked radios, follows the menu keys, and its items act and close it;
   the calendar menu opens from a ⋮ trigger.
+- Calendar sort, in `e2e/calendar-sort.e2e.ts`: the four buttons with Custom first and pressed,
+  select then flip, each sort's order, persistence across reload with the stored order untouched,
+  and Move up / Move down disabled while sorted. Comparator edge cases live in the node tier.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
   pointer timing rather than a faked timer.
 - Midnight rollover, in `e2e/day-clock.e2e.ts`: grid and chart advance together under a controlled browser clock.

@@ -64,3 +64,7 @@ decided
 > Recorded in the Outcome. One reading to flag: for least recently active, I read "tie-break by
 > edited timestamp" as least recently edited first (mirroring most recent). Say if you meant
 > otherwise. Decided in thread; renamed A → R. Applying now.
+
+> Applied: sort bar and `calendarSort` (storage version 6, with its migration step and suite case
+> 8); specs 01, 03, 03-01, 04, the new 04-04 refinement, 06 and the browser tier updated. Getting
+> Stuff Done sorting waits on thread 0008. Renamed R → T.

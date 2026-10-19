@@ -1,10 +1,9 @@
 import { createMemo, For, onCleanup, Show } from 'solid-js';
 import type { Calendar } from '../types';
 import { store } from '../store';
-import { buildGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
+import { GRID_WEEKS, buildGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
 import { visibleMaximum } from '../scores';
 
-const WEEKS = 26;
 const CELL_PX = 12;
 const GAP_PX = 2;
 const STEP = CELL_PX + GAP_PX;
@@ -16,7 +15,7 @@ interface Props {
 }
 
 function CalendarGrid(props: Props) {
-  const weeks = createMemo(() => buildGrid(props.now(), WEEKS));
+  const weeks = createMemo(() => buildGrid(props.now(), GRID_WEEKS));
   const todayKey = createMemo(() => dateKey(props.now()));
 
   let pressTimer: ReturnType<typeof setTimeout> | null = null;

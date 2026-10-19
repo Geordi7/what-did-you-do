@@ -20,7 +20,7 @@ export { BACKUP_KEY, STORAGE_KEY, THEME_KEY, EXPORT_KEY } from '../src/persisten
  * with itself and holds however wrong the constant becomes. A bump has to be typed
  * here, which is the same discipline the migration suite already asks for.
  */
-export const CURRENT_STORAGE_VERSION = 5;
+export const CURRENT_STORAGE_VERSION = 6;
 
 /**
  * Queue a seed for the next navigation: clear every `achievement-calendars*` key,

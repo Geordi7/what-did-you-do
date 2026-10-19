@@ -14,6 +14,7 @@ SolidJS single-page app with Vite build.
 - `src/components/CalendarMenu.tsx` is the per-calendar ⋮ menu.
 - `src/components/menu.ts` holds the open state and keyboard behaviour both menus share.
 - `src/components/ScoreChart.tsx` renders score bars over the selected range.
+- `src/components/SortBar.tsx` renders the sort bar; `src/calendar-sort.ts` orders the calendar view.
 - `src/components/CalendarNameInput.tsx` edits a calendar name inline.
 - `src/components/ActivityValueInput.tsx` edits a calendar's activity value.
 - `src/components/BackupBanner.tsx` renders the backup reminder.

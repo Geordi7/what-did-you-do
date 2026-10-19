@@ -19,6 +19,8 @@ Project: achievement calendar app.
 - Trash — soft-deleted calendars stay recoverable, and each can be permanently deleted on its
   own, behind a confirmation. There is no bulk empty and no multi-select: trash is a safety net,
   so clearing it is deliberately tedious and must stay that way.
+- Sort bar over the calendars: custom order, or by visible activities, visible score, or recency,
+  each either way; the choice persists.
 - Export and import of the full data set as a file.
 - Banner prompting a full export backup when 24 or more hours have passed since the last export.
 
@@ -31,6 +33,7 @@ Project: achievement calendar app.
 - Set a calendar's activity value.
 - Add new calendar by name.
 - Reorder active calendars.
+- Sort the calendar view without changing the custom order.
 - Recover a deleted calendar from trash.
 - Permanently delete a single trashed calendar.
 - Switch the score chart range.

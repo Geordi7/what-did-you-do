@@ -19,6 +19,9 @@ export function startOfWeek(d: Date): Date {
   return result;
 }
 
+/** Weeks each calendar grid shows, ending with the current week. */
+export const GRID_WEEKS = 26;
+
 export function buildGrid(endDate: Date, numWeeks: number): Date[][] {
   const mon = startOfWeek(endDate);
   mon.setDate(mon.getDate() - (numWeeks - 1) * 7);

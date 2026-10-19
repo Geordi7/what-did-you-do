@@ -18,7 +18,7 @@ function caught(run: () => unknown): unknown {
  * counts, plus one field the current schema rejects.
  */
 const privatePayload = {
-  version: 5,
+  version: 6,
   theme: 'dark',
   chartRange: '28d',
   calendars: [
@@ -80,8 +80,8 @@ describe('buildDiagnostic', () => {
 
   it('renders array and nested paths structurally', () => {
     const d = buildDiagnostic({
-      storedVersion: 5,
-      targetVersion: 5,
+      storedVersion: 6,
+      targetVersion: 6,
       phase: 'validate',
       failingStep: null,
       error: caught(() => parseCurrentAppState(privatePayload)),
