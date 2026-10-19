@@ -13,7 +13,8 @@ hash URL `#/gsd/<id>`; Back and a visible "← Calendars" control return to the 
 never change counts.
 - Every grid, scoring and GSD alike, shows 22 weeks back and 4 weeks forward (26 columns), so all
   grids line up. Future days are hatched; on scoring calendars they are not clickable.
-- The background behind the cells alternates by calendar month; cell colours are unchanged.
+- A thin stepped line in the gaps between cells separates the months; no background banding,
+  and cell colours are unchanged.
 - A day with open todos due shows a thick dot in its centre in the foreground colour, red once the
   day has passed with todos still open, nothing once all are done.
 - The score chart's weekly view becomes "Last 22 weeks", with no future columns.
@@ -32,6 +33,8 @@ Rejected:
 3. Upcoming due dates only listed on the page (grid unchanged): due dates belong on the grid.
 4. Forward extension only as far as the latest due date, or on GSD grids only: grids must line up.
 5. Month shown by alternating empty-cell shades: the month shows behind the cells only.
+7. Month bands behind the cells: tried and found noisy in both themes, even with tones swapped
+   and contrast raised; the operator chose a separating line instead.
 6. Ring due markers: a thick dot reads better at cell size.
 Reopen if: a deploy host with rewrites is chosen and clean URLs are wanted.
 ## Thread
@@ -133,3 +136,7 @@ Q5d: agree
 decided
 
 > Decided. Month background goes behind the cells only; chart becomes "Last 22 weeks".
+
+> Operator, in chat after seeing the month bands built: "month bands still look bad... can you do
+> a line separating the months without any banding?" Applied: the bands are replaced by a stepped
+> line in the gaps between months; Outcome updated to match.

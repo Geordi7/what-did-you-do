@@ -66,17 +66,38 @@ test('future days are hatched, marked upcoming, and never change', async ({ page
   await expect.poll(() => days(page)).toEqual({ '2026-10-23': 2, '2026-10-21': 1 });
 });
 
-test('the background behind the cells alternates by calendar month', async ({ page }) => {
+test('a line separates the months, with no banding behind the cells', async ({ page }) => {
   await openAtNow(page);
 
-  const band = (key: string) => cell(page, key).locator('xpath=..').evaluate(el => getComputedStyle(el).backgroundColor);
-  const [sep30, oct1, oct31, nov1, sep1] = await Promise.all(['2026-09-30', '2026-10-01', '2026-10-31', '2026-11-01', '2026-09-01'].map(band));
-  expect(oct1).toBe(oct31);
-  expect(sep30).not.toBe(oct1);
-  expect(nov1).not.toBe(oct1);
-  expect(nov1).toBe(sep30);
-  expect(sep1).toBe(sep30);
-  // The cells themselves keep their own colour: two empty days in different months match.
-  const fill = (key: string) => cell(page, key).evaluate(el => getComputedStyle(el).backgroundColor);
-  expect(await fill('2026-09-30')).toBe(await fill('2026-10-01'));
+  const background = (key: string) => cell(page, key).locator('xpath=..').evaluate(el => getComputedStyle(el).backgroundColor);
+  // Which sides of a day's slot carry the line: each inset shadow is "<colour> x y 0px 0px inset".
+  const edges = (key: string) => cell(page, key).locator('xpath=..').evaluate(el => {
+    const sides = { left: false, top: false, right: false, bottom: false };
+    for (const shadow of getComputedStyle(el).boxShadow.split(/,(?![^(]*\))/)) {
+      const [x, y] = (shadow.match(/(-?[\d.]+)px (-?[\d.]+)px/) ?? []).slice(1).map(Number);
+      if (x > 0) sides.left = true;
+      if (x < 0) sides.right = true;
+      if (y > 0) sides.top = true;
+      if (y < 0) sides.bottom = true;
+    }
+    return sides;
+  });
+  const none = { left: false, top: false, right: false, bottom: false };
+  // 2026-10-01 is a Thursday. October's first seven days border September on their left, and
+  // the 1st borders it above; September's last seven border October on their right, and the
+  // 30th borders it below.
+  expect(await edges('2026-10-01')).toEqual({ ...none, left: true, top: true });
+  expect(await edges('2026-10-04')).toEqual({ ...none, left: true });
+  expect(await edges('2026-10-05')).toEqual({ ...none, left: true });
+  expect(await edges('2026-10-07')).toEqual({ ...none, left: true });
+  expect(await edges('2026-10-08')).toEqual(none);
+  expect(await edges('2026-09-30')).toEqual({ ...none, right: true, bottom: true });
+  expect(await edges('2026-09-24')).toEqual({ ...none, right: true });
+  expect(await edges('2026-09-23')).toEqual(none);
+  // 2026-06-01 is a Monday and 2026-05-31 a Sunday: a straight edge, nothing above or below.
+  expect(await edges('2026-06-01')).toEqual({ ...none, left: true });
+  expect(await edges('2026-05-31')).toEqual({ ...none, right: true });
+
+  const backgrounds = await Promise.all(['2026-09-30', '2026-10-01', '2026-11-01'].map(background));
+  expect(new Set(backgrounds)).toEqual(new Set(['rgba(0, 0, 0, 0)']));
 });

@@ -7,8 +7,8 @@ Each calendar section's heatmap grid and its day detail panel.
   All grids share this window, so their columns line up.
 - Month labels sit above the first column of each month; a leading month with fewer than three
   columns gives way to the next month's label.
-- The background behind the cells alternates between two shades by calendar month, so each day's
-  month shows at a glance. Cell colours are unaffected.
+- A thin stepped line in the gaps between cells separates each month from the last. Cell colours
+  are unaffected, and nothing shades the background behind the cells.
 - Days after today are future days: hatched over their cell colour, and never changed by a click,
   tap, long-press or key.
 

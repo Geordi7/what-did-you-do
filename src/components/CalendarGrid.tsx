@@ -14,6 +14,8 @@ interface Props {
   now: () => Date;
 }
 
+const daysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+
 function CalendarGrid(props: Props) {
   const weeks = createMemo(() => calendarGrid(props.now()));
   const todayKey = createMemo(() => dateKey(props.now()));
@@ -146,7 +148,18 @@ function CalendarGrid(props: Props) {
                     const future = () => isFuture(key);
                     const score = () => `${val()} × ${props.calendar.activityValue} = ${(val() * props.calendar.activityValue).toFixed(1)}`;
                     return (
-                      <div class="cell-slot" classList={{ 'month-alt': (date.getFullYear() * 12 + date.getMonth()) % 2 === 1 }}>
+                      <div
+                        class="cell-slot"
+                        classList={{
+                          // The first seven days of a month border last month's days to their left,
+                          // and the 1st, unless a Monday, borders them above. Mirrored, the last seven
+                          // border next month's on their right, and the last day, unless a Sunday, below.
+                          'month-edge-left': date.getDate() <= 7,
+                          'month-edge-top': date.getDate() === 1 && date.getDay() !== 1,
+                          'month-edge-right': date.getDate() > daysInMonth(date) - 7,
+                          'month-edge-bottom': date.getDate() === daysInMonth(date) && date.getDay() !== 0,
+                        }}
+                      >
                       <button
                         class="cell"
                         classList={{

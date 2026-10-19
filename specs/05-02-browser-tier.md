@@ -54,7 +54,7 @@ file that restates them goes stale the moment a case is added.
   pointer timing rather than a faked timer.
 - Calendar grid, in `e2e/calendar-grid.e2e.ts`, under a fixed browser clock: 22 weeks back and 4
   ahead; future days hatched, `aria-disabled`, named upcoming, and unchanged by click, key or
-  long-press; the band behind the cells alternating by month while cell colours stay put.
+  long-press; a stepped line between months, with no background banding.
 - Midnight rollover, in `e2e/day-clock.e2e.ts`: grid and chart advance together under a controlled browser clock.
 - Accessibility, in `e2e/accessibility.e2e.ts`: named inputs, menu keyboard navigation and focus return, count announcements, and focus containment in both blocking variants and import review.
 - Invalid-date recovery, in `e2e/date-recovery.e2e.ts`: download of the byte-intact original payload after a protected load failure.

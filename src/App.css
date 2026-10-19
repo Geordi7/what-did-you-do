@@ -18,8 +18,7 @@
   --scrim: rgba(1, 4, 9, 0.7);
   --cell-size: 12px;
   --cell-gap: 2px;
-  --month-band: #010409;
-  --month-band-other: #22272e;
+  --month-line: #6e7681;
   --hatch: rgba(255, 255, 255, 0.09);
 }
 
@@ -33,8 +32,7 @@
   --accent: #0969da;
   --danger: #cf222e;
   --scrim: rgba(27, 31, 36, 0.45);
-  --month-band: #ffffff;
-  --month-band-other: #e2e6ea;
+  --month-line: #8c959f;
   --hatch: rgba(31, 35, 40, 0.08);
 }
 
@@ -48,8 +46,7 @@
   --accent: #58a6ff;
   --danger: #f85149;
   --scrim: rgba(1, 4, 9, 0.7);
-  --month-band: #010409;
-  --month-band-other: #22272e;
+  --month-line: #6e7681;
   --hatch: rgba(255, 255, 255, 0.09);
 }
 
@@ -573,14 +570,27 @@ body {
   flex-direction: column;
 }
 
-/* Each cell sits in a slot whose padding is the gap, so the band behind the cells shows
-   the day's month without touching the cell colour. */
+/* Each cell sits in a slot whose padding is the gap. Days on either side of a month change
+   paint their half of the gap, so the two halves meet as one line between the months
+   without touching the cell colour. */
 .cell-slot {
+  --edge-l: 0px;
+  --edge-t: 0px;
+  --edge-r: 0px;
+  --edge-b: 0px;
   padding: calc(var(--cell-gap) / 2);
-  background: var(--month-band-other);
 
-  &.month-alt {
-    background: var(--month-band);
+  &.month-edge-left { --edge-l: calc(var(--cell-gap) / 2); }
+  &.month-edge-top { --edge-t: calc(var(--cell-gap) / 2); }
+  &.month-edge-right { --edge-r: calc(var(--cell-gap) / -2); }
+  &.month-edge-bottom { --edge-b: calc(var(--cell-gap) / -2); }
+
+  &.month-edge-left, &.month-edge-top, &.month-edge-right, &.month-edge-bottom {
+    box-shadow:
+      inset var(--edge-l) 0 0 var(--month-line),
+      inset 0 var(--edge-t) 0 var(--month-line),
+      inset var(--edge-r) 0 0 var(--month-line),
+      inset 0 var(--edge-b) 0 var(--month-line);
   }
 }
 
