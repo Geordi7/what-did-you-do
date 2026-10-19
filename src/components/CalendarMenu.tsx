@@ -1,7 +1,7 @@
 import { Show } from 'solid-js';
 import { store } from '../store';
 import { downloadFile } from '../utils';
-import ActivityValueInput from './ActivityValueInput';
+import NumberMenuInput from './NumberMenuInput';
 import { createMenu } from './menu';
 import type { Calendar } from '../types';
 
@@ -9,7 +9,7 @@ interface Props {
   cal: Calendar;
   idx: number;
   total: number;
-  /** A sort other than Custom is selected, so reordering is disabled — specs/04-04-calendar-sort.md. */
+  /** A sort other than Custom, or a filter other than All, is selected, so reordering is disabled — specs/04-04-calendar-sort.md. */
   sorted: boolean;
 }
 
@@ -52,8 +52,28 @@ export default function CalendarMenu(props: Props) {
               onChange={(e) => store.setColor(props.cal.id, e.currentTarget.value)}
             />
           </label>
-          <Show when={props.cal.kind === 'scoring' ? props.cal : null}>
-            {cal => <ActivityValueInput cal={cal()} />}
+          {/* A negative activity value is intended — specs/03-03-calendars.md; a bounty never is. */}
+          <Show
+            when={props.cal.kind === 'gsd' ? props.cal : null}
+            fallback={
+              <NumberMenuInput
+                label="Activity Value"
+                name={`Activity value: ${props.cal.name}`}
+                value={props.cal.kind === 'scoring' ? props.cal.activityValue : 0}
+                accept={() => true}
+                commit={value => store.setActivityValue(props.cal.id, value)}
+              />
+            }
+          >
+            {cal => (
+              <NumberMenuInput
+                label="Default bounty"
+                name={`Default bounty: ${cal().name}`}
+                value={cal().defaultBounty}
+                accept={value => value >= 0}
+                commit={value => store.setDefaultBounty(cal().id, value)}
+              />
+            )}
           </Show>
           <button
             class="cal-menu-item"

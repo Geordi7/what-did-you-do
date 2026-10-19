@@ -4,11 +4,16 @@ Project: achievement calendar app.
 
 ## Core intent
 - Track daily activity counts in one or more calendars.
+- Get stuff done: a todo list built to help a mind that struggles to start, where breaking a task
+  into its smallest next step is itself rewarded.
 - Persist calendar state locally.
 - Support create, edit, reorder, soft-delete, recover, and per-item permanent delete flows.
 
 ## Features
-- Calendars — any number, each with a name, a color, and an activity value.
+- Calendars of two kinds, any number of each:
+  - scoring calendars — a name, a color, an activity value, and counted days;
+  - Getting Stuff Done (GSD) calendars — a hierarchical todo list whose points derive from its
+    todos, shown in the list like any calendar and opened as a full-page todo tool.
 - Heatmap grid per calendar over 26 weeks: 22 ending with the current week, then 4 ahead, so every
   grid lines up; with a per-calendar activity total.
 - Detail view for the hovered day.
@@ -21,7 +26,7 @@ Project: achievement calendar app.
   own, behind a confirmation. There is no bulk empty and no multi-select: trash is a safety net,
   so clearing it is deliberately tedious and must stay that way.
 - Sort bar over the calendars: custom order, or by visible activities, visible score, or recency,
-  each either way; the choice persists.
+  each either way; and a filter for all, scoring or GSD calendars. Both choices persist.
 - Export and import of the full data set as a file.
 - Banner prompting a full export backup when 24 or more hours have passed since the last export.
 
@@ -32,7 +37,7 @@ Project: achievement calendar app.
 - Rename calendar inline.
 - Change calendar color.
 - Set a calendar's activity value.
-- Add new calendar by name.
+- Add new calendar by name, choosing its kind.
 - Reorder active calendars.
 - Sort the calendar view without changing the custom order.
 - Recover a deleted calendar from trash.
@@ -48,8 +53,8 @@ Project: achievement calendar app.
   unbounded stored data.
 - Deleted calendars remain recoverable until permanently deleted, one at a time.
 - Stored state carries a schema version; older stored state migrates on load.
-- Each calendar has an activity value (float) used for scoring.
-- Daily score = sum across calendars of (activityValue * count).
+- Each scoring calendar has an activity value (float) used for scoring.
+- Daily score = sum across scoring calendars of (activityValue * count), plus GSD points.
 - Dates use the `en` locale, and weeks start on Monday.
 
 ## Quality attributes

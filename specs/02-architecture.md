@@ -16,7 +16,7 @@ SolidJS single-page app with Vite build.
 - `src/components/ScoreChart.tsx` renders score bars over the selected range.
 - `src/components/SortBar.tsx` renders the sort bar; `src/calendar-sort.ts` orders the calendar view.
 - `src/components/CalendarNameInput.tsx` edits a calendar name inline.
-- `src/components/ActivityValueInput.tsx` edits a calendar's activity value.
+- `src/components/NumberMenuInput.tsx` edits a menu's number: activity value or default bounty.
 - `src/components/BackupBanner.tsx` renders the backup reminder.
 
 ## Calendar kinds
@@ -39,12 +39,10 @@ SolidJS single-page app with Vite build.
   aggregate totals, id generation with a non-secure-context fallback, file download, and the shared
   click-outside helper.
 
-## Interaction model
-- Pointer short press increments day.
-- Pointer long press resets day.
-- Keyboard Enter/Space increments, Backspace/Delete clears.
-- Hovering a date in any calendar highlights that date across all calendars.
+## Routes
+- `src/route.ts` reads the URL hash: no hash is the calendar list, `#/gsd/<id>` a GSD calendar's
+  todo page. Hash URLs need no server rewrite, so they work on any host and from `file://`.
 
-## Responsive behavior
-- Desktop uses grid + detail side by side.
-- Small screens stack detail below grid.
+## Interaction
+- Day actions are in `04-05-calendar-grid.md`. Hovering a date in any calendar highlights that
+  date across all calendars.

@@ -1,6 +1,6 @@
 import { For } from 'solid-js';
 import { store } from '../store';
-import type { CalendarSort } from '../types';
+import type { CalendarFilter, CalendarSort } from '../types';
 
 type SortBy = CalendarSort['by'];
 
@@ -18,7 +18,13 @@ const BUTTONS: Array<{ by: SortBy; label: string }> = [
   { by: 'recent', label: 'Recent' },
 ];
 
-/** The sort bar above the calendar sections, per specs/04-04-calendar-sort.md "Controls". */
+const FILTERS: Array<{ filter: CalendarFilter; label: string }> = [
+  { filter: 'all', label: 'All' },
+  { filter: 'scoring', label: 'Scoring' },
+  { filter: 'gsd', label: 'GSD' },
+];
+
+/** The sort bar above the calendar sections, per specs/04-04-calendar-sort.md "Controls" and "Filter". */
 export default function SortBar() {
   function choose(by: SortBy) {
     const current = store.calendarSort;
@@ -28,28 +34,45 @@ export default function SortBar() {
   }
 
   return (
-    <div class="sort-bar" role="group" aria-label="Sort calendars">
-      <For each={BUTTONS}>
-        {button => {
-          const selected = () => store.calendarSort.by === button.by;
-          const arrow = () => (store.calendarSort.dir === 'desc' ? ' ▼' : ' ▲');
-          const name = () => (selected() && button.by !== 'custom'
-            ? `${button.label}, ${DIRECTION_NAMES[button.by][store.calendarSort.dir]}`
-            : button.label);
-          return (
+    <div class="sort-bar-row">
+      <div class="sort-bar" role="group" aria-label="Sort calendars">
+        <For each={BUTTONS}>
+          {button => {
+            const selected = () => store.calendarSort.by === button.by;
+            const arrow = () => (store.calendarSort.dir === 'desc' ? ' ▼' : ' ▲');
+            const name = () => (selected() && button.by !== 'custom'
+              ? `${button.label}, ${DIRECTION_NAMES[button.by][store.calendarSort.dir]}`
+              : button.label);
+            return (
+              <button
+                type="button"
+                class="sort-btn"
+                classList={{ active: selected() }}
+                aria-pressed={selected()}
+                aria-label={name()}
+                onClick={() => choose(button.by)}
+              >
+                {button.label}{selected() && button.by !== 'custom' ? arrow() : ''}
+              </button>
+            );
+          }}
+        </For>
+      </div>
+      <div class="sort-bar" role="group" aria-label="Filter calendars">
+        <For each={FILTERS}>
+          {button => (
             <button
               type="button"
               class="sort-btn"
-              classList={{ active: selected() }}
-              aria-pressed={selected()}
-              aria-label={name()}
-              onClick={() => choose(button.by)}
-            >
-              {button.label}{selected() && button.by !== 'custom' ? arrow() : ''}
-            </button>
-          );
-        }}
+              classList={{ active: store.calendarFilter === button.filter }}
+              aria-pressed={store.calendarFilter === button.filter}
+            onClick={() => store.setCalendarFilter(button.filter)}
+          >
+            {button.label}
+          </button>
+        )}
       </For>
+    </div>
     </div>
   );
 }

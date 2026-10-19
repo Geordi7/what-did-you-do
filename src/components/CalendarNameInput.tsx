@@ -45,6 +45,8 @@ export default function CalendarNameInput(props: Props) {
       class="cal-name-input"
       aria-label={`Calendar name: ${props.name}`}
       value={editing()}
+      // Sized to its text, so whatever follows the name sits right after it.
+      size={Math.max(editing().length, 1)}
       onInput={(e) => setEditing(e.currentTarget.value)}
       onFocus={() => setFocused(true)}
       onBlur={() => { commit(); setFocused(false); }}

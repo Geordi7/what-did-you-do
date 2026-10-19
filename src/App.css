@@ -294,6 +294,21 @@ body {
   }
 }
 
+.kind-choice {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+}
+
 .create-btn {
   background: var(--accent);
   border: none;
@@ -383,6 +398,64 @@ body {
   font-size: 0.75rem;
   white-space: nowrap;
   margin-left: auto;
+}
+
+/* A GSD section: set apart by a left edge in its colour, and opened by a click anywhere on it. */
+.cal-card-gsd {
+  position: relative;
+  cursor: pointer;
+
+  /* The edge sits in the gutter, so the grid's columns still line up with every other grid. */
+  &::before {
+    content: '';
+    position: absolute;
+    left: -0.6rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--cal-color);
+  }
+}
+
+.gsd-icon {
+  color: var(--cal-color);
+  font-size: 0.95rem;
+}
+
+.gsd-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+}
+
+.cal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.gsd-open-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--text-dim);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
 }
 
 .hidden-input {
@@ -602,7 +675,9 @@ body {
   border: none;
   outline: none;
   padding: 0;
-  display: block;
+  /* A GSD day's due dot sits in the cell's centre. */
+  display: grid;
+  place-items: center;
   transition: outline 0.05s;
 
   &:hover {
@@ -639,6 +714,22 @@ body {
       outline-offset: -2px;
     }
   }
+}
+
+.due-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text);
+  pointer-events: none;
+
+  &.overdue {
+    background: var(--danger);
+  }
+}
+
+.cal-card-gsd .cell.future {
+  cursor: pointer;
 }
 
 .day-detail {
@@ -693,6 +784,11 @@ body {
   font-weight: 600;
   color: var(--text);
   line-height: 1.3;
+
+  &.detail-summary {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
 }
 
 .detail-label {
@@ -869,11 +965,18 @@ body {
 }
 
 /* Sort bar (specs/04-04-calendar-sort.md): one segmented row, styled like the range toggle. */
+.sort-bar-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
 .sort-bar {
   display: flex;
   width: fit-content;
   max-width: 100%;
-  margin: 0 0 0.75rem auto;
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;

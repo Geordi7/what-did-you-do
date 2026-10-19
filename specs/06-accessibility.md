@@ -21,7 +21,14 @@ Every flow is reachable by keyboard alone, in both themes.
 ## Sort bar
 - The sort buttons form a group named "Sort calendars"; each carries `aria-pressed`, and the
   selected one's accessible name states its direction.
+- The filter buttons form a group named "Filter calendars", each carrying `aria-pressed`.
 - A disabled Move up or Move down drops out of the calendar menu's arrow-key stops.
+
+## GSD calendars in the list
+- The create bar's kind choice is a radio group named "Calendar kind".
+- A GSD section's Open button is named "Open <name> todos".
+- A GSD day cell's accessible name gives its date and its created, finished, due and points
+  figures, then "Open todos"; future days are not marked disabled.
 
 ## Menus
 The header's ☰ menu and each calendar's ⋮ overflow menu behave alike.

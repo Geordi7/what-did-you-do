@@ -22,11 +22,18 @@ Each calendar section's heatmap grid and its day detail panel.
 
 ## Cells
 - Calendar cells act as buttons, with clear hover, focus, and today outlines.
-- Click or tap a day to add 1. Long-press for 600 ms resets it to 0 and vibrates for 50 ms.
+- Scoring calendar: click or tap a day to add 1. Long-press for 600 ms resets it to 0 and vibrates
+  for 50 ms.
+- GSD calendar: a day's colour follows its root todos done. Its cells never change anything in
+  the list: a click, tap or `Enter` opens the calendar's todo page. Future days are hatched but
+  still open the page.
+- A GSD day with open todos due shows a thick dot in its centre in the foreground colour, red once
+  the day is before today; no dot once every todo due that day is done.
 
 ## Detail panel
 - Grid and detail panel sit side by side on desktop; they stack on mobile, the detail's date,
   badge and score on one line.
 - The panel is unboxed text, vertically centred on the grid's cells.
 - It shows the highlighted day's date, a "Today" badge, and `count × activityValue = score`;
-  with no day highlighted it invites the user to select one.
+  on a GSD calendar, `Created N · Finished M · Due K · +P points`. With no day highlighted it
+  invites the user to select one.

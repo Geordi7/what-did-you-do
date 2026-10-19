@@ -1,17 +1,28 @@
 import { createMemo, For, onCleanup, Show } from 'solid-js';
-import type { ScoringCalendar } from '../types';
+import type { Calendar } from '../types';
 import { store } from '../store';
 import { calendarGrid, dateKey, cellColor, parseKey, formatDate } from '../utils';
 import { visibleMaximum } from '../scores';
+import { dayCounts } from '../calendar-figures';
+import { gsdDays, type GsdDay } from '../gsd';
 
 const CELL_PX = 12;
 const GAP_PX = 2;
 const STEP = CELL_PX + GAP_PX;
 
 interface Props {
-  calendar: ScoringCalendar;
+  calendar: Calendar;
   isLight: boolean;
   now: () => Date;
+  /** A GSD calendar's day was clicked or activated; its cells change nothing themselves. */
+  onOpenDay?: (key: string) => void;
+}
+
+const NO_GSD_DAY: GsdDay = { activities: 0, points: 0, created: 0, finished: 0, due: 0 };
+
+/** A GSD day's figures in words, per specs/04-05-calendar-grid.md "Detail panel". */
+function gsdSummary(day: GsdDay): string {
+  return `Created ${day.created} · Finished ${day.finished} · Due ${day.due} · +${day.points.toFixed(1)} points`;
 }
 
 const daysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -32,7 +43,14 @@ function CalendarGrid(props: Props) {
   /** Days after today never change, per specs/04-05-calendar-grid.md "Window". */
   const isFuture = (key: string) => key > todayKey();
 
+  const isGsd = () => props.calendar.kind === 'gsd';
+  const gsdFigures = createMemo(() => (props.calendar.kind === 'gsd' ? gsdDays(props.calendar.todos) : {}));
+  const gsdDay = (key: string) => gsdFigures()[key] ?? NO_GSD_DAY;
+  const counts = createMemo(() => dayCounts(props.calendar));
+  const activityValue = () => (props.calendar.kind === 'scoring' ? props.calendar.activityValue : 1);
+
   function startPress(key: string) {
+    if (isGsd()) return;
     if (pressStarted || isFuture(key)) return;
     pressStarted = true;
     longPressFired = false;
@@ -70,7 +88,7 @@ function CalendarGrid(props: Props) {
   }
 
   const visibleKeys = createMemo(() => weeks().flat().map(dateKey));
-  const maxVal = createMemo(() => visibleMaximum(props.calendar.days, visibleKeys()));
+  const maxVal = createMemo(() => visibleMaximum(counts(), visibleKeys()));
 
   const highlighted = createMemo(() => {
     const hk = store.highlightedKey;
@@ -98,7 +116,7 @@ function CalendarGrid(props: Props) {
   const highlightedVal = () => {
     const h = highlighted();
     if (!h) return null;
-    return props.calendar.days[h.key] ?? 0;
+    return counts()[h.key] ?? 0;
   };
 
   const highlightedDate = () => {
@@ -114,6 +132,13 @@ function CalendarGrid(props: Props) {
   };
 
   function handleKeyDown(e: KeyboardEvent, key: string) {
+    if (isGsd()) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        props.onOpenDay?.(key);
+      }
+      return;
+    }
     if (isFuture(key)) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -142,11 +167,18 @@ function CalendarGrid(props: Props) {
                 <For each={week}>
                   {(date) => {
                     const key = dateKey(date);
-                    const val = () => props.calendar.days[key] ?? 0;
+                    const val = () => counts()[key] ?? 0;
                     const intensity = () => val() / maxVal();
                     const isToday = () => key === todayKey();
                     const future = () => isFuture(key);
-                    const score = () => `${val()} × ${props.calendar.activityValue} = ${(val() * props.calendar.activityValue).toFixed(1)}`;
+                    const score = () => `${val()} × ${activityValue()} = ${(val() * activityValue()).toFixed(1)}`;
+                    const label = () => {
+                      if (isGsd()) {
+                        const day = gsdDay(key);
+                        return `${formatDate(date)}: created ${day.created}, finished ${day.finished}, due ${day.due}, +${day.points.toFixed(1)} points. Open todos`;
+                      }
+                      return future() ? `${formatDate(date)}: upcoming, ${score()}.` : `${formatDate(date)}: ${score()}. Click to add, long press to reset.`;
+                    };
                     return (
                       <div
                         class="cell-slot"
@@ -173,8 +205,9 @@ function CalendarGrid(props: Props) {
                           height: `${CELL_PX}px`,
                           'background-color': cellColor(props.calendar.color, intensity(), props.isLight),
                         }}
-                        aria-disabled={future() ? 'true' : undefined}
-                        aria-label={future() ? `${formatDate(date)}: upcoming, ${score()}.` : `${formatDate(date)}: ${score()}. Click to add, long press to reset.`}
+                        aria-disabled={future() && !isGsd() ? 'true' : undefined}
+                        aria-label={label()}
+                        onClick={() => { if (isGsd()) props.onOpenDay?.(key); }}
                         onPointerDown={() => startPress(key)}
                         onPointerUp={endPress}
                         onPointerLeave={cancelPress}
@@ -184,7 +217,11 @@ function CalendarGrid(props: Props) {
                         onFocus={() => store.setHighlightedKey(key)}
                         onKeyDown={(e) => handleKeyDown(e, key)}
                         tabindex="0"
-                      />
+                      >
+                        <Show when={isGsd() && gsdDay(key).due > 0}>
+                          <span class="due-dot" classList={{ overdue: key < todayKey() }} aria-hidden="true" />
+                        </Show>
+                      </button>
                       </div>
                     );
                   }}
@@ -200,7 +237,11 @@ function CalendarGrid(props: Props) {
           <div class="detail-date">{highlightedDate()}</div>
           <span class="detail-badge" classList={{ invisible: !highlightedIsToday() }}>Today</span>
           <div class="detail-count">
-            <span class="detail-number">{highlightedVal()} × {props.calendar.activityValue} = {(highlightedVal()! * props.calendar.activityValue).toFixed(1)}</span>
+            <span class="detail-number" classList={{ 'detail-summary': isGsd() }}>
+              {isGsd()
+                ? gsdSummary(gsdDay(highlighted()!.key))
+                : `${highlightedVal()} × ${activityValue()} = ${(highlightedVal()! * activityValue()).toFixed(1)}`}
+            </span>
           </div>
         </Show>
       </div>

@@ -11,6 +11,11 @@ Refines `04-design.md`. A sort bar sits between the score chart and the calendar
   to high, least recent first).
 - The selected sort persists across reloads.
 
+## Filter
+- After the sort buttons, a filter of three buttons: **All**, **Scoring**, **GSD**. Exactly one is
+  selected, All on first run. Scoring and GSD show only calendars of that kind.
+- The filter persists across reloads, and applies on top of the sort.
+
 ## Order
 Sorting is a view: the stored order of calendars never changes, and Custom shows it.
 - **Activities** — each calendar's total activity count over its visible grid (for a GSD calendar,
@@ -25,5 +30,5 @@ Sorting is a view: the stored order of calendars never changes, and Custom shows
 - Every remaining tie, including among calendars with no counts, keeps custom order.
 
 ## Reordering
-- While any sort other than Custom is selected, each calendar menu's Move up and Move down are
-  disabled.
+- While any sort other than Custom, or any filter other than All, is selected, each calendar
+  menu's Move up and Move down are disabled.

@@ -69,7 +69,7 @@ test('New calendar opens the create bar and a theme item applies its theme', asy
   await menuButton(page).click();
   await page.getByRole('menuitem', { name: 'New calendar' }).click();
   await expect(page.getByRole('menu')).toHaveCount(0);
-  await expect(page.locator('.new-cal-bar input')).toBeFocused();
+  await expect(page.getByRole('textbox', { name: 'New calendar name' })).toBeFocused();
 
   await menuButton(page).click();
   await page.getByRole('menuitemradio', { name: 'Dark', exact: true }).click();

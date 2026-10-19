@@ -28,11 +28,16 @@
 - Collapsible create bar, calendar sections, hint, trash section.
 - Calendar section header is one row: name on the left; total in small dim text and a ⋮
   overflow menu on the right.
+- A GSD section is set apart: a ☑ before its name, a "GSD" tag after it, its total as "N done",
+  and a left edge in its colour. Clicking anywhere on it but its name and menu, or its Open
+  button, opens its todo page.
 - Each section holds its grid and a detail panel.
 
 ## Controls
-- The menu's New calendar opens the create bar; the bar holds a name input, Create, and Cancel.
+- The menu's New calendar opens the create bar; the bar holds a name input, a kind choice
+  (Scoring, the default, or Getting Stuff Done), Create, and Cancel.
 - Inline text input for calendar rename.
-- The ⋮ overflow menu holds color picker, activity value, move up, move down, Export, and Delete.
+- The ⋮ overflow menu holds color picker, activity value (default bounty on a GSD calendar), move
+  up, move down, Export, and Delete.
 - Trash section offers Recover and Delete forever per item. There is no empty-trash control.
 - Delete forever confirms through a native `confirm` dialog, the app's only native dialog.

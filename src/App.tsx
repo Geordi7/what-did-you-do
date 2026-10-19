@@ -14,7 +14,8 @@ import ImportReviewModal from './components/ImportReviewModal';
 import BlockingMessage from './components/BlockingMessage';
 import { calendarGrid, dateKey, hexToRgb, downloadFile, exportFilename } from './utils';
 import { calendarTotal } from './calendar-figures';
-import type { ImportRow, ThemeMode } from './types';
+import type { Calendar, ImportRow, ThemeMode } from './types';
+import { openTodoPage } from './route';
 import './App.css';
 
 function applyTheme(mode: ThemeMode) {
@@ -33,6 +34,7 @@ type ImportStatus = { kind: 'success' | 'failure'; text: string };
 function App() {
   const now = createDayClock();
   const [newName, setNewName] = createSignal('');
+  const [newKind, setNewKind] = createSignal<Calendar['kind']>('scoring');
   const [showNewCal, setShowNewCal] = createSignal(false);
   const [showRecover, setShowRecover] = createSignal(false);
   const [importRows, setImportRows] = createSignal<ImportRow[] | null>(null);
@@ -41,7 +43,11 @@ function App() {
   const [systemDark, setSystemDark] = createSignal(window.matchMedia('(prefers-color-scheme: dark)').matches);
   /** The calendar view's order: the stored order, sorted per the sort bar over the visible grid. */
   const visibleKeys = createMemo(() => calendarGrid(now()).flat().map(dateKey));
-  const shownCalendars = createMemo(() => sortCalendars(store.activeCalendars, store.calendarSort, visibleKeys()));
+  const shownCalendars = createMemo(() => {
+    const filter = store.calendarFilter;
+    const kept = filter === 'all' ? store.activeCalendars : store.activeCalendars.filter(cal => cal.kind === filter);
+    return sortCalendars(kept, store.calendarSort, visibleKeys());
+  });
   const isLight = createMemo(() => {
     const mode = store.theme;
     if (mode !== 'system') return mode === 'light';
@@ -101,8 +107,9 @@ function App() {
       setShowNewCal(false);
       return;
     }
-    store.addCalendar(name);
+    store.addCalendar(name, newKind());
     setNewName('');
+    setNewKind('scoring');
     setShowNewCal(false);
   }
 
@@ -272,6 +279,16 @@ function App() {
               onInput={(e) => setNewName(e.currentTarget.value)}
               onKeyDown={handleNewCalKeydown}
             />
+            <div class="kind-choice" role="radiogroup" aria-label="Calendar kind">
+              <label>
+                <input type="radio" name="calendar-kind" checked={newKind() === 'scoring'} onChange={() => setNewKind('scoring')} />
+                Scoring
+              </label>
+              <label>
+                <input type="radio" name="calendar-kind" checked={newKind() === 'gsd'} onChange={() => setNewKind('gsd')} />
+                Getting Stuff Done
+              </label>
+            </div>
             <button type="submit" class="create-btn">Create</button>
             <button type="button" class="cancel-btn" onClick={() => { setShowNewCal(false); setNewName(''); }}>Cancel</button>
           </form>
@@ -281,23 +298,62 @@ function App() {
           <SortBar />
         </Show>
 
-        <For each={shownCalendars()} fallback={<div class="empty-state">No calendars yet. Create one above!</div>}>
-          {(cal, idx) => (
-            <div class="cal-card" style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}>
-              <div class="cal-card-header">
-                <div class="cal-info">
-                  <CalendarNameInput id={cal.id} name={cal.name} />
-                  <span class="cal-stat">
-                    {calendarTotal(cal)} activities
-                  </span>
-                </div>
-                <CalendarMenu cal={cal} idx={idx()} total={store.activeCalendars.length} sorted={store.calendarSort.by !== 'custom'} />
-              </div>
-              <Show when={cal.kind === 'scoring' ? cal : null}>
-                {scoringCal => <CalendarGrid calendar={scoringCal()} isLight={isLight()} now={now} />}
-              </Show>
+        <For
+          each={shownCalendars()}
+          fallback={
+            <div class="empty-state">
+              {store.activeCalendars.length === 0 ? 'No calendars yet. Create one above!' : 'No calendars of this kind yet.'}
             </div>
-          )}
+          }
+        >
+          {(cal, idx) => {
+            const gsd = () => cal.kind === 'gsd';
+            // A GSD section opens its todo page from anywhere on it but its name and its menu —
+            // specs/04-design.md "Layout". The name input and the menu stop at their own ground.
+            const openFromSection = (e: MouseEvent) => {
+              if (!gsd()) return;
+              const target = e.target;
+              if (target instanceof Element && target.closest('.cal-name-input, .cal-menu, .cell')) return;
+              openTodoPage(cal.id);
+            };
+            return (
+              <div
+                class="cal-card"
+                classList={{ 'cal-card-gsd': gsd() }}
+                style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}
+                onClick={openFromSection}
+              >
+                <div class="cal-card-header">
+                  <div class="cal-info">
+                    <Show when={gsd()}>
+                      <span class="gsd-icon" aria-hidden="true">☑</span>
+                    </Show>
+                    <CalendarNameInput id={cal.id} name={cal.name} />
+                    <Show when={gsd()}>
+                      <span class="gsd-tag">GSD</span>
+                    </Show>
+                    <span class="cal-stat">
+                      {calendarTotal(cal)} {gsd() ? 'done' : 'activities'}
+                    </span>
+                  </div>
+                  <div class="cal-actions">
+                    <Show when={gsd()}>
+                      <button type="button" class="gsd-open-btn" aria-label={`Open ${cal.name} todos`} onClick={() => openTodoPage(cal.id)}>
+                        Open
+                      </button>
+                    </Show>
+                    <CalendarMenu
+                      cal={cal}
+                      idx={idx()}
+                      total={shownCalendars().length}
+                      sorted={store.calendarSort.by !== 'custom' || store.calendarFilter !== 'all'}
+                    />
+                  </div>
+                </div>
+                <CalendarGrid calendar={cal} isLight={isLight()} now={now} onOpenDay={() => openTodoPage(cal.id)} />
+              </div>
+            );
+          }}
         </For>
 
         <div class="hint">
