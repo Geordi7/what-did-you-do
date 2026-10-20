@@ -6,6 +6,25 @@ affects:
 tags: [gsd, todo, cancel, delete, dialog, migration]
 links: {related: [0008, 0009]}
 ---
+## Outcome
+Decision: a todo's Delete becomes **Cancel**. A cancelled todo, with its whole subtree, earns
+nothing — creation and completion points alike — and drops out of every per-day figure; it is
+stored with the day it was cancelled. Cancelled todos sit at the bottom of their level, after the
+done ones, so cancelled root todos end up at the bottom of the page and cancelled Nudges at the
+bottom of their sibling group. They show dimmed and italic with a "Cancelled" note, not struck
+through. A cancelled todo offers **Restore**, which puts it back as it was, done or open, points
+included, and **Delete**, which removes it and its subtree after a native `confirm`.
+- Any todo can be cancelled, done or open. A cancelled Nudge no longer counts as an open child.
+- The flag sits on the todo that was cancelled; its descendants are cancelled with it. Restore
+  clears only that flag, so a Nudge cancelled on its own before stays cancelled.
+- Storage moves to version 8; the migration changes no existing data.
+Rejected:
+1. Direct Delete on any todo: losing points and history should take two steps.
+2. One flat "Cancelled" section at the bottom of the page: cancelled Nudges stay with their level.
+3. An in-app confirmation modal: the native `confirm` is kept, as for the trash's Delete forever.
+4. Cancelling only the todo and keeping its Nudges scoring: a cancelled task's steps go with it.
+Reopen if: deleted todos need to be recoverable, or the app's native dialogs are replaced.
+
 ## Thread
 > Operator asked in chat: replace a todo's direct Delete with Cancel. Cancelling removes all of the
 > todo's scoring and moves it to a "cancelled" bucket after the completed ones; Delete, behind a
@@ -35,3 +54,17 @@ links: {related: [0008, 0009]}
 > with a migration that changes nothing in existing data.
 >
 > When these are settled, say "decided".
+
+Q1: yes
+Q2: yes
+Q3: cancelled nudges sit at the bottom of their level, cancelled root tasks move to the bottom of the page after the done tasks
+Q4: yes
+Q5: use native
+Q6: yes
+
+decided or?
+
+> Reading: Q3 is the proposal's per-level order — open, done, cancelled at every level — which puts
+> cancelled root todos at the bottom of the page after the done ones. Nothing else is open, so I am
+> taking this as decided; Outcome above. One detail decided as technical: the cancelled flag sits on
+> the todo you cancel, its Nudges inherit it, and Restore clears just that flag.
