@@ -184,6 +184,28 @@ test('edits title, root bounty and due date; a Nudge bounty is fixed', async ({ 
   await expect.poll(async () => findTodo(await gsdTodos(page), 'soon')?.due).toBeUndefined();
 });
 
+test('a long title wraps onto further lines, pushing its row down, at desktop and phone widths', async ({ page }) => {
+  const long = 'Book the dentist, then call the insurer about the claim from last spring, and ask whether the second visit is covered too';
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 800 });
+    await openPage(page);
+    const title = page.locator('li[data-id="late"] > .todo-row .todo-title');
+    await title.fill(long);
+    await title.press('Enter');
+    await expect.poll(async () => findTodo(await gsdTodos(page), 'late')?.title).toBe(long);
+
+    const box = await title.evaluate(el => ({ sw: el.scrollWidth, cw: el.clientWidth, sh: el.scrollHeight, ch: el.clientHeight }));
+    expect(box.sw, `no text hidden sideways at ${width}px`).toBeLessThanOrEqual(box.cw);
+    expect(box.sh, `no text hidden below at ${width}px`).toBeLessThanOrEqual(box.ch + 1);
+
+    const short = await page.locator('li[data-id="undated"] > .todo-row .todo-title').boundingBox();
+    const wrapped = await title.boundingBox();
+    expect(wrapped!.height, `the title takes several lines at ${width}px`).toBeGreaterThan(short!.height * 1.8);
+    await expect(page.getByRole('button', { name: `Cancel ${long}` })).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `no page scroll sideways at ${width}px`).toBe(true);
+  }
+});
+
 test('promote moves a Nudge up, and focus follows', async ({ page }) => {
   await openPage(page);
   await expect(page.getByRole('button', { name: 'Promote Taxes' })).toHaveCount(0);

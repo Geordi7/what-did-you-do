@@ -1832,7 +1832,8 @@ button.blocking-diagnostic {
   font-size: 0.85rem;
 
   input[type='text'],
-  input[type='date'] {
+  input[type='date'],
+  textarea {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 4px;
@@ -1850,9 +1851,33 @@ button.blocking-diagnostic {
     }
   }
 
-  .todo-title {
+  /* A long title wraps and pushes the row down. Its hidden copy sizes the grid cell, and
+     the textarea over it fills the cell, so the field grows with its text. */
+  .inline-wrap {
     flex: 1 1 auto;
     min-width: 4rem;
+    display: grid;
+  }
+
+  .inline-wrap::after,
+  .inline-wrap > textarea {
+    grid-area: 1 / 1;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  /* Matches the textarea's padding and border, so both wrap at the same width. */
+  .inline-wrap::after {
+    content: attr(data-value) ' ';
+    visibility: hidden;
+    padding: 0.05rem 0.25rem;
+    border: 1px solid transparent;
+  }
+
+  .inline-wrap > textarea {
+    resize: none;
+    overflow: hidden;
   }
 }
 
@@ -1963,7 +1988,7 @@ button.blocking-diagnostic {
     flex-wrap: wrap;
     row-gap: 0;
 
-    .todo-title {
+    .inline-wrap {
       flex-basis: calc(100% - 6rem);
     }
   }

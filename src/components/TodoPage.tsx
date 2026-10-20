@@ -38,7 +38,7 @@ function ordered(todos: readonly Todo[]): Todo[] {
 
 /** Focus a todo's title once the tree has re-rendered around it. */
 function focusTitle(id: string) {
-  requestAnimationFrame(() => document.querySelector<HTMLInputElement>(`.todo-tree li[data-id="${CSS.escape(id)}"] .todo-title`)?.focus());
+  requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>(`.todo-tree li[data-id="${CSS.escape(id)}"] .todo-title`)?.focus());
 }
 
 export default function TodoPage(props: Props) {
@@ -250,6 +250,7 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
         />
         <InlineText
           class="todo-title"
+          wrap
           name={`Title: ${props.todo.title}`}
           readOnly={cancelled()}
           value={props.todo.title}
@@ -395,6 +396,8 @@ function InlineText(props: {
   value: string;
   inputmode?: 'decimal';
   readOnly?: boolean;
+  /** Wrap long text onto further lines instead of scrolling it out of sight. */
+  wrap?: boolean;
   commit: (text: string) => boolean;
 }) {
   const [text, setText] = createSignal(props.value);
@@ -404,24 +407,27 @@ function InlineText(props: {
     if (!focused()) setText(stored);
   });
 
+  // Handlers only: reactive attributes stay in the JSX, where Solid tracks them.
+  const handlers = {
+    // A wrapping field is still one line of text: a pasted line break becomes a space.
+    onInput: (e: InputEvent & { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => setText(e.currentTarget.value.replace(/\r?\n/g, ' ')),
+    onFocus: () => setFocused(true),
+    onBlur: () => {
+      if (text() !== props.value && !props.commit(text())) setText(props.value);
+      setFocused(false);
+    },
+    onKeyDown: (e: KeyboardEvent & { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
+      if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+      else if (e.key === 'Escape') { setText(props.value); e.currentTarget.blur(); }
+    },
+  };
+
   return (
-    <input
-      type="text"
-      class={props.class}
-      aria-label={props.name}
-      inputmode={props.inputmode}
-      readOnly={props.readOnly}
-      value={text()}
-      onInput={e => setText(e.currentTarget.value)}
-      onFocus={() => setFocused(true)}
-      onBlur={() => {
-        if (text() !== props.value && !props.commit(text())) setText(props.value);
-        setFocused(false);
-      }}
-      onKeyDown={e => {
-        if (e.key === 'Enter') e.currentTarget.blur();
-        else if (e.key === 'Escape') { setText(props.value); e.currentTarget.blur(); }
-      }}
-    />
+    <Show when={props.wrap} fallback={<input type="text" class={props.class} aria-label={props.name} inputmode={props.inputmode} readOnly={props.readOnly} value={text()} {...handlers} />}>
+      {/* `.inline-wrap` sizes the textarea to its text: see App.css. */}
+      <span class="inline-wrap" data-value={text()}>
+        <textarea class={props.class} aria-label={props.name} aria-multiline="false" rows={1} readOnly={props.readOnly} value={text()} {...handlers} />
+      </span>
+    </Show>
   );
 }

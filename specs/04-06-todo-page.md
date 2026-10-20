@@ -24,7 +24,8 @@ applies are in `03-04-gsd-points.md`.
 ## A todo row
 - A done checkbox. Ticking marks it done today. While done, its done date shows as a date input
   that can move it to an earlier day, not before its creation and not after today.
-- Its title, editable inline like a calendar name.
+- Its title, editable inline like a calendar name. A long title wraps onto further lines and
+  pushes the row down, never hidden; it stays one line of text, `Enter` committing it.
 - Its bounty: an input on a root todo, a fixed "0.5" on a Nudge.
 - Its due date, as a date input with a control to clear it; red once passed while still open.
 - **Nudge** — adds a child: an inline title input appears under the row; `Enter` adds the Nudge,
