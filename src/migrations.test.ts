@@ -354,6 +354,13 @@ describe('step 7 -> 8: cancelled todos', () => {
     expect(input).toEqual(v7State());
   });
 
+  it('marks a calendar without a kind as a scoring calendar', () => {
+    const unmarked = { ...v6State(), version: 7, calendarFilter: 'gsd' };
+    const out = asRecord(step(7)(unmarked));
+    expect(out.version).toBe(8);
+    expect(calendarsOf(out)).toEqual(v6State().calendars.map(cal => ({ kind: 'scoring', ...cal })));
+  });
+
   it('rejects a state that is not version 7', () => {
     expect(() => step(7)(v6State())).toThrow();
   });

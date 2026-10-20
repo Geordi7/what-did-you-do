@@ -497,3 +497,21 @@ test('Case 11: the 7 -> 8 step changes nothing but the version', async ({ page }
   // Step 4.
   expect(await readKey(page, BACKUP_KEY)).toBe(raw);
 });
+
+/* ── Case 12 — a version 7 calendar without a kind ───────────────────────── */
+
+test('Case 12: the 7 -> 8 step marks a calendar without a kind as scoring', async ({ page }) => {
+  const runs = { id: 'v7-a', name: 'Runs', color: '#40c463', days: { '2025-06-02': 3 }, activityValue: 1, updatedAt: '2025-06-02T08:00:00.000Z' };
+  const raw = JSON.stringify({ version: 7, theme: 'light', calendarFilter: 'all', calendars: [runs] });
+  await seed(page, { [STORAGE_KEY]: raw });
+  await open(page);
+
+  // Step 2.
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  // Step 3.
+  const stored = await readState(page);
+  expect(stored.version).toBe(CURRENT_STORAGE_VERSION);
+  expect(stored.calendars).toEqual([{ kind: 'scoring', ...runs }]);
+  // Step 4.
+  expect(await readKey(page, BACKUP_KEY)).toBe(raw);
+});

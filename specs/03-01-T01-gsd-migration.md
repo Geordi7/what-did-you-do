@@ -44,3 +44,10 @@ The browser tier executes these cases too, in `e2e/migration.e2e.ts` (`05-02-bro
 3. Read back `achievement-calendars`: `version` is `STORAGE_VERSION`, and the calendar and its todo
    tree are unchanged; no todo carries `cancelled`.
 4. Verify `achievement-calendars-backup` holds the seed exactly.
+
+## Case 12 — a version 7 calendar without a kind
+1. Seed Case 9's `Runs` calendar alone, with `"version":7` and `"calendarFilter":"all"`.
+2. Reload: the app loads without a blocking message.
+3. Read back `achievement-calendars`: `version` is `STORAGE_VERSION`, and `Runs` reads
+   `"kind": "scoring"`, otherwise unchanged.
+4. Verify `achievement-calendars-backup` holds the seed exactly.

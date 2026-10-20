@@ -286,7 +286,12 @@ export const gsdCalendarV7Schema = v
   .object({ ...gsdCalendarFields, todos: v.array(todoV7Schema) })
   .assert(uniqueTodoIds, 'expected todo ids to be unique within a calendar');
 
-export const calendarV7Schema = v.union(scoringCalendarV7Schema, gsdCalendarV7Schema);
+/** A version 7 calendar without a kind reads as a scoring calendar, per `03-01-migrations.md`. */
+const unmarkedScoringCalendarV7Schema = calendarV6Schema.extend({
+  kind: v.literal('scoring').optional(() => 'scoring' as const),
+});
+
+export const calendarV7Schema = v.union(unmarkedScoringCalendarV7Schema, gsdCalendarV7Schema);
 
 export const appStateV7Schema = v.object({
   version: v.literal(7),

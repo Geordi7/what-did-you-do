@@ -46,7 +46,7 @@ const migrations: Record<number, Migration>;
 | 4 -> 5 | adds `updatedAt` to each calendar |
 | 5 -> 6 | adds `calendarSort`, `{ by: 'custom', dir: 'desc' }` |
 | 6 -> 7 | marks every calendar `kind: 'scoring'`; adds `calendarFilter`, `'all'` |
-| 7 -> 8 | changes nothing: no stored todo is cancelled |
+| 7 -> 8 | marks a calendar without `kind` as `'scoring'`; otherwise changes nothing, as no stored todo is cancelled |
 
 ### Seeding `updatedAt`
 
@@ -70,6 +70,7 @@ date the user entered, not a time the calendar was edited.
 - Validation runs after migration on every load and on every import.
 - From version 5 the schema requires `updatedAt` on every calendar and rejects a string that is not a
   parseable ISO 8601 instant.
+- The version 7 schema reads a calendar without `kind` as a scoring calendar; from version 8 `kind` is required.
 - From version 7 the schema validates each calendar by its `kind`, and a GSD calendar's todo tree
   per `03-03-calendars.md`, with todo ids unique within the calendar.
 - The current-version schema asserts that calendar ids are unique. The data model requires unique ids,
