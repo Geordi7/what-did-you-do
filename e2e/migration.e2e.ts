@@ -459,7 +459,7 @@ const gsdChores = (done: string) => ({
 });
 
 test('Case 10: a GSD calendar loads unchanged, and a done date before its creation blocks', async ({ page }) => {
-  await seed(page, { [STORAGE_KEY]: JSON.stringify({ version: 7, theme: 'light', calendarFilter: 'gsd', calendars: [gsdChores('2026-10-02')] }) });
+  await seed(page, { [STORAGE_KEY]: JSON.stringify({ version: 8, theme: 'light', calendarFilter: 'gsd', calendars: [gsdChores('2026-10-02')] }) });
   await open(page);
 
   // Step 2.
@@ -472,11 +472,28 @@ test('Case 10: a GSD calendar loads unchanged, and a done date before its creati
   expect(stored.calendars).toEqual([gsdChores('2026-10-02')]);
 
   // Step 4.
-  const bad = JSON.stringify({ version: 7, theme: 'light', calendars: [gsdChores('2026-09-30')] });
+  const bad = JSON.stringify({ version: 8, theme: 'light', calendars: [gsdChores('2026-09-30')] });
   await seed(page, { [STORAGE_KEY]: bad });
   await reopen(page);
   const dialog = page.getByRole('alertdialog');
   await expect(dialog.getByRole('heading', { name: 'Your saved data could not be read' })).toBeVisible();
   await expect(dialog.locator('.blocking-diagnostic')).toContainText('phase: validate');
   expect(await readKey(page, STORAGE_KEY)).toBe(bad);
+});
+
+/* ── Case 11 — version 7 -> 8 ─────────────────────────────────────────────── */
+
+test('Case 11: the 7 -> 8 step changes nothing but the version', async ({ page }) => {
+  const raw = JSON.stringify({ version: 7, theme: 'light', calendarFilter: 'gsd', calendars: [gsdChores('2026-10-02')] });
+  await seed(page, { [STORAGE_KEY]: raw });
+  await open(page);
+
+  // Step 3.
+  const stored = await readState(page);
+  expect(stored.version).toBe(CURRENT_STORAGE_VERSION);
+  expect(stored.calendarFilter).toBe('gsd');
+  expect(stored.calendars).toEqual([gsdChores('2026-10-02')]);
+  expect(JSON.stringify(stored)).not.toContain('cancelled');
+  // Step 4.
+  expect(await readKey(page, BACKUP_KEY)).toBe(raw);
 });

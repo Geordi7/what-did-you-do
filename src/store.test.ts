@@ -929,6 +929,7 @@ function gsdSeed(): string {
       { id: 't2', title: 'Garage', bounty: 2, created: '2026-04-01', children: [
         { id: 't2a', title: 'Find the key', bounty: 0.5, created: '2026-04-02', children: [] },
       ] },
+      { id: 't3', title: 'Old idea', bounty: 1, created: '2026-04-03', cancelled: '2026-04-04', children: [] },
     ],
   };
   return pretty({ version: STORAGE_VERSION, theme: 'dark', chartRange: '28d', calendars: [...seededCalendars(), chores] });
@@ -963,8 +964,8 @@ describe('GSD calendars', () => {
     const id = store.addTodo('g', { title: 'Plan', bounty: 3, due: '2026-06-09' });
     const nudge = store.addNudge('g', id, 'Open a doc');
     const cal = gsdOf(store.calendars[2]);
-    expect(cal.todos[2]).toMatchObject({ id, title: 'Plan', bounty: 3, due: '2026-06-09', created: today });
-    expect(cal.todos[2].children).toEqual([{ id: nudge, title: 'Open a doc', bounty: 0.5, due: '2026-06-09', created: today, children: [] }]);
+    expect(cal.todos[3]).toMatchObject({ id, title: 'Plan', bounty: 3, due: '2026-06-09', created: today });
+    expect(cal.todos[3].children).toEqual([{ id: nudge, title: 'Open a doc', bounty: 0.5, due: '2026-06-09', created: today, children: [] }]);
     expect(cal.updatedAt).toBe(LATER);
     expect(store.calendars[0].updatedAt).toBe(SEEDED_AT);
   });
@@ -972,7 +973,9 @@ describe('GSD calendars', () => {
   const changing: Array<[string, (store: Store) => boolean]> = [
     ['markTodoDone', store => store.markTodoDone('g', 't2a', '2026-05-01')],
     ['reopenTodo', store => store.reopenTodo('g', 't1')],
-    ['deleteTodo', store => store.deleteTodo('g', 't2')],
+    ['cancelTodo', store => store.cancelTodo('g', 't2')],
+    ['restoreTodo', store => store.restoreTodo('g', 't3')],
+    ['deleteTodo', store => store.deleteTodo('g', 't3')],
     ['promoteTodo', store => store.promoteTodo('g', 't2a')],
     ['editTodo', store => store.editTodo('g', 't2', { due: '2026-07-01' })],
   ];
@@ -993,7 +996,9 @@ describe('GSD calendars', () => {
     ['a Nudge on a done todo', store => store.addNudge('g', 't1', 'Too late')],
     ['promoting a root todo', store => store.promoteTodo('g', 't1')],
     ['a Nudge bounty edit', store => store.editTodo('g', 't2a', { bounty: 4 })],
-    ['a todo rule on a scoring calendar', store => store.deleteTodo('a', 't1')],
+    ['a todo rule on a scoring calendar', store => store.cancelTodo('a', 't1')],
+    ['deleting a todo that is not cancelled', store => store.deleteTodo('g', 't2')],
+    ['restoring a todo that is not cancelled', store => store.restoreTodo('g', 't2')],
     ['counting a day on a GSD calendar', store => store.incrementDay('g', '2026-05-01')],
     ['an activity value on a GSD calendar', store => store.setActivityValue('g', 4)],
   ];

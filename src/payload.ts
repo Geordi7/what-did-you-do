@@ -148,6 +148,7 @@ function serializeTodo(todo: Todo): Todo {
   const out: Todo = { id: todo.id, title: todo.title, bounty: todo.bounty, created: todo.created, children: [] };
   if (todo.due !== undefined) out.due = todo.due;
   if (todo.done !== undefined) out.done = todo.done;
+  if (todo.cancelled !== undefined) out.cancelled = todo.cancelled;
   out.children = todo.children.map(serializeTodo);
   return out;
 }

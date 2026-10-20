@@ -12,6 +12,7 @@ import {
   parseAppStateV4,
   parseAppStateV5,
   parseAppStateV6,
+  parseAppStateV7,
   DEFAULT_CALENDAR_FILTER,
 } from './schemas';
 
@@ -25,7 +26,7 @@ import {
  */
 
 /** The version of the persisted shape. Bumps only when that shape changes. */
-export const STORAGE_VERSION = 7;
+export const STORAGE_VERSION = 8;
 
 /**
  * Single key holding the raw pre-migration string, overwritten on each
@@ -130,6 +131,12 @@ const migrateV6ToV7: Migration = state => {
   };
 };
 
+/** 7 -> 8: todos may carry a cancelled day; no stored todo is cancelled, so nothing changes. */
+const migrateV7ToV8: Migration = state => {
+  const prev = parseAppStateV7(state);
+  return { ...prev, version: 8 };
+};
+
 /** Keyed by source version; one entry per row of the version log. */
 export const MIGRATIONS: Record<number, Migration> = {
   0: migrateV0ToV1,
@@ -139,6 +146,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   4: migrateV4ToV5,
   5: migrateV5ToV6,
   6: migrateV6ToV7,
+  7: migrateV7ToV8,
 };
 
 /**

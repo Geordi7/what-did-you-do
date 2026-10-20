@@ -118,14 +118,30 @@ const v5State = () => ({
 
 const v6State = () => ({ ...v5State(), version: 6, calendarSort: { by: 'score', dir: 'asc' } });
 
+const v7State = () => ({
+  version: 7,
+  theme: 'light',
+  chartRange: '26w',
+  calendarSort: { by: 'score', dir: 'asc' },
+  calendarFilter: 'gsd',
+  calendars: [
+    { kind: 'scoring', id: 'v7-a', name: 'Runs', color: '#40c463', days: { '2025-06-02': 3 }, activityValue: 1, updatedAt: '2025-06-02T08:00:00.000Z' },
+    { kind: 'gsd', id: 'v7-g', name: 'Chores', color: '#216e39', defaultBounty: 2, updatedAt: '2025-06-01T08:00:00.000Z', todos: [
+      { id: 't1', title: 'Taxes', bounty: 2, due: '2025-06-08', created: '2025-06-01', children: [
+        { id: 't1a', title: 'Forms', bounty: 0.5, created: '2025-06-02', done: '2025-06-02', children: [] },
+      ] },
+    ] },
+  ],
+});
+
 describe('version log', () => {
-  it('is at version 7 and keys the backup under a single name', () => {
-    expect(STORAGE_VERSION).toBe(7);
+  it('is at version 8 and keys the backup under a single name', () => {
+    expect(STORAGE_VERSION).toBe(8);
     expect(BACKUP_KEY).toBe('achievement-calendars-backup');
   });
 
   it('holds one stepwise entry per from-version, and none at the current version', () => {
-    expect(Object.keys(MIGRATIONS).map(Number).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(Object.keys(MIGRATIONS).map(Number).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
     expect(MIGRATIONS[STORAGE_VERSION]).toBeUndefined();
   });
 });
@@ -300,7 +316,7 @@ describe('step 5 -> 6: calendarSort', () => {
   it('leaves duplicate ids to the current-version parse, so they fail validation, not migration', () => {
     const dup = v5State();
     dup.calendars[1].id = 'v5-a';
-    const out = step(6)(step(5)(dup));
+    const out = step(7)(step(6)(step(5)(dup)));
     expect(() => parseCurrentAppState(out)).toThrow(/unique/);
   });
 });
@@ -324,6 +340,22 @@ describe('step 6 -> 7: calendar kinds and the filter', () => {
 
   it('rejects a state that is not version 6', () => {
     expect(() => step(6)(v5State())).toThrow();
+  });
+});
+
+describe('step 7 -> 8: cancelled todos', () => {
+  it('changes nothing but the version', () => {
+    expect(step(7)(v7State())).toEqual({ ...v7State(), version: 8 });
+  });
+
+  it('does not mutate the state it was given', () => {
+    const input = v7State();
+    step(7)(input);
+    expect(input).toEqual(v7State());
+  });
+
+  it('rejects a state that is not version 7', () => {
+    expect(() => step(7)(v6State())).toThrow();
   });
 });
 
@@ -387,14 +419,17 @@ describe('migrate', () => {
       [v4State(), 4],
       [v5State(), 5],
       [v6State(), 6],
+      [v7State(), 7],
     ];
     for (const [state, from] of cases) {
       const parsed = parseCurrentAppState(migrate(state, from, CTX));
       expect(parsed.version).toBe(STORAGE_VERSION);
       if (from < 5) for (const cal of parsed.calendars) expect(cal.updatedAt).toBe(NOW);
       if (from < 6) expect(parsed.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
-      expect(parsed.calendarFilter).toBe('all');
-      for (const cal of parsed.calendars) expect(cal.kind).toBe('scoring');
+      if (from < 7) {
+        expect(parsed.calendarFilter).toBe('all');
+        for (const cal of parsed.calendars) expect(cal.kind).toBe('scoring');
+      }
     }
   });
 
@@ -407,8 +442,8 @@ describe('migrate', () => {
   });
 
   it('leaves a state already at the current version untouched', () => {
-    const current = { version: 7, theme: 'dark', calendars: [], chartRange: '26w', calendarSort: { by: 'score', dir: 'asc' }, calendarFilter: 'gsd' };
-    expect(migrate(current, 7, CTX)).toBe(current);
+    const current = { version: 8, theme: 'dark', calendars: [], chartRange: '26w', calendarSort: { by: 'score', dir: 'asc' }, calendarFilter: 'gsd' };
+    expect(migrate(current, 8, CTX)).toBe(current);
   });
 
   it('leaves a newer-than-current state untouched, so the load path can refuse it', () => {

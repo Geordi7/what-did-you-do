@@ -6,7 +6,11 @@ import {
   canMarkDone,
   canNudge,
   canReopen,
+  canRestore,
+  cancelTodo,
   deleteTodo,
+  isCancelled,
+  restoreTodo,
   editTodo,
   gsdDays,
   markDone,
@@ -123,10 +127,11 @@ describe('todo rules', () => {
     expect(todos[0].children[0]).not.toHaveProperty('done');
   });
 
-  it('deletes a todo with its subtree', () => {
-    const todos = [todo('a', { children: [todo('b', { children: [todo('c')] }), todo('d')] }), todo('e')];
-    expect(deleteTodo(todos, 'b')).toBe(true);
-    expect(ids(todos)).toEqual([['a', ['d']], 'e']);
+  it('deletes only a todo that carries its own cancelled date, with its subtree', () => {
+    const todos = [todo('a', { cancelled: '2026-10-05', children: [todo('b', { children: [todo('c')] }), todo('d')] }), todo('e')];
+    expect(deleteTodo(todos, 'e')).toBe(false);
+    expect(deleteTodo(todos, 'b')).toBe(false);
+    expect(ids(todos)).toEqual([['a', [['b', ['c']], 'd']], 'e']);
     expect(deleteTodo(todos, 'a')).toBe(true);
     expect(ids(todos)).toEqual(['e']);
     expect(deleteTodo(todos, 'missing')).toBe(false);
@@ -192,5 +197,80 @@ describe('todo rules', () => {
     expect(todos[0].done).toBe('2026-10-07');
     expect(editTodo(todos, 'b', { done: '2026-10-07' }, '2026-10-19')).toBe(false);
     expect(todos[1]).not.toHaveProperty('done');
+  });
+});
+
+describe('cancelling', () => {
+  it('drops a cancelled todo and its whole subtree from every figure', () => {
+    const tree = [
+      todo('a', { due: '2026-10-08', cancelled: '2026-10-06', children: [
+        todo('a1', { bounty: NUDGE_BOUNTY, created: '2026-10-02', done: '2026-10-03', children: [todo('a1x', { bounty: NUDGE_BOUNTY, due: '2026-10-08', created: '2026-10-02' })] }),
+      ] }),
+      todo('b', { done: '2026-10-03', children: [todo('b1', { bounty: NUDGE_BOUNTY, created: '2026-10-02', due: '2026-10-08', cancelled: '2026-10-04' })] }),
+    ];
+    const days = gsdDays(tree);
+    expect(days['2026-10-01']).toEqual({ activities: 0, points: 1, created: 1, finished: 0, due: 0 });
+    expect(days['2026-10-02']).toBeUndefined();
+    expect(days['2026-10-03']).toEqual({ activities: 1, points: 1, created: 0, finished: 1, due: 0 });
+    expect(days['2026-10-08']).toBeUndefined();
+  });
+
+  it('tells a cancelled todo by its own date or an ancestor\'s', () => {
+    const tree = [todo('a', { cancelled: '2026-10-06', children: [todo('a1')] }), todo('b', { children: [todo('b1')] })];
+    expect(isCancelled(tree, 'a')).toBe(true);
+    expect(isCancelled(tree, 'a1')).toBe(true);
+    expect(isCancelled(tree, 'b')).toBe(false);
+    expect(isCancelled(tree, 'b1')).toBe(false);
+  });
+
+  it('cancels an open or done todo today, once', () => {
+    const tree = [todo('a', { done: '2026-10-03' }), todo('b', { children: [todo('b1')] })];
+    expect(cancelTodo(tree, 'a', '2026-10-19')).toBe(true);
+    expect(tree[0]).toMatchObject({ done: '2026-10-03', cancelled: '2026-10-19' });
+    expect(cancelTodo(tree, 'a', '2026-10-20')).toBe(false);
+    expect(tree[0].cancelled).toBe('2026-10-19');
+    expect(cancelTodo(tree, 'b', '2026-10-19')).toBe(true);
+    expect(cancelTodo(tree, 'b1', '2026-10-19')).toBe(false);
+    expect(tree[1].children[0]).not.toHaveProperty('cancelled');
+    expect(cancelTodo(tree, 'missing', '2026-10-19')).toBe(false);
+  });
+
+  it('lets a parent be ticked once its only open Nudge is cancelled', () => {
+    const tree = [todo('a', { children: [todo('a1', { bounty: NUDGE_BOUNTY })] })];
+    expect(canMarkDone(tree, 'a')).toBe(false);
+    cancelTodo(tree, 'a1', '2026-10-19');
+    expect(canMarkDone(tree, 'a')).toBe(true);
+  });
+
+  it('refuses every other rule on a cancelled todo', () => {
+    const tree = [
+      todo('a', { cancelled: '2026-10-06', children: [todo('a1', { bounty: NUDGE_BOUNTY })] }),
+      todo('d', { done: '2026-10-03', cancelled: '2026-10-06' }),
+    ];
+    const before = JSON.stringify(tree);
+    expect(canMarkDone(tree, 'a1')).toBe(false);
+    expect(markDone(tree, 'a1', '2026-10-19', '2026-10-19')).toBe(false);
+    expect(canReopen(tree, 'd')).toBe(false);
+    expect(reopenTodo(tree, 'd')).toBe(false);
+    expect(canNudge(tree, 'a')).toBe(false);
+    expect(addNudge(tree, 'a1', { id: 'x', title: 'x' }, '2026-10-19')).toBe(false);
+    expect(promoteTodo(tree, 'a1', 1)).toBe(false);
+    expect(editTodo(tree, 'a', { title: 'Renamed' })).toBe(false);
+    expect(editTodo(tree, 'a1', { due: null })).toBe(false);
+    expect(JSON.stringify(tree)).toBe(before);
+  });
+
+  it('restores a todo as it was, unless an ancestor is cancelled', () => {
+    const tree = [todo('a', { cancelled: '2026-10-06', children: [todo('a1', { bounty: NUDGE_BOUNTY, cancelled: '2026-10-04' }), todo('a2', { bounty: NUDGE_BOUNTY, done: '2026-10-02' })] })];
+    expect(canRestore(tree, 'a1')).toBe(false);
+    expect(restoreTodo(tree, 'a1')).toBe(false);
+    expect(canRestore(tree, 'a2')).toBe(false);
+    expect(canRestore(tree, 'a')).toBe(true);
+    expect(restoreTodo(tree, 'a')).toBe(true);
+    expect(tree[0]).not.toHaveProperty('cancelled');
+    expect(tree[0].children[1].done).toBe('2026-10-02');
+    expect(tree[0].children[0].cancelled).toBe('2026-10-04');
+    expect(canRestore(tree, 'a1')).toBe(true);
+    expect(restoreTodo(tree, 'missing')).toBe(false);
   });
 });

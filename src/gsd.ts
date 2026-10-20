@@ -41,6 +41,8 @@ export function gsdDays(todos: readonly Todo[]): Record<string, GsdDay> {
 
   const walk = (list: readonly Todo[], root: boolean) => {
     for (const todo of list) {
+      // A cancelled todo, with its whole subtree, counts in nothing.
+      if (todo.cancelled !== undefined) continue;
       const created = day(todo.created);
       created.created += 1;
       created.points += root ? ROOT_CREATION_POINTS : NUDGE_CREATION_POINTS;
@@ -63,20 +65,31 @@ export function gsdDays(todos: readonly Todo[]): Record<string, GsdDay> {
 
 interface Found {
   todo: Todo;
+  /** Root first, parent last. */
+  ancestors: Todo[];
   /** The array holding it: the calendar's roots, or its parent's children. */
   siblings: Todo[];
   parent: Todo | null;
   grandparentSiblings: Todo[] | null;
 }
 
-function find(todos: Todo[], id: string, parent: Todo | null = null, parentSiblings: Todo[] | null = null): Found | null {
+function find(
+  todos: Todo[],
+  id: string,
+  parent: Todo | null = null,
+  parentSiblings: Todo[] | null = null,
+  ancestors: Todo[] = [],
+): Found | null {
   for (const todo of todos) {
-    if (todo.id === id) return { todo, siblings: todos, parent, grandparentSiblings: parentSiblings };
-    const inner = find(todo.children, id, todo, todos);
+    if (todo.id === id) return { todo, ancestors, siblings: todos, parent, grandparentSiblings: parentSiblings };
+    const inner = find(todo.children, id, todo, todos, [...ancestors, todo]);
     if (inner) return inner;
   }
   return null;
 }
+
+/** Cancelled by its own date or an ancestor's: no other rule applies to it. */
+const cancelled = (found: Found) => found.todo.cancelled !== undefined || found.ancestors.some(a => a.cancelled !== undefined);
 
 /** `find` over a read-only tree; the rule checks never write. */
 const lookup = (todos: readonly Todo[], id: string) => find(todos as Todo[], id);
@@ -96,7 +109,7 @@ export function addRootTodo(
 /** A done todo takes no new Nudge. */
 export function canNudge(todos: readonly Todo[], id: string): boolean {
   const found = lookup(todos, id);
-  return found !== null && found.todo.done === undefined;
+  return found !== null && !cancelled(found) && found.todo.done === undefined;
 }
 
 /** A Nudge has a fixed bounty and starts with its parent's due date. */
@@ -109,10 +122,11 @@ export function addNudge(todos: Todo[], parentId: string, fields: { id: string; 
   return true;
 }
 
-/** Open, with no open child. */
+/** Open and not cancelled, with no open child; a cancelled Nudge is not open. */
 export function canMarkDone(todos: readonly Todo[], id: string): boolean {
   const found = lookup(todos, id);
-  return found !== null && found.todo.done === undefined && found.todo.children.every(child => child.done !== undefined);
+  return found !== null && !cancelled(found) && found.todo.done === undefined
+    && found.todo.children.every(child => child.done !== undefined || child.cancelled !== undefined);
 }
 
 /** `date` must lie between the todo's creation and `today`, inclusive. */
@@ -127,7 +141,7 @@ export function markDone(todos: Todo[], id: string, date: string, today: string)
 /** Done, under a parent that is not. */
 export function canReopen(todos: readonly Todo[], id: string): boolean {
   const found = lookup(todos, id);
-  return found !== null && found.todo.done !== undefined && found.parent?.done === undefined;
+  return found !== null && !cancelled(found) && found.todo.done !== undefined && found.parent?.done === undefined;
 }
 
 export function reopenTodo(todos: Todo[], id: string): boolean {
@@ -136,10 +150,10 @@ export function reopenTodo(todos: Todo[], id: string): boolean {
   return true;
 }
 
-/** Removes the todo and its whole subtree. */
+/** Removes a todo that carries its own cancelled date, with its whole subtree. */
 export function deleteTodo(todos: Todo[], id: string): boolean {
   const found = find(todos, id);
-  if (!found) return false;
+  if (!found || found.todo.cancelled === undefined) return false;
   found.siblings.splice(found.siblings.indexOf(found.todo), 1);
   return true;
 }
@@ -151,7 +165,7 @@ export function deleteTodo(todos: Todo[], id: string): boolean {
  */
 export function promoteTodo(todos: Todo[], id: string, defaultBounty: number): boolean {
   const found = find(todos, id);
-  if (!found || found.parent === null || found.grandparentSiblings === null) return false;
+  if (!found || cancelled(found) || found.parent === null || found.grandparentSiblings === null) return false;
   const { todo, siblings, parent, grandparentSiblings } = found;
   siblings.splice(siblings.indexOf(todo), 1);
   grandparentSiblings.splice(grandparentSiblings.indexOf(parent) + 1, 0, todo);
@@ -172,7 +186,7 @@ export function editTodo(
   today = '',
 ): boolean {
   const found = find(todos, id);
-  if (!found) return false;
+  if (!found || cancelled(found)) return false;
   if (fields.done !== undefined) {
     const { todo } = found;
     if (todo.done === undefined || fields.done < todo.created || fields.done > today) return false;
@@ -186,5 +200,34 @@ export function editTodo(
   if (fields.due === null) delete todo.due;
   else if (fields.due !== undefined) todo.due = fields.due;
   if (fields.done !== undefined) todo.done = fields.done;
+  return true;
+}
+
+/* ── cancelling ──────────────────────────────────────────────────────────── */
+
+/** Cancelled by its own date or an ancestor's. */
+export function isCancelled(todos: readonly Todo[], id: string): boolean {
+  const found = lookup(todos, id);
+  return found !== null && cancelled(found);
+}
+
+/** Stamps today on any todo not already cancelled, done or open; its Nudges go with it. */
+export function cancelTodo(todos: Todo[], id: string, today: string): boolean {
+  const found = find(todos, id);
+  if (!found || cancelled(found)) return false;
+  found.todo.cancelled = today;
+  return true;
+}
+
+/** Carries its own cancelled date, under no cancelled ancestor. */
+export function canRestore(todos: readonly Todo[], id: string): boolean {
+  const found = lookup(todos, id);
+  return found !== null && found.todo.cancelled !== undefined && !found.ancestors.some(a => a.cancelled !== undefined);
+}
+
+/** Clears the todo's own cancelled date; it comes back as it was, done or open. */
+export function restoreTodo(todos: Todo[], id: string): boolean {
+  if (!canRestore(todos, id)) return false;
+  delete find(todos, id)!.todo.cancelled;
   return true;
 }

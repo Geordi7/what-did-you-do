@@ -18,7 +18,7 @@ function caught(run: () => unknown): unknown {
  * counts, plus one field the current schema rejects.
  */
 const privatePayload = {
-  version: 7,
+  version: 8,
   theme: 'dark',
   chartRange: '28d',
   calendars: [

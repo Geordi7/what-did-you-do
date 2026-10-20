@@ -1861,6 +1861,24 @@ button.blocking-diagnostic {
   color: var(--text-dim);
 }
 
+/* Cancelled reads as set aside, not finished: dimmed and italic, never struck through. */
+.todo.cancelled > .todo-row {
+  opacity: 0.6;
+
+  .todo-title {
+    font-style: italic;
+    text-decoration: none;
+  }
+}
+
+.todo-cancelled-note {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+}
+
 .todo-toggle,
 .todo-toggle-space {
   width: 1rem;

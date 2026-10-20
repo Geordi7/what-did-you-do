@@ -4,8 +4,8 @@ Modal surfaces and their behaviour. Copy lives in `04-02-copy.md`; focus trap, E
 return, and the keyboard and screen-reader behaviour of the row controls live in
 `06-accessibility.md`.
 
-Only two surfaces are modal. Everything else notifies through the banner region, and
-delete-forever still asks through a native `confirm`.
+Only two surfaces are modal. Everything else notifies through the banner region; delete-forever
+and deleting a cancelled todo still ask through a native `confirm`.
 
 ## Import review modal
 

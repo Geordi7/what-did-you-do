@@ -14,7 +14,8 @@ Refines `03-data-model.md`.
 | 4 | `chartRange` added, default `'28d'` |
 | 5 | `updatedAt` added to `Calendar`, seeded per the rule below |
 | 6 | `calendarSort` added, default `{ by: 'custom', dir: 'desc' }` |
-| 7 (current) | `kind` added to `Calendar`; GSD calendars (`kind: 'gsd'`, `defaultBounty`, `todos`); `calendarFilter` added, default `'all'` |
+| 7 | `kind` added to `Calendar`; GSD calendars (`kind: 'gsd'`, `defaultBounty`, `todos`); `calendarFilter` added, default `'all'` |
+| 8 (current) | `cancelled` added to `Todo`, optional |
 
 - `STORAGE_VERSION` bumps only on a change to the persisted shape.
 - A bump adds its row above in the same commit as the code.
@@ -45,6 +46,7 @@ const migrations: Record<number, Migration>;
 | 4 -> 5 | adds `updatedAt` to each calendar |
 | 5 -> 6 | adds `calendarSort`, `{ by: 'custom', dir: 'desc' }` |
 | 6 -> 7 | marks every calendar `kind: 'scoring'`; adds `calendarFilter`, `'all'` |
+| 7 -> 8 | changes nothing: no stored todo is cancelled |
 
 ### Seeding `updatedAt`
 

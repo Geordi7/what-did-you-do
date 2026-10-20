@@ -42,7 +42,7 @@ const titles = (page: Page) => tree(page).locator('.todo-title');
 /** The tree's titles in display order; titles are inputs, so their values, not their text. */
 const titleValues = (page: Page) => titles(page).evaluateAll(els => els.map(el => (el as HTMLInputElement).value));
 
-interface StoredTodo { id: string; title: string; bounty: number; due?: string; created: string; done?: string; children: StoredTodo[] }
+interface StoredTodo { id: string; title: string; bounty: number; due?: string; created: string; done?: string; cancelled?: string; children: StoredTodo[] }
 const gsdTodos = async (page: Page): Promise<StoredTodo[]> => (await readState(page)).calendars[1].todos;
 function findTodo(todos: StoredTodo[], id: string): StoredTodo | null {
   for (const t of todos) {
@@ -184,7 +184,7 @@ test('edits title, root bounty and due date; a Nudge bounty is fixed', async ({ 
   await expect.poll(async () => findTodo(await gsdTodos(page), 'soon')?.due).toBeUndefined();
 });
 
-test('promote moves a Nudge up, delete removes a subtree, and focus follows', async ({ page }) => {
+test('promote moves a Nudge up, and focus follows', async ({ page }) => {
   await openPage(page);
   await expect(page.getByRole('button', { name: 'Promote Taxes' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Promote Find forms' }).click();
@@ -192,12 +192,69 @@ test('promote moves a Nudge up, delete removes a subtree, and focus follows', as
   expect(todos.map(t => t.id)).toEqual(['undated', 'finished', 'soon', 'step', 'late']);
   expect(findTodo(todos, 'step')?.bounty).toBe(2);
   await expect(page.getByRole('textbox', { name: 'Title: Find forms' })).toBeFocused();
+});
 
+test('cancel sinks a todo and its Nudges below the done ones, and Restore brings it back', async ({ page }) => {
+  await openPage(page);
+  await expect(page.getByRole('button', { name: /^Delete / })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Cancel Taxes' }).click();
+  const soon = findTodo(await gsdTodos(page), 'soon');
+  expect(soon?.cancelled).toBe('2026-10-21');
+  expect(soon?.children[0]).not.toHaveProperty('cancelled');
+  await expect(page.getByRole('textbox', { name: 'Title: Taxes' })).toBeFocused();
+  await expect.poll(() => titleValues(page)).toEqual(['Dentist', 'Someday', 'Bins', 'Find bags', 'Taxes', 'Find forms']);
+
+  const row = tree(page).locator('li[data-id="soon"]');
+  await expect(row).toHaveClass(/\bcancelled\b/);
+  await expect(row.locator('.todo-cancelled-note').first()).toHaveText('Cancelled');
+  expect(await row.locator('.todo-title').first().evaluate(el => getComputedStyle(el).fontStyle)).toBe('italic');
+  expect(await row.locator('.todo-title').first().evaluate(el => getComputedStyle(el).textDecorationLine)).toBe('none');
+  await expect(page.getByRole('checkbox', { name: 'Done: Taxes — it is cancelled' })).toBeDisabled();
+  await expect(page.getByRole('textbox', { name: 'Title: Taxes' })).toHaveAttribute('readonly', '');
+  for (const name of ['Nudge Taxes', 'Cancel Taxes', 'Nudge Find forms', 'Promote Find forms', 'Cancel Find forms', 'Restore Find forms', 'Delete Find forms']) {
+    await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
+  }
+  await expect(page.getByRole('button', { name: 'Restore Taxes' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Delete Taxes' })).toBeVisible();
+
+  // Its points are gone: 10-03 held only Taxes' creation point; 10-19 only its Nudge's.
+  await page.locator('.todo-page .cell[data-key="2026-10-03"]').hover();
+  await expect(page.locator('.todo-page .detail-number')).toHaveText('Created 0 · Finished 0 · Due 0 · +0.0 points');
+  await page.getByRole('heading', { name: 'Chores', level: 2 }).click();
+
+  await page.getByRole('button', { name: 'Restore Taxes' }).click();
+  expect(findTodo(await gsdTodos(page), 'soon')).not.toHaveProperty('cancelled');
+  await expect(page.getByRole('textbox', { name: 'Title: Taxes' })).toBeFocused();
+  await expect.poll(() => titleValues(page)).toEqual(['Dentist', 'Taxes', 'Find forms', 'Someday', 'Bins', 'Find bags']);
+});
+
+test('a cancelled Nudge stops blocking its parent', async ({ page }) => {
+  await openPage(page);
+  await page.getByRole('button', { name: 'Cancel Find forms' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Done: Taxes', exact: true })).toBeEnabled();
+  await expect.poll(() => titleValues(page)).toEqual(['Dentist', 'Taxes', 'Find forms', 'Someday', 'Bins', 'Find bags']);
+  await expect(page.getByRole('button', { name: 'Restore Find forms' })).toBeVisible();
+});
+
+test('Delete removes a cancelled todo after a confirm, and keeps it when dismissed', async ({ page }) => {
+  await openPage(page);
+  await page.getByRole('button', { name: 'Cancel Bins' }).click();
+  const messages: string[] = [];
+  page.once('dialog', dialog => { messages.push(dialog.message()); void dialog.dismiss(); });
   await page.getByRole('button', { name: 'Delete Bins' }).click();
-  todos = await gsdTodos(page);
-  expect(findTodo(todos, 'finished')).toBeNull();
-  expect(findTodo(todos, 'fstep')).toBeNull();
+  expect(messages).toEqual(['Permanently delete "Bins" and its 1 Nudge? This cannot be undone.']);
+  expect(findTodo(await gsdTodos(page), 'finished')).not.toBeNull();
+
+  page.once('dialog', dialog => { messages.push(dialog.message()); void dialog.accept(); });
+  await page.getByRole('button', { name: 'Delete Bins' }).click();
+  await expect.poll(async () => findTodo(await gsdTodos(page), 'finished')).toBeNull();
+  expect(findTodo(await gsdTodos(page), 'fstep')).toBeNull();
   await expect(page.getByRole('textbox', { name: 'New todo title' })).toBeFocused();
+
+  await page.getByRole('button', { name: 'Cancel Someday' }).click();
+  page.once('dialog', dialog => { messages.push(dialog.message()); void dialog.accept(); });
+  await page.getByRole('button', { name: 'Delete Someday' }).click();
+  expect(messages[2]).toBe('Permanently delete "Someday"? This cannot be undone.');
 });
 
 test('a todo with Nudges collapses and expands them', async ({ page }) => {

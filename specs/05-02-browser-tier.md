@@ -61,7 +61,7 @@ file that restates them goes stale the moment a case is added.
   `#/gsd/<id>` while changing nothing; the filter and its persistence; the default bounty.
 - The todo page, in `e2e/todo-page.e2e.ts`: opening and returning, an unknown calendar, sibling
   order and marks, the add row, ticking and done dates with blocked ticks, Nudge, inline edits,
-  promote and delete with focus, collapsing, and the day filter.
+  promote with focus, cancel and restore, delete behind its confirm, collapsing, and the day filter.
 - Midnight rollover, in `e2e/day-clock.e2e.ts`: grid and chart advance together under a controlled browser clock.
 - Accessibility, in `e2e/accessibility.e2e.ts`: named inputs, menu keyboard navigation and focus return, count announcements, and focus containment in both blocking variants and import review.
 - Invalid-date recovery, in `e2e/date-recovery.e2e.ts`: download of the byte-intact original payload after a protected load failure.

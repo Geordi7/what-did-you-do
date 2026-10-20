@@ -53,12 +53,13 @@ interface Todo {
   due?: string;                  // YYYY-MM-DD; absent means no due date
   created: string;               // YYYY-MM-DD, the day it was added
   done?: string;                 // YYYY-MM-DD, the day it was finished; absent while open
+  cancelled?: string;            // YYYY-MM-DD, the day it was cancelled; absent unless cancelled
   children: Todo[];              // its Nudges, in creation order
 }
 ```
 
 - `bounty` and `defaultBounty` are finite numbers `>= 0`.
-- `done`, when present, is on or after `created`.
+- `done`, when present, is on or after `created`; so is `cancelled`.
 - A GSD calendar stores no day counts: its activity counts and points derive from its todos, per
   `03-04-gsd-points.md`, so the two can never disagree. It has no activity value.
 - A GSD calendar's total activities is its number of root todos done.

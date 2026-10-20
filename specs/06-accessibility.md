@@ -33,13 +33,13 @@ Every flow is reachable by keyboard alone, in both themes.
 ## Todo page
 - The tree is nested lists; each todo's controls are named for the todo: "Done: <title>",
   "Title: <title>", "Bounty: <title>", "Due: <title>", "Clear due date: <title>", "Done on:
-  <title>", "Nudge <title>", "Promote <title>", "Delete <title>".
-- A disabled done checkbox's name ends with its reason: "— finish its Nudges first", or "— its
-  parent is done".
+  <title>", "Nudge <title>", "Promote <title>", "Cancel <title>", "Restore <title>", "Delete <title>".
+- A disabled done checkbox's name ends with its reason: "— finish its Nudges first", "— its
+  parent is done", or "— it is cancelled".
 - A collapse toggle carries `aria-expanded` and is named "Nudges of <title>".
 - The Nudge title input is named "Smallest next step for <title>" and takes focus when it appears.
-- Deleting a todo moves focus to the add row's title input; promoting one moves focus to its
-  title in its new place.
+- Cancelling, restoring or promoting a todo moves focus to its title in its new place; deleting
+  one moves focus to the add row's title input.
 
 ## Menus
 The header's ☰ menu and each calendar's ⋮ overflow menu behave alike.

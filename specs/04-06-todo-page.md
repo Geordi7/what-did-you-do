@@ -18,7 +18,8 @@ applies are in `03-04-gsd-points.md`.
   and Add. Add with an empty title does nothing.
 - Then the todo tree: compact rows, Nudges indented under their parent. Siblings run by due date,
   earliest first and undated last, then by creation; done todos sink to the bottom of their
-  sibling group, struck through.
+  sibling group, struck through, and cancelled todos sink below them — so cancelled root todos
+  sit at the bottom of the page. A cancelled todo is dimmed and italic, with a "Cancelled" note.
 
 ## A todo row
 - A done checkbox. Ticking marks it done today. While done, its done date shows as a date input
@@ -29,7 +30,9 @@ applies are in `03-04-gsd-points.md`.
 - **Nudge** — adds a child: an inline title input appears under the row; `Enter` adds the Nudge,
   `Escape` or leaving it empty cancels. Not offered on a done todo.
 - **Promote** on a Nudge, moving it up one level.
-- **Delete**, removing the todo and its Nudges.
+- **Cancel**, which cancels the todo with its Nudges. A cancelled todo shows only **Restore** and
+  **Delete**; Delete confirms through a native `confirm` naming the todo and how many Nudges go
+  with it. A todo cancelled with its parent shows neither.
 - A todo with Nudges has a toggle that collapses and expands them; all start expanded.
 - The checkbox is disabled, with the reason in its name, while the todo has an open Nudge, and
   while done under a done parent.

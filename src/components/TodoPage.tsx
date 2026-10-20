@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
 import { store } from '../store';
-import { canMarkDone, canNudge } from '../gsd';
+import { canMarkDone, canNudge, canRestore, isCancelled } from '../gsd';
 import { dateKey, formatDate, parseKey } from '../utils';
 import CalendarGrid from './CalendarGrid';
 import type { GsdCalendar, Todo } from '../types';
@@ -22,10 +22,11 @@ function weekAfter(today: Date): string {
   return dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7));
 }
 
-/** Siblings by due date (undated last), then creation; done todos sink to the bottom. */
+/** Open, then done, then cancelled; within each, by due date (undated last), then creation. */
 function ordered(todos: readonly Todo[]): Todo[] {
+  const bucket = (todo: Todo) => (todo.cancelled !== undefined ? 2 : todo.done !== undefined ? 1 : 0);
   return [...todos].sort((a, b) => {
-    if ((a.done === undefined) !== (b.done === undefined)) return a.done === undefined ? -1 : 1;
+    if (bucket(a) !== bucket(b)) return bucket(a) - bucket(b);
     if (a.due !== b.due) {
       if (a.due === undefined) return 1;
       if (b.due === undefined) return -1;
@@ -187,9 +188,11 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
   const calId = () => props.actions.calendarId();
   const done = () => props.todo.done !== undefined;
   const isRoot = () => props.parent === null;
+  const cancelled = () => isCancelled(props.actions.todos(), props.todo.id);
 
   /** Why the checkbox is disabled, or `null` when it is not. */
   const blocked = () => {
+    if (cancelled()) return 'it is cancelled';
     if (!done() && !canMarkDone(props.actions.todos(), props.todo.id)) return 'finish its Nudges first';
     if (done() && props.parent?.done !== undefined) return 'its parent is done';
     return null;
@@ -205,12 +208,26 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
     if (store.promoteTodo(calId(), id)) focusTitle(id);
   }
 
+  function cancel() {
+    const id = props.todo.id;
+    if (store.cancelTodo(calId(), id)) focusTitle(id);
+  }
+
+  function restore() {
+    const id = props.todo.id;
+    if (store.restoreTodo(calId(), id)) focusTitle(id);
+  }
+
+  /** Deleting is final, so it confirms through a native dialog — specs/04-06-todo-page.md. */
   function remove() {
+    const nudges = countNudges(props.todo);
+    const also = nudges === 0 ? '' : ` and its ${nudges} Nudge${nudges === 1 ? '' : 's'}`;
+    if (!confirm(`Permanently delete "${props.todo.title}"${also}? This cannot be undone.`)) return;
     if (store.deleteTodo(calId(), props.todo.id)) props.actions.afterDelete();
   }
 
   return (
-    <li class="todo" classList={{ done: done() }} data-id={props.todo.id}>
+    <li class="todo" classList={{ done: done(), cancelled: cancelled() }} data-id={props.todo.id}>
       <div class="todo-row">
         <Show when={props.todo.children.length > 0} fallback={<span class="todo-toggle-space" />}>
           <button
@@ -234,6 +251,7 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
         <InlineText
           class="todo-title"
           name={`Title: ${props.todo.title}`}
+          readOnly={cancelled()}
           value={props.todo.title}
           commit={title => title.trim() !== '' && store.editTodo(calId(), props.todo.id, { title: title.trim() })}
         />
@@ -241,6 +259,7 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
           <InlineText
             class="todo-bounty-input"
             name={`Bounty: ${props.todo.title}`}
+            readOnly={cancelled()}
             value={String(props.todo.bounty)}
             inputmode="decimal"
             commit={text => {
@@ -249,8 +268,11 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
             }}
           />
         </Show>
+        <Show when={props.todo.cancelled !== undefined}>
+          <span class="todo-cancelled-note">Cancelled</span>
+        </Show>
         <Show
-          when={done()}
+          when={done() || cancelled()}
           fallback={
             <span class="todo-due" classList={{ overdue: props.todo.due !== undefined && props.todo.due < props.actions.today() }}>
               <input
@@ -273,8 +295,10 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
           }
         >
           <span class="todo-done-on">
+            <Show when={done()}>
             <input
               type="date"
+              readOnly={cancelled()}
               aria-label={`Done on: ${props.todo.title}`}
               value={props.todo.done}
               min={props.todo.created}
@@ -284,22 +308,33 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
                 if (!store.editTodo(calId(), props.todo.id, { done: input.value })) input.value = props.todo.done ?? '';
               }}
             />
+            </Show>
           </span>
         </Show>
         <span class="todo-actions">
+          <Show when={canRestore(props.actions.todos(), props.todo.id)}>
+            <button type="button" class="todo-text-btn" aria-label={`Restore ${props.todo.title}`} onClick={restore}>
+              Restore
+            </button>
+            <button type="button" class="todo-text-btn todo-delete" aria-label={`Delete ${props.todo.title}`} onClick={remove}>
+              Delete
+            </button>
+          </Show>
           <Show when={canNudge(props.actions.todos(), props.todo.id)}>
             <button type="button" class="todo-text-btn" aria-label={`Nudge ${props.todo.title}`} onClick={() => setNudging(true)}>
               Nudge
             </button>
           </Show>
-          <Show when={!isRoot()}>
+          <Show when={!isRoot() && !cancelled()}>
             <button type="button" class="todo-text-btn" aria-label={`Promote ${props.todo.title}`} onClick={promote}>
               Promote
             </button>
           </Show>
-          <button type="button" class="todo-text-btn todo-delete" aria-label={`Delete ${props.todo.title}`} onClick={remove}>
-            Delete
-          </button>
+          <Show when={!cancelled()}>
+            <button type="button" class="todo-text-btn" aria-label={`Cancel ${props.todo.title}`} onClick={cancel}>
+              Cancel
+            </button>
+          </Show>
         </span>
       </div>
       <Show when={nudging()}>
@@ -314,6 +349,10 @@ function TodoRow(props: { todo: Todo; parent: Todo | null; actions: TodoActions 
       </Show>
     </li>
   );
+}
+
+function countNudges(todo: Todo): number {
+  return todo.children.reduce((total, child) => total + 1 + countNudges(child), 0);
 }
 
 /** The inline "smallest next step" input under a row: Enter adds, Escape or empty cancels. */
@@ -355,6 +394,7 @@ function InlineText(props: {
   name: string;
   value: string;
   inputmode?: 'decimal';
+  readOnly?: boolean;
   commit: (text: string) => boolean;
 }) {
   const [text, setText] = createSignal(props.value);
@@ -370,6 +410,7 @@ function InlineText(props: {
       class={props.class}
       aria-label={props.name}
       inputmode={props.inputmode}
+      readOnly={props.readOnly}
       value={text()}
       onInput={e => setText(e.currentTarget.value)}
       onFocus={() => setFocused(true)}

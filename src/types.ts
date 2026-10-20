@@ -22,6 +22,7 @@ export interface Todo {
   due?: string;
   created: string;
   done?: string;
+  cancelled?: string;
   children: Todo[];
 }
 

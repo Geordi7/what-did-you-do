@@ -61,7 +61,8 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
 - Shared day clock — repeated midnight ticks and cancellation of the latest timer on disposal.
 - Score computation — both ranges match an independent full-history reference with positive, negative, zero and deleted calendars; heatmap maxima use visible dates even with a 200,000-day history.
 - GSD points (`src/gsd.ts`) — creation, on-time and late completion points, per-day activities,
-  created, finished and due counts; and every todo rule, including each refusal.
+  created, finished and due counts; cancelling, which drops a subtree from every figure, restore
+  and delete; and every todo rule, including each refusal.
 - Calendar figures — the chart and sort read GSD points and activity counts alongside scoring
   calendars' counts.
 - `cellColor` — zero stays zero, a value at max is unaffected, and the intensity curve holds at

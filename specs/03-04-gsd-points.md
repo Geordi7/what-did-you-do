@@ -6,7 +6,9 @@ tree on every read; nothing derived is stored.
 ## Terms
 - A **root todo** sits in the calendar's `todos`. A **Nudge** is any todo in another's `children`:
   "the smallest thing I can do to move this forwards".
-- A todo is **open** until it has a `done` date.
+- A todo is **cancelled** when it, or any ancestor, has a `cancelled` date. A cancelled todo
+  earns no points and counts in no per-day figure.
+- A todo is **open** until it has a `done` date, unless it is cancelled.
 - A todo is **on time** when it has no due date, or its `done` date is on or before its due date.
 
 ## Points
@@ -15,8 +17,8 @@ tree on every read; nothing derived is stored.
   `bounty` when late.
 - A day's points are the sum of every creation and completion point landing on it, across the
   whole tree. Points are never negative.
-- Un-ticking a todo removes its completion points; deleting a todo removes its subtree and every
-  point the subtree earned, creation included.
+- Un-ticking a todo removes its completion points; cancelling a todo removes every point its
+  subtree earned, creation included, until it is restored; deleting removes the subtree outright.
 
 ## Per-day figures
 For each date a GSD calendar reports:
@@ -35,6 +37,11 @@ For each date a GSD calendar reports:
   A done todo's `done` date can be moved within the same bounds.
 - A todo with an open child cannot be marked done. A todo whose parent is done cannot be un-ticked,
   and a done todo takes no new Nudge.
+- **Cancel** stamps today as a todo's `cancelled` date; any todo not already cancelled can be
+  cancelled, done or open. A cancelled todo cannot be ticked, un-ticked, Nudged, promoted or edited.
+- **Restore** clears the `cancelled` date of a todo that carries one and has no cancelled ancestor;
+  it comes back as it was, done or open. A Nudge that carried its own date stays cancelled.
+- **Delete** removes a todo that carries a `cancelled` date, with its subtree.
 - **Promote** moves a Nudge, with its subtree, from its parent's children to its grandparent's,
   after the parent. Promotion between Nudge levels changes no stored field. Promotion to root makes
   it a root todo: its creation point becomes 1 on its original `created` day, and its bounty

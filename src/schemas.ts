@@ -105,7 +105,7 @@ const isoInstant = v.string().assert(isIsoInstant, 'expected an ISO 8601 instant
 const canonicalIsoInstant = isoInstant.map(value => new Date(value).toISOString());
 
 /** Markers a version-0 payload must never carry; see `appStateV0Schema`. */
-const KNOWN_LATER_VERSIONS = new Set([1, 2, 3, 4, 5, 6, 7]);
+const KNOWN_LATER_VERSIONS = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
 
 /* ── version 0: unversioned ──────────────────────────────────────────────── */
 
@@ -226,7 +226,7 @@ export const appStateV6Schema = v.object({
   calendarSort: calendarSort.optional(() => ({ ...DEFAULT_CALENDAR_SORT })),
 });
 
-/* ── version 7 (current) ─────────────────────────────────────────────────── */
+/* ── version 7 ───────────────────────────────────────────────────────────── */
 
 const calendarFilter = v.union(v.literal('all'), v.literal('scoring'), v.literal('gsd'));
 
@@ -235,17 +235,73 @@ const bounty = v.number().assert(n => Number.isFinite(n) && n >= 0, 'expected a 
 
 const dayKey = v.string().assert(isCalendarDate, 'expected a real YYYY-MM-DD calendar date');
 
-type TodoShape = {
+type TodoV7Shape = {
   id: string;
   title: string;
   bounty: number;
   due?: string;
   created: string;
   done?: string;
-  children: TodoShape[];
+  children: TodoV7Shape[];
 };
 
-/** One todo and, recursively, its Nudges. */
+/** One todo and, recursively, its Nudges, as version 7 stored them. */
+const todoV7Schema: v.Type<TodoV7Shape> = v.lazy(() =>
+  v
+    .object({
+      id: calendarId,
+      title: v.string(),
+      bounty,
+      due: dayKey.optional(),
+      created: dayKey,
+      done: dayKey.optional(),
+      children: v.array(todoV7Schema),
+    })
+    .assert(todo => todo.done === undefined || todo.done >= todo.created, 'expected done on or after created'),
+);
+
+function todoIds(todos: readonly TodoV7Shape[]): string[] {
+  return todos.flatMap(todo => [todo.id, ...todoIds(todo.children)]);
+}
+
+const uniqueTodoIds = (cal: { todos: readonly TodoV7Shape[] }) => {
+  const ids = todoIds(cal.todos);
+  return new Set(ids).size === ids.length;
+};
+
+/** Version 7 marks each calendar with its kind; existing calendars are scoring calendars. */
+export const scoringCalendarV7Schema = calendarV6Schema.extend({ kind: v.literal('scoring') });
+
+const gsdCalendarFields = {
+  kind: v.literal('gsd'),
+  id: calendarId,
+  name: calendarName,
+  color: hexColor,
+  defaultBounty: bounty.optional(() => DEFAULT_BOUNTY),
+  updatedAt: canonicalIsoInstant,
+  deleted: deleted.optional(),
+};
+
+export const gsdCalendarV7Schema = v
+  .object({ ...gsdCalendarFields, todos: v.array(todoV7Schema) })
+  .assert(uniqueTodoIds, 'expected todo ids to be unique within a calendar');
+
+export const calendarV7Schema = v.union(scoringCalendarV7Schema, gsdCalendarV7Schema);
+
+export const appStateV7Schema = v.object({
+  version: v.literal(7),
+  theme: themeMode.optional(),
+  calendars: v.array(calendarV7Schema),
+  chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
+  calendarSort: calendarSort.optional(() => ({ ...DEFAULT_CALENDAR_SORT })),
+  calendarFilter: calendarFilter.optional(() => DEFAULT_CALENDAR_FILTER),
+});
+
+/* ── version 8 (current) ─────────────────────────────────────────────────── */
+
+type TodoShape = TodoV7Shape & { cancelled?: string; children: TodoShape[] };
+
+/** Version 8 adds a todo's optional cancelled day, on or after its creation. */
 const todoSchema: v.Type<TodoShape> = v.lazy(() =>
   v
     .object({
@@ -255,35 +311,18 @@ const todoSchema: v.Type<TodoShape> = v.lazy(() =>
       due: dayKey.optional(),
       created: dayKey,
       done: dayKey.optional(),
+      cancelled: dayKey.optional(),
       children: v.array(todoSchema),
     })
-    .assert(todo => todo.done === undefined || todo.done >= todo.created, 'expected done on or after created'),
+    .assert(todo => todo.done === undefined || todo.done >= todo.created, 'expected done on or after created')
+    .assert(todo => todo.cancelled === undefined || todo.cancelled >= todo.created, 'expected cancelled on or after created'),
 );
 
-function todoIds(todos: readonly TodoShape[]): string[] {
-  return todos.flatMap(todo => [todo.id, ...todoIds(todo.children)]);
-}
+export const gsdCalendarV8Schema = v
+  .object({ ...gsdCalendarFields, todos: v.array(todoSchema) })
+  .assert(uniqueTodoIds, 'expected todo ids to be unique within a calendar');
 
-/** Version 7 marks each calendar with its kind; existing calendars are scoring calendars. */
-export const scoringCalendarV7Schema = calendarV6Schema.extend({ kind: v.literal('scoring') });
-
-export const gsdCalendarV7Schema = v
-  .object({
-    kind: v.literal('gsd'),
-    id: calendarId,
-    name: calendarName,
-    color: hexColor,
-    defaultBounty: bounty.optional(() => DEFAULT_BOUNTY),
-    todos: v.array(todoSchema),
-    updatedAt: canonicalIsoInstant,
-    deleted: deleted.optional(),
-  })
-  .assert(cal => {
-    const ids = todoIds(cal.todos);
-    return new Set(ids).size === ids.length;
-  }, 'expected todo ids to be unique within a calendar');
-
-export const calendarV7Schema = v.union(scoringCalendarV7Schema, gsdCalendarV7Schema);
+export const calendarV8Schema = v.union(scoringCalendarV7Schema, gsdCalendarV8Schema);
 
 /**
  * The current version. This is the only schema that supplies state-level
@@ -293,11 +332,11 @@ export const calendarV7Schema = v.union(scoringCalendarV7Schema, gsdCalendarV7Sc
  * ids unique across the array, so a duplicate is a defect and takes the load
  * path's failure route.
  */
-export const appStateV7Schema = v
+export const appStateV8Schema = v
   .object({
-    version: v.literal(7).optional(() => 7),
+    version: v.literal(8).optional(() => 8),
     theme: themeMode.optional(() => DEFAULT_THEME),
-    calendars: v.array(calendarV7Schema),
+    calendars: v.array(calendarV8Schema),
     chartRange: chartRange.optional(() => DEFAULT_CHART_RANGE),
     calendarSort: calendarSort.optional(() => ({ ...DEFAULT_CALENDAR_SORT })),
     calendarFilter: calendarFilter.optional(() => DEFAULT_CALENDAR_FILTER),
@@ -307,8 +346,8 @@ export const appStateV7Schema = v
     'expected calendar ids to be unique',
   );
 
-export const calendarCurrentSchema = calendarV7Schema;
-export const appStateCurrentSchema = appStateV7Schema;
+export const calendarCurrentSchema = calendarV8Schema;
+export const appStateCurrentSchema = appStateV8Schema;
 
 export type CalendarV0 = v.Infer<typeof calendarV0Schema>;
 export type AppStateV0 = v.Infer<typeof appStateV0Schema>;
@@ -324,6 +363,8 @@ export type CalendarV6 = v.Infer<typeof calendarV6Schema>;
 export type AppStateV6 = v.Infer<typeof appStateV6Schema>;
 export type CalendarV7 = v.Infer<typeof calendarV7Schema>;
 export type AppStateV7 = v.Infer<typeof appStateV7Schema>;
+export type CalendarV8 = v.Infer<typeof calendarV8Schema>;
+export type AppStateV8 = v.Infer<typeof appStateV8Schema>;
 
 /**
  * `Sub` unchanged, but only if it is assignable to `Super`. Used below so that
@@ -332,8 +373,8 @@ export type AppStateV7 = v.Infer<typeof appStateV7Schema>;
  */
 type Satisfies<Super, Sub extends Super> = Sub;
 
-export type CurrentCalendar = Satisfies<Calendar, CalendarV7>;
-export type CurrentAppState = Satisfies<AppState, AppStateV7>;
+export type CurrentCalendar = Satisfies<Calendar, CalendarV8>;
+export type CurrentAppState = Satisfies<AppState, AppStateV8>;
 
 /** Throws `v.ValitaError` when the value is not a version-0 state. */
 export function parseAppStateV0(value: unknown): AppStateV0 {
@@ -363,6 +404,11 @@ export function parseAppStateV5(value: unknown): AppStateV5 {
 /** Throws `v.ValitaError` when the value is not a version-6 state. */
 export function parseAppStateV6(value: unknown): AppStateV6 {
   return appStateV6Schema.parse(value, STRIP);
+}
+
+/** Throws `v.ValitaError` when the value is not a version-7 state. */
+export function parseAppStateV7(value: unknown): AppStateV7 {
+  return appStateV7Schema.parse(value, STRIP);
 }
 
 /**

@@ -549,6 +549,15 @@ export function createAppStore(options: StoreOptions = {}) {
       return editTodos(calId, cal => gsd.reopenTodo(cal.todos, todoId));
     },
 
+    cancelTodo(calId: string, todoId: string): boolean {
+      return editTodos(calId, (cal, today) => gsd.cancelTodo(cal.todos, todoId, today));
+    },
+
+    restoreTodo(calId: string, todoId: string): boolean {
+      return editTodos(calId, cal => gsd.restoreTodo(cal.todos, todoId));
+    },
+
+    /** Removes a cancelled todo with its Nudges; any other todo is refused. */
     deleteTodo(calId: string, todoId: string): boolean {
       return editTodos(calId, cal => gsd.deleteTodo(cal.todos, todoId));
     },

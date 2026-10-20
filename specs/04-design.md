@@ -41,4 +41,5 @@
 - The ⋮ overflow menu holds color picker, activity value (default bounty on a GSD calendar), move
   up, move down, Export, and Delete.
 - Trash section offers Recover and Delete forever per item. There is no empty-trash control.
-- Delete forever confirms through a native `confirm` dialog, the app's only native dialog.
+- Delete forever confirms through a native `confirm` dialog; so does deleting a cancelled todo.
+  These are the app's only native dialogs.

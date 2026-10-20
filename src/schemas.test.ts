@@ -52,13 +52,13 @@ describe('defaults', () => {
 describe('current-version parse', () => {
   it('accepts a valid payload and keeps every field', () => {
     const parsed = parseCurrentAppState({
-      version: 7,
+      version: 8,
       theme: 'dark',
       calendars: [validCalendar(), { ...validCalendar(), id: 'cal-b', deleted: true }],
       chartRange: '26w',
       calendarSort: { by: 'recent', dir: 'asc' },
     });
-    expect(parsed.version).toBe(7);
+    expect(parsed.version).toBe(8);
     expect(parsed.theme).toBe('dark');
     expect(parsed.chartRange).toBe('26w');
     expect(parsed.calendarSort).toEqual({ by: 'recent', dir: 'asc' });
@@ -70,7 +70,7 @@ describe('current-version parse', () => {
 
   it('supplies the defaults a bare calendar list omits', () => {
     const parsed = parseCurrentAppState({ calendars: [] });
-    expect(parsed.version).toBe(7);
+    expect(parsed.version).toBe(8);
     expect(parsed.theme).toBe('system');
     expect(parsed.chartRange).toBe('28d');
     expect(parsed.calendarSort).toEqual({ by: 'custom', dir: 'desc' });
@@ -307,7 +307,7 @@ describe('per-version schemas accept their own shape', () => {
     );
   });
 
-  it('version 7 is the current schema', () => {
+  it('version 8 is the current schema', () => {
     expect(appStateCurrentSchema.parse({ calendars: [] }, { mode: 'strip' }).chartRange).toBe('28d');
   });
 });
@@ -391,5 +391,22 @@ describe('version 7 calendars', () => {
 
   it('rejects a calendarFilter outside all, scoring and gsd', () => {
     expect(() => parseCurrentAppState({ calendars: [], calendarFilter: 'todo' })).toThrow(v.ValitaError);
+  });
+});
+
+describe('version 8 todos', () => {
+  it('keeps a cancelled date on a todo, at any depth', () => {
+    const cal = gsdCalendar();
+    cal.todos[0].cancelled = '2026-10-06';
+    cal.todos[1].children[0].children[0].cancelled = '2026-10-07';
+    expect(parseCurrentAppState({ calendars: [cal] }).calendars[0]).toEqual(cal);
+  });
+
+  it('rejects a cancelled date that is not a real date, or is before created', () => {
+    for (const bad of ['2026-11-31', '2026-09-30']) {
+      const cal = gsdCalendar();
+      cal.todos[1].children[0].cancelled = bad;
+      expect(() => parseCurrentAppState({ calendars: [cal] })).toThrow(v.ValitaError);
+    }
   });
 });

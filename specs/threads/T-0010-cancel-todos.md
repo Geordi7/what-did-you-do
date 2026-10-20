@@ -68,3 +68,7 @@ decided or?
 > cancelled root todos at the bottom of the page after the done ones. Nothing else is open, so I am
 > taking this as decided; Outcome above. One detail decided as technical: the cancelled flag sits on
 > the todo you cancel, its Nudges inherit it, and Restore clears just that flag.
+
+> Applied: Cancel and Restore on todos, Delete only on cancelled todos behind a native `confirm`,
+> cancelled subtrees dropped from every figure, and storage version 8. Verified by the unit and
+> browser tiers, every new assertion seen failing first.
