@@ -152,3 +152,7 @@ decided
 > Decided. Reading recorded in the Outcome: a Nudge's bounty is a fixed 0.5 (not editable, not
 > tied to the calendar default); a root todo's bounty is editable; promotion to root gives the
 > larger of 0.5 and the calendar default.
+
+> Applied: storage version 7 with calendar kinds, derived GSD points and the todo rules in
+> `src/gsd.ts`, the calendar filter, and GSD collisions merging only by replace. Verified by the
+> unit and browser tiers, every new assertion seen failing first.

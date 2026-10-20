@@ -32,6 +32,7 @@ For each date a GSD calendar reports:
 - A Nudge's bounty is a fixed 0.5. It starts with its parent's due date, which can be changed or
   removed.
 - Marking a todo done records a `done` date: today, or an earlier day not before its `created`.
+  A done todo's `done` date can be moved within the same bounds.
 - A todo with an open child cannot be marked done. A todo whose parent is done cannot be un-ticked,
   and a done todo takes no new Nudge.
 - **Promote** moves a Nudge, with its subtree, from its parent's children to its grandparent's,

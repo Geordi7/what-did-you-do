@@ -1,7 +1,7 @@
 ---
 id: 0009
 affects:
-  specs: [04-design.md, 04-05-calendar-grid.md, 04-01-score-chart.md, 01-requirements.md, 02-architecture.md, 06-accessibility.md, 04-02-copy.md]
+  specs: [04-design.md, 04-05-calendar-grid.md, 04-06-todo-page.md, 04-01-score-chart.md, 01-requirements.md, 02-architecture.md, 06-accessibility.md, 04-02-copy.md]
   paths: [src/App.tsx, src/components/, src/App.css]
 tags: [gsd, todo, ui, navigation, accessibility]
 links: {related: [0008]}
@@ -140,3 +140,7 @@ decided
 > Operator, in chat after seeing the month bands built: "month bands still look bad... can you do
 > a line separating the months without any banding?" Applied: the bands are replaced by a stepped
 > line in the gaps between months; Outcome updated to match.
+
+> Applied: the 22-back/4-ahead grid with hatched future days and month lines, GSD sections in the
+> list with due dots and day figures, the filter, and the todo page at `#/gsd/<id>`. Verified by
+> the unit and browser tiers, every new assertion seen failing first.

@@ -15,7 +15,8 @@ import BlockingMessage from './components/BlockingMessage';
 import { calendarGrid, dateKey, hexToRgb, downloadFile, exportFilename } from './utils';
 import { calendarTotal } from './calendar-figures';
 import type { Calendar, ImportRow, ThemeMode } from './types';
-import { openTodoPage } from './route';
+import { createRoute, openTodoPage } from './route';
+import TodoPage from './components/TodoPage';
 import './App.css';
 
 function applyTheme(mode: ThemeMode) {
@@ -33,6 +34,8 @@ type ImportStatus = { kind: 'success' | 'failure'; text: string };
 
 function App() {
   const now = createDayClock();
+  const route = createRoute();
+  const currentTodoId = () => { const r = route(); return r.page === 'gsd' ? r.id : ''; };
   const [newName, setNewName] = createSignal('');
   const [newKind, setNewKind] = createSignal<Calendar['kind']>('scoring');
   const [showNewCal, setShowNewCal] = createSignal(false);
@@ -266,124 +269,129 @@ function App() {
           </Show>
         </div>
 
-        <ScoreChart isLight={isLight()} now={now} />
-
-        <Show when={showNewCal()}>
-          <form class="new-cal-bar" onSubmit={handleCreate}>
-            <input
-              ref={el => { newNameInput = el; }}
-              type="text"
-              placeholder="Calendar name…"
-              aria-label="New calendar name"
-              value={newName()}
-              onInput={(e) => setNewName(e.currentTarget.value)}
-              onKeyDown={handleNewCalKeydown}
-            />
-            <div class="kind-choice" role="radiogroup" aria-label="Calendar kind">
-              <label>
-                <input type="radio" name="calendar-kind" checked={newKind() === 'scoring'} onChange={() => setNewKind('scoring')} />
-                Scoring
-              </label>
-              <label>
-                <input type="radio" name="calendar-kind" checked={newKind() === 'gsd'} onChange={() => setNewKind('gsd')} />
-                Getting Stuff Done
-              </label>
-            </div>
-            <button type="submit" class="create-btn">Create</button>
-            <button type="button" class="cancel-btn" onClick={() => { setShowNewCal(false); setNewName(''); }}>Cancel</button>
-          </form>
-        </Show>
-
-        <Show when={store.activeCalendars.length > 0}>
-          <SortBar />
-        </Show>
-
-        <For
-          each={shownCalendars()}
-          fallback={
-            <div class="empty-state">
-              {store.activeCalendars.length === 0 ? 'No calendars yet. Create one above!' : 'No calendars of this kind yet.'}
-            </div>
-          }
+        <Show
+          when={route().page === 'list'}
+          fallback={<TodoPage calendarId={currentTodoId()} isLight={isLight()} now={now} />}
         >
-          {(cal, idx) => {
-            const gsd = () => cal.kind === 'gsd';
-            // A GSD section opens its todo page from anywhere on it but its name and its menu —
-            // specs/04-design.md "Layout". The name input and the menu stop at their own ground.
-            const openFromSection = (e: MouseEvent) => {
-              if (!gsd()) return;
-              const target = e.target;
-              if (target instanceof Element && target.closest('.cal-name-input, .cal-menu, .cell')) return;
-              openTodoPage(cal.id);
-            };
-            return (
-              <div
-                class="cal-card"
-                classList={{ 'cal-card-gsd': gsd() }}
-                style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}
-                onClick={openFromSection}
-              >
-                <div class="cal-card-header">
-                  <div class="cal-info">
-                    <Show when={gsd()}>
-                      <span class="gsd-icon" aria-hidden="true">☑</span>
-                    </Show>
-                    <CalendarNameInput id={cal.id} name={cal.name} />
-                    <Show when={gsd()}>
-                      <span class="gsd-tag">GSD</span>
-                    </Show>
-                    <span class="cal-stat">
-                      {calendarTotal(cal)} {gsd() ? 'done' : 'activities'}
-                    </span>
-                  </div>
-                  <div class="cal-actions">
-                    <Show when={gsd()}>
-                      <button type="button" class="gsd-open-btn" aria-label={`Open ${cal.name} todos`} onClick={() => openTodoPage(cal.id)}>
-                        Open
-                      </button>
-                    </Show>
-                    <CalendarMenu
-                      cal={cal}
-                      idx={idx()}
-                      total={shownCalendars().length}
-                      sorted={store.calendarSort.by !== 'custom' || store.calendarFilter !== 'all'}
-                    />
-                  </div>
-                </div>
-                <CalendarGrid calendar={cal} isLight={isLight()} now={now} onOpenDay={() => openTodoPage(cal.id)} />
-              </div>
-            );
-          }}
-        </For>
+          <ScoreChart isLight={isLight()} now={now} />
 
-        <div class="hint">
-          <strong>Click</strong> a day to add +1 · <strong>Long-press</strong> / <strong>Long-tap</strong> to reset to 0
-        </div>
-
-        {/* No empty-trash control: trash is a safety net — specs/01-requirements.md. */}
-        <div class="recover-section">
-          <Show when={store.deletedCalendars.length > 0}>
-            <button class="recover-toggle" onClick={() => setShowRecover(!showRecover())}>
-              🗑 {store.deletedCalendars.length} deleted calendar{store.deletedCalendars.length !== 1 ? 's' : ''} — click to {showRecover() ? 'hide' : 'recover'}
-            </button>
-            <Show when={showRecover()}>
-              <div class="recover-list">
-                <For each={store.deletedCalendars}>
-                  {(cal) => (
-                    <div class="recover-item">
-                      <span class="recover-name">{cal.name}</span>
-                      <span class="recover-stat">{calendarTotal(cal)} activities</span>
-                      <div class="recover-actions">
-                        <button class="recover-btn" onClick={() => store.recoverCalendar(cal.id)}>Recover</button>
-                        <button class="recover-delete-btn" onClick={() => permanentlyDelete(cal.id, cal.name)}>Delete forever</button>
-                      </div>
-                    </div>
-                  )}
-                </For>
+          <Show when={showNewCal()}>
+            <form class="new-cal-bar" onSubmit={handleCreate}>
+              <input
+                ref={el => { newNameInput = el; }}
+                type="text"
+                placeholder="Calendar name…"
+                aria-label="New calendar name"
+                value={newName()}
+                onInput={(e) => setNewName(e.currentTarget.value)}
+                onKeyDown={handleNewCalKeydown}
+              />
+              <div class="kind-choice" role="radiogroup" aria-label="Calendar kind">
+                <label>
+                  <input type="radio" name="calendar-kind" checked={newKind() === 'scoring'} onChange={() => setNewKind('scoring')} />
+                  Scoring
+                </label>
+                <label>
+                  <input type="radio" name="calendar-kind" checked={newKind() === 'gsd'} onChange={() => setNewKind('gsd')} />
+                  Getting Stuff Done
+                </label>
               </div>
-            </Show>
+              <button type="submit" class="create-btn">Create</button>
+              <button type="button" class="cancel-btn" onClick={() => { setShowNewCal(false); setNewName(''); }}>Cancel</button>
+            </form>
           </Show>
-        </div>
+
+          <Show when={store.activeCalendars.length > 0}>
+            <SortBar />
+          </Show>
+
+          <For
+            each={shownCalendars()}
+            fallback={
+              <div class="empty-state">
+                {store.activeCalendars.length === 0 ? 'No calendars yet. Create one above!' : 'No calendars of this kind yet.'}
+              </div>
+            }
+          >
+            {(cal, idx) => {
+              const gsd = () => cal.kind === 'gsd';
+              // A GSD section opens its todo page from anywhere on it but its name and its menu —
+              // specs/04-design.md "Layout". The name input and the menu stop at their own ground.
+              const openFromSection = (e: MouseEvent) => {
+                if (!gsd()) return;
+                const target = e.target;
+                if (target instanceof Element && target.closest('.cal-name-input, .cal-menu, .cell')) return;
+                openTodoPage(cal.id);
+              };
+              return (
+                <div
+                  class="cal-card"
+                  classList={{ 'cal-card-gsd': gsd() }}
+                  style={{ '--cal-color': cal.color, '--cal-color-rgb': hexToRgb(cal.color) }}
+                  onClick={openFromSection}
+                >
+                  <div class="cal-card-header">
+                    <div class="cal-info">
+                      <Show when={gsd()}>
+                        <span class="gsd-icon" aria-hidden="true">☑</span>
+                      </Show>
+                      <CalendarNameInput id={cal.id} name={cal.name} />
+                      <Show when={gsd()}>
+                        <span class="gsd-tag">GSD</span>
+                      </Show>
+                      <span class="cal-stat">
+                        {calendarTotal(cal)} {gsd() ? 'done' : 'activities'}
+                      </span>
+                    </div>
+                    <div class="cal-actions">
+                      <Show when={gsd()}>
+                        <button type="button" class="gsd-open-btn" aria-label={`Open ${cal.name} todos`} onClick={() => openTodoPage(cal.id)}>
+                          Open
+                        </button>
+                      </Show>
+                      <CalendarMenu
+                        cal={cal}
+                        idx={idx()}
+                        total={shownCalendars().length}
+                        sorted={store.calendarSort.by !== 'custom' || store.calendarFilter !== 'all'}
+                      />
+                    </div>
+                  </div>
+                  <CalendarGrid calendar={cal} isLight={isLight()} now={now} onOpenDay={() => openTodoPage(cal.id)} />
+                </div>
+              );
+            }}
+          </For>
+
+          <div class="hint">
+            <strong>Click</strong> a day to add +1 · <strong>Long-press</strong> / <strong>Long-tap</strong> to reset to 0
+          </div>
+
+          {/* No empty-trash control: trash is a safety net — specs/01-requirements.md. */}
+          <div class="recover-section">
+            <Show when={store.deletedCalendars.length > 0}>
+              <button class="recover-toggle" onClick={() => setShowRecover(!showRecover())}>
+                🗑 {store.deletedCalendars.length} deleted calendar{store.deletedCalendars.length !== 1 ? 's' : ''} — click to {showRecover() ? 'hide' : 'recover'}
+              </button>
+              <Show when={showRecover()}>
+                <div class="recover-list">
+                  <For each={store.deletedCalendars}>
+                    {(cal) => (
+                      <div class="recover-item">
+                        <span class="recover-name">{cal.name}</span>
+                        <span class="recover-stat">{calendarTotal(cal)} activities</span>
+                        <div class="recover-actions">
+                          <button class="recover-btn" onClick={() => store.recoverCalendar(cal.id)}>Recover</button>
+                          <button class="recover-delete-btn" onClick={() => permanentlyDelete(cal.id, cal.name)}>Delete forever</button>
+                        </div>
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </Show>
+          </div>
+        </Show>
       </div>
 
       <Show when={importRows()}>

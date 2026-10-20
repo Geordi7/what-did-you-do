@@ -160,13 +160,23 @@ export function promoteTodo(todos: Todo[], id: string, defaultBounty: number): b
 }
 
 /**
- * Changes a todo's title, bounty or due date; `due: null` removes the due date.
- * A Nudge's bounty is fixed, and a bounty is never negative: either refuses the
- * whole edit.
+ * Changes a todo's title, bounty, due date or done date; `due: null` removes the
+ * due date. A Nudge's bounty is fixed, a bounty is never negative, and a done date
+ * moves only on a done todo, between its creation and `today`: any of these refuses
+ * the whole edit.
  */
-export function editTodo(todos: Todo[], id: string, fields: { title?: string; bounty?: number; due?: string | null }): boolean {
+export function editTodo(
+  todos: Todo[],
+  id: string,
+  fields: { title?: string; bounty?: number; due?: string | null; done?: string },
+  today = '',
+): boolean {
   const found = find(todos, id);
   if (!found) return false;
+  if (fields.done !== undefined) {
+    const { todo } = found;
+    if (todo.done === undefined || fields.done < todo.created || fields.done > today) return false;
+  }
   if (fields.bounty !== undefined) {
     if (found.parent !== null || !Number.isFinite(fields.bounty) || fields.bounty < 0) return false;
   }
@@ -175,5 +185,6 @@ export function editTodo(todos: Todo[], id: string, fields: { title?: string; bo
   if (fields.bounty !== undefined) todo.bounty = fields.bounty;
   if (fields.due === null) delete todo.due;
   else if (fields.due !== undefined) todo.due = fields.due;
+  if (fields.done !== undefined) todo.done = fields.done;
   return true;
 }

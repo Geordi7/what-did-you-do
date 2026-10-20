@@ -18,6 +18,7 @@ SolidJS single-page app with Vite build.
 - `src/components/CalendarNameInput.tsx` edits a calendar name inline.
 - `src/components/NumberMenuInput.tsx` edits a menu's number: activity value or default bounty.
 - `src/components/BackupBanner.tsx` renders the backup reminder.
+- `src/components/TodoPage.tsx` is a GSD calendar's todo page, shown in place of the list.
 
 ## Calendar kinds
 - `src/gsd.ts` derives a GSD calendar's per-day figures from its todo tree and holds the todo

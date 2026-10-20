@@ -46,3 +46,9 @@ tester's reach.
 - Responsive: narrow the viewport and confirm the detail panel stacks below the grid with no
   sideways scrolling.
 
+- GSD calendar: create one, open it, add a todo, Nudge it twice deep, tick the Nudges then the
+  todo, and confirm the chart, the section's total and the grid's colour and dots follow; move a
+  done date earlier and watch the points move with it; promote a Nudge to the top and confirm its
+  creation point rises to 1.
+- Todo page on a phone: rows take two lines, nothing scrolls sideways, and every control is
+  reachable by touch.

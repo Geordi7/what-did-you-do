@@ -557,9 +557,9 @@ export function createAppStore(options: StoreOptions = {}) {
       return editTodos(calId, cal => gsd.promoteTodo(cal.todos, todoId, cal.defaultBounty));
     },
 
-    /** Edits a todo's title, bounty or due date; `due: null` removes it. A Nudge's bounty is fixed. */
-    editTodo(calId: string, todoId: string, fields: { title?: string; bounty?: number; due?: string | null }): boolean {
-      return editTodos(calId, cal => gsd.editTodo(cal.todos, todoId, fields));
+    /** Edits a todo's title, bounty, due or done date; `due: null` removes the due date. A Nudge's bounty is fixed. */
+    editTodo(calId: string, todoId: string, fields: { title?: string; bounty?: number; due?: string | null; done?: string }): boolean {
+      return editTodos(calId, (cal, today) => gsd.editTodo(cal.todos, todoId, fields, today));
     },
 
     /* ── export ──────────────────────────────────────────────────────────── */

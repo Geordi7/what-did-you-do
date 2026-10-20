@@ -1752,3 +1752,210 @@ button.blocking-diagnostic {
 /* Modal fallback for browsers predating inert. */
 .app[aria-hidden="true"] { pointer-events: none; user-select: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* ── Todo page: specs/04-06-todo-page.md ─────────────────────────────────── */
+
+.todo-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.back-link {
+  align-self: flex-start;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.todo-missing {
+  color: var(--text-dim);
+}
+
+.todo-heading {
+  font-size: 1.2rem;
+}
+
+.todo-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+
+  input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .todo-add-title {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+
+  .todo-add-bounty {
+    width: 4rem;
+  }
+}
+
+.todo-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.todo-tree,
+.todo-children {
+  list-style: none;
+}
+
+.todo-children {
+  margin-left: 1.25rem;
+  border-left: 1px solid var(--border);
+  padding-left: 0.25rem;
+}
+
+.todo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.9rem;
+  font-size: 0.85rem;
+
+  input[type='text'],
+  input[type='date'] {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--text);
+    font: inherit;
+    padding: 0.05rem 0.25rem;
+
+    &:hover {
+      border-color: var(--border);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+    }
+  }
+
+  .todo-title {
+    flex: 1 1 auto;
+    min-width: 4rem;
+  }
+}
+
+.todo.done > .todo-row .todo-title {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.todo-toggle,
+.todo-toggle-space {
+  width: 1rem;
+  flex: none;
+}
+
+.todo-toggle {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0;
+}
+
+.todo-check {
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.todo-bounty,
+.todo-bounty-input {
+  width: 3rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.todo-due,
+.todo-done-on {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.todo-due.overdue input {
+  color: var(--danger);
+}
+
+.todo-actions {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.todo-text-btn,
+.todo-icon-btn {
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.3rem;
+
+  &:hover {
+    color: var(--text);
+    background: var(--bg-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+}
+
+.todo-delete:hover {
+  color: var(--danger);
+}
+
+.todo-nudge-input {
+  margin: 0.15rem 0 0.25rem 2.6rem;
+  width: calc(100% - 2.6rem);
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* On a phone a row takes two lines: what it is on the first, when and what to do on the second. */
+@media (max-width: 600px) {
+  .todo-row {
+    flex-wrap: wrap;
+    row-gap: 0;
+
+    .todo-title {
+      flex-basis: calc(100% - 6rem);
+    }
+  }
+
+  .todo-due,
+  .todo-done-on {
+    margin-left: 2.35rem;
+  }
+
+  .todo-actions {
+    margin-left: auto;
+  }
+}

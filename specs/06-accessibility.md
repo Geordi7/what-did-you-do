@@ -30,6 +30,17 @@ Every flow is reachable by keyboard alone, in both themes.
 - A GSD day cell's accessible name gives its date and its created, finished, due and points
   figures, then "Open todos"; future days are not marked disabled.
 
+## Todo page
+- The tree is nested lists; each todo's controls are named for the todo: "Done: <title>",
+  "Title: <title>", "Bounty: <title>", "Due: <title>", "Clear due date: <title>", "Done on:
+  <title>", "Nudge <title>", "Promote <title>", "Delete <title>".
+- A disabled done checkbox's name ends with its reason: "— finish its Nudges first", or "— its
+  parent is done".
+- A collapse toggle carries `aria-expanded` and is named "Nudges of <title>".
+- The Nudge title input is named "Smallest next step for <title>" and takes focus when it appears.
+- Deleting a todo moves focus to the add row's title input; promoting one moves focus to its
+  title in its new place.
+
 ## Menus
 The header's ☰ menu and each calendar's ⋮ overflow menu behave alike.
 - The trigger carries `aria-haspopup="menu"` and `aria-expanded` reflecting open state.

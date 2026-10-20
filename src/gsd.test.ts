@@ -182,4 +182,15 @@ describe('todo rules', () => {
     expect(todos[0].bounty).toBe(1);
     expect(editTodo(todos, 'missing', { title: 'x' })).toBe(false);
   });
+
+  it('moves a done date within creation and today, and only on a done todo', () => {
+    const todos = [todo('a', { created: '2026-10-05', done: '2026-10-10' }), todo('b')];
+    expect(editTodo(todos, 'a', { done: '2026-10-07' }, '2026-10-19')).toBe(true);
+    expect(todos[0].done).toBe('2026-10-07');
+    expect(editTodo(todos, 'a', { done: '2026-10-04' }, '2026-10-19')).toBe(false);
+    expect(editTodo(todos, 'a', { done: '2026-10-20' }, '2026-10-19')).toBe(false);
+    expect(todos[0].done).toBe('2026-10-07');
+    expect(editTodo(todos, 'b', { done: '2026-10-07' }, '2026-10-19')).toBe(false);
+    expect(todos[1]).not.toHaveProperty('done');
+  });
 });

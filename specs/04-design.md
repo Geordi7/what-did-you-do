@@ -5,8 +5,9 @@
 - `04-02-copy.md` — title, favicon, subtitle, hint, and the banner region's messages.
 - `04-03-dialogs.md` — the import review modal and the unrecoverable-data blocking message.
 - `04-04-calendar-sort.md` — the sort bar: Custom, Activities, Score, Recent, and their order.
-- `04-05-calendar-grid.md` — grid window (22 weeks back, 4 ahead), month bands, future days,
+- `04-05-calendar-grid.md` — grid window (22 weeks back, 4 ahead), month lines, future days,
   intensity curve, cell actions, and the detail panel.
+- `04-06-todo-page.md` — a GSD calendar's todo page: navigation, add row, todo rows, day filter.
 
 ## Visual style
 - Light, dark, and system themes, selectable from the header menu. `system` is the default.
