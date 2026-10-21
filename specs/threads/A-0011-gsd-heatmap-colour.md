@@ -23,3 +23,10 @@ links: {supersedes: 0008}
 > Q2. Should the same figure become the calendar's total activities and sorting's Activities, or
 > should those stay root todos done while only the colour changes? I recommend one figure for all
 > three, so the colour, total and sort agree.
+
+Q1: a (add nudges) Q2: yes
+
+> Reading: a GSD day's activity count becomes todos done that day at any depth, root todos and
+> Nudges alike (the detail panel's "Finished M"). That one figure colours the heatmap, is the
+> calendar's total activities, and feeds sorting's Activities. Points, creation and the chart are
+> unchanged. Confirm, and say "decided" to resolve.
