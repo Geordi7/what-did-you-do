@@ -51,3 +51,6 @@ decided
 
 > Resolved as read above. Applying: specs 03-03, 03-04, 04-04, 04-05, 05-01; `src/gsd.ts`,
 > `src/calendar-figures.ts` and their tests.
+
+> Applied and verified: the changed unit tests failed first on the old root-only count (8 failures),
+> then all 273 pass with typecheck clean. Renamed R → T.

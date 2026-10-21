@@ -16,18 +16,16 @@ const ROOT_CREATION_POINTS = 1;
 const NUDGE_CREATION_POINTS = 0.5;
 
 export interface GsdDay {
-  /** Root todos done that day. */
-  activities: number;
   points: number;
   /** Todos of any depth created that day. */
   created: number;
-  /** Todos of any depth done that day. */
+  /** Todos of any depth done that day: the day's activity count. */
   finished: number;
   /** Open todos due that day. */
   due: number;
 }
 
-const emptyDay = (): GsdDay => ({ activities: 0, points: 0, created: 0, finished: 0, due: 0 });
+const emptyDay = (): GsdDay => ({ points: 0, created: 0, finished: 0, due: 0 });
 
 /** On time: no due date, or done on or before it. Only meaningful for a done todo. */
 function onTime(todo: Todo): boolean {
@@ -49,7 +47,6 @@ export function gsdDays(todos: readonly Todo[]): Record<string, GsdDay> {
       if (todo.done !== undefined) {
         const done = day(todo.done);
         done.finished += 1;
-        if (root) done.activities += 1;
         done.points += onTime(todo) ? todo.bounty : todo.bounty / 2;
       } else if (todo.due !== undefined) {
         day(todo.due).due += 1;

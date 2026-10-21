@@ -8,11 +8,11 @@ import { gsdDays } from './gsd';
  * (`specs/03-04-gsd-points.md`). Dates with no figure are absent.
  */
 
-/** Activity count per date: stored counts, or root todos done. */
+/** Activity count per date: stored counts, or todos done at any depth. */
 export function dayCounts(cal: Calendar): Record<string, number> {
   if (cal.kind === 'scoring') return cal.days;
   const counts: Record<string, number> = {};
-  for (const [key, day] of Object.entries(gsdDays(cal.todos))) if (day.activities > 0) counts[key] = day.activities;
+  for (const [key, day] of Object.entries(gsdDays(cal.todos))) if (day.finished > 0) counts[key] = day.finished;
   return counts;
 }
 

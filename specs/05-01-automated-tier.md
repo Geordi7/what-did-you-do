@@ -53,7 +53,7 @@ configures a directory — and `05-02-browser-tier.md` owns that convention.
   - Every mutator stamps only its own calendar's `updatedAt`; a refused todo rule, or a mutator
     meant for the other calendar kind, changes and stamps nothing.
   - GSD calendars: creation, the calendar filter and todo trees persist across a reload; each todo
-    rule applies through the store; an import row's events are its root todos done.
+    rule applies through the store; an import row's events are its todos done at any depth.
   - Unavailable or full storage surfaces an error and keeps the in-memory state usable.
   - A `storage` event from another tab converges without the write loop re-firing.
 - `buildGrid` — trailing-window boundaries, Monday-start weeks, month labels; the calendar grid

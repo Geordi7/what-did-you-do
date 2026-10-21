@@ -24,9 +24,9 @@ Each calendar section's heatmap grid and its day detail panel.
 - Calendar cells act as buttons, with clear hover, focus, and today outlines.
 - Scoring calendar: click or tap a day to add 1. Long-press for 600 ms resets it to 0 and vibrates
   for 50 ms.
-- GSD calendar: a day's colour follows its root todos done. Its cells never change anything in
-  the list: a click, tap or `Enter` opens the calendar's todo page; on that page it sets the
-  day filter (`04-06-todo-page.md`). Future days are hatched but still respond.
+- GSD calendar: a day's colour follows its todos done, Nudges included. Its cells never change
+  anything in the list: a click, tap or `Enter` opens the calendar's todo page; on that page it
+  sets the day filter (`04-06-todo-page.md`). Future days are hatched but still respond.
 - A GSD day with open todos due shows a thick dot in its centre in the foreground colour, red once
   the day is before today; no dot once every todo due that day is done.
 

@@ -18,7 +18,7 @@ interface Props {
   onOpenDay?: (key: string) => void;
 }
 
-const NO_GSD_DAY: GsdDay = { activities: 0, points: 0, created: 0, finished: 0, due: 0 };
+const NO_GSD_DAY: GsdDay = { points: 0, created: 0, finished: 0, due: 0 };
 
 /** A GSD day's figures in words, per specs/04-05-calendar-grid.md "Detail panel". */
 function gsdSummary(day: GsdDay): string {

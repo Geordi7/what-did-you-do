@@ -22,10 +22,10 @@ tree on every read; nothing derived is stored.
 
 ## Per-day figures
 For each date a GSD calendar reports:
-- **activities** — root todos whose `done` is that date; it colours the heatmap and feeds
-  sorting's Activities;
+- **finished** — todos of any depth done that date, root todos and Nudges alike. It is the day's
+  activity count: it colours the heatmap and feeds sorting's Activities and the chart's counts;
 - **points** — as above; they join the chart as positive score, sorting's Score, and the header;
-- **created** and **finished** — todos of any depth created, and done, that date;
+- **created** — todos of any depth created that date;
 - **due** — open todos whose due date is that date.
 
 ## Rules for todos

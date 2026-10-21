@@ -65,7 +65,7 @@ for (const range of ['28d', '26w'] as const) {
   });
 }
 
-it('adds a GSD calendar\'s points as positive score, with its root todos done as its count', () => {
+it('adds a GSD calendar\'s points as positive score, with its todos done at any depth as its count', () => {
   const today = new Date(2026, 9, 19);
   const chores: GsdCalendar = {
     kind: 'gsd', id: 'g', name: 'Chores', color: '#40c463', defaultBounty: 1, updatedAt: '2026-10-18T00:00:00.000Z',
@@ -82,7 +82,7 @@ it('adds a GSD calendar\'s points as positive score, with its root todos done as
   expect(bars[26].activities).toEqual([{ id: 'g', name: 'Chores', count: 0, score: 1 }]);
   expect(bars[27]).toMatchObject({ key: '2026-10-19', pos: 3, neg: -1, net: 2 });
   expect(bars[27].activities).toEqual([
-    { id: 'g', name: 'Chores', count: 1, score: 3 },
+    { id: 'g', name: 'Chores', count: 2, score: 3 },
     { id: 'r', name: 'Runs', count: 1, score: -1 },
   ]);
 });

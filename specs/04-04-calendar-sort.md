@@ -19,7 +19,7 @@ Refines `04-design.md`. A sort bar sits between the score chart and the calendar
 ## Order
 Sorting is a view: the stored order of calendars never changes, and Custom shows it.
 - **Activities** — each calendar's total activity count over its visible grid (for a GSD calendar,
-  root todos done).
+  todos done at any depth).
 - **Score** — each calendar's total score over its visible grid: counts times activity value, or a
   GSD calendar's points.
 - **Recent, most recent first** — by the latest date with recorded activity, over full history: a

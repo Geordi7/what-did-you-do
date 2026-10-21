@@ -1023,11 +1023,12 @@ describe('GSD calendars', () => {
     expect(store.calendars[0].updatedAt).toBe(SEEDED_AT);
   });
 
-  it('previews a GSD row with its root todos done as events, and appends it whole', async () => {
+  it('previews a GSD row with its todos done at any depth as events, and appends it whole', async () => {
     const { store } = await boot({ [STORAGE_KEY]: currentSeed() });
     const chores = { ...JSON.parse(gsdSeed()).calendars[2], deleted: true };
+    chores.todos[1].children[0].done = '2026-04-05';
     const rows = rowsOf(store, JSON.stringify({ version: STORAGE_VERSION, exportedAt: SEEDED_AT, calendars: [chores] }));
-    expect(rows[0].events).toBe(1);
+    expect(rows[0].events).toBe(2);
     store.applyImport([decide(rows[0], { kind: 'append' })]);
     const expected = { ...chores };
     delete expected.deleted;

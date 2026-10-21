@@ -62,7 +62,7 @@ interface Todo {
 - `done`, when present, is on or after `created`; so is `cancelled`.
 - A GSD calendar stores no day counts: its activity counts and points derive from its todos, per
   `03-04-gsd-points.md`, so the two can never disagree. It has no activity value.
-- A GSD calendar's total activities is its number of root todos done.
+- A GSD calendar's total activities is its number of todos done, at any depth.
 
 ## Trash
 - A trashed calendar has `deleted === true`, stays in the array, and keeps its index, so recovery

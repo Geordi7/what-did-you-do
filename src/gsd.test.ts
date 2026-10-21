@@ -29,8 +29,8 @@ const ids = (todos: Todo[]): unknown => todos.map(t => (t.children.length ? [t.i
 describe('gsdDays', () => {
   it('earns 1 for creating a root todo and 0.5 for a Nudge, on the creation day', () => {
     const days = gsdDays([todo('a', { children: [todo('b', { bounty: NUDGE_BOUNTY, created: '2026-10-02', children: [todo('c', { bounty: NUDGE_BOUNTY, created: '2026-10-02' })] })] })]);
-    expect(days['2026-10-01']).toEqual({ activities: 0, points: 1, created: 1, finished: 0, due: 0 });
-    expect(days['2026-10-02']).toEqual({ activities: 0, points: 1, created: 2, finished: 0, due: 0 });
+    expect(days['2026-10-01']).toEqual({ points: 1, created: 1, finished: 0, due: 0 });
+    expect(days['2026-10-02']).toEqual({ points: 1, created: 2, finished: 0, due: 0 });
   });
 
   it('earns the full bounty when done on or before the due date, or with no due date', () => {
@@ -39,8 +39,8 @@ describe('gsdDays', () => {
       todo('early', { bounty: 2, due: '2026-10-09', done: '2026-10-05' }),
       todo('noDue', { bounty: 4, done: '2026-10-06' }),
     ]);
-    expect(days['2026-10-05']).toEqual({ activities: 2, points: 5, created: 0, finished: 2, due: 0 });
-    expect(days['2026-10-06']).toEqual({ activities: 1, points: 4, created: 0, finished: 1, due: 0 });
+    expect(days['2026-10-05']).toEqual({ points: 5, created: 0, finished: 2, due: 0 });
+    expect(days['2026-10-06']).toEqual({ points: 4, created: 0, finished: 1, due: 0 });
   });
 
   it('earns half the bounty when done after the due date', () => {
@@ -48,9 +48,9 @@ describe('gsdDays', () => {
     expect(days['2026-10-05'].points).toBe(1.5);
   });
 
-  it('counts only root todos done as activities, but every depth as finished', () => {
+  it('counts todos done at every depth as finished', () => {
     const days = gsdDays([todo('a', { done: '2026-10-03', children: [todo('b', { bounty: NUDGE_BOUNTY, done: '2026-10-03' })] })]);
-    expect(days['2026-10-03']).toEqual({ activities: 1, points: 1.5, created: 0, finished: 2, due: 0 });
+    expect(days['2026-10-03']).toEqual({ points: 1.5, created: 0, finished: 2, due: 0 });
   });
 
   it('counts open todos due on a day, at any depth, and not done ones', () => {
@@ -58,7 +58,7 @@ describe('gsdDays', () => {
       todo('a', { due: '2026-10-08', children: [todo('b', { bounty: NUDGE_BOUNTY, due: '2026-10-08' })] }),
       todo('c', { due: '2026-10-08', done: '2026-10-02' }),
     ]);
-    expect(days['2026-10-08']).toEqual({ activities: 0, points: 0, created: 0, finished: 0, due: 2 });
+    expect(days['2026-10-08']).toEqual({ points: 0, created: 0, finished: 0, due: 2 });
   });
 
   it('reports nothing for a calendar with no todos', () => {
@@ -209,9 +209,9 @@ describe('cancelling', () => {
       todo('b', { done: '2026-10-03', children: [todo('b1', { bounty: NUDGE_BOUNTY, created: '2026-10-02', due: '2026-10-08', cancelled: '2026-10-04' })] }),
     ];
     const days = gsdDays(tree);
-    expect(days['2026-10-01']).toEqual({ activities: 0, points: 1, created: 1, finished: 0, due: 0 });
+    expect(days['2026-10-01']).toEqual({ points: 1, created: 1, finished: 0, due: 0 });
     expect(days['2026-10-02']).toBeUndefined();
-    expect(days['2026-10-03']).toEqual({ activities: 1, points: 1, created: 0, finished: 1, due: 0 });
+    expect(days['2026-10-03']).toEqual({ points: 1, created: 0, finished: 1, due: 0 });
     expect(days['2026-10-08']).toBeUndefined();
   });
 
