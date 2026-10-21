@@ -72,8 +72,11 @@ test('a GSD section is set apart, with its total and an Open button', async ({ p
   await expect(section(page, 'Runs').locator('.gsd-tag')).toHaveCount(0);
 });
 
-test('a GSD day shows its figures on hover, colours by root todos done, and names itself', async ({ page }) => {
-  await openSeeded(page);
+test('a GSD day shows its figures on hover, colours by todos done at any depth, and names itself', async ({ page }) => {
+  // 10-18: a Nudge of the open root `d` is done, so it colours like 10-20's one root done.
+  const nudged = structuredClone(chores);
+  nudged.todos[3].children.push({ id: 'd1', title: 'Book', bounty: 0.5, created: '2026-10-18', done: '2026-10-18', children: [] } as never);
+  await openSeeded(page, { calendars: [runs, nudged] });
   await cell(page, '2026-10-20').hover();
   await expect(section(page, 'Chores').locator('.detail-number')).toHaveText('Created 1 · Finished 1 · Due 1 · +3.0 points');
   await cell(page, '2026-10-19').hover();
@@ -82,6 +85,7 @@ test('a GSD day shows its figures on hover, colours by root todos done, and name
   const fill = (key: string) => cell(page, key).evaluate(el => getComputedStyle(el).backgroundColor);
   expect(await fill('2026-10-20')).not.toBe(await fill('2026-10-19'));
   expect(await fill('2026-10-02')).toBe(await fill('2026-10-20'));
+  expect(await fill('2026-10-18')).toBe(await fill('2026-10-20'));
   await expect(cell(page, '2026-10-20')).toHaveAccessibleName('Tue, Oct 20, 2026: created 1, finished 1, due 1, +3.0 points. Open todos');
   await expect(cell(page, '2026-10-24')).not.toHaveAttribute('aria-disabled', 'true');
 });
