@@ -21,6 +21,7 @@
   --month-line: #6e7681;
   --hatch: rgba(255, 255, 255, 0.09);
   --future-shade: rgba(1, 4, 9, 0.45);
+  --weekend-tint: rgba(255, 255, 255, 0.06);
 }
 
 :root[data-theme-resolved='light'] {
@@ -36,6 +37,7 @@
   --month-line: #8c959f;
   --hatch: rgba(31, 35, 40, 0.08);
   --future-shade: rgba(31, 35, 40, 0.14);
+  --weekend-tint: rgba(255, 255, 255, 0.4);
 }
 
 :root[data-theme-resolved='dark'] {
@@ -51,6 +53,7 @@
   --month-line: #6e7681;
   --hatch: rgba(255, 255, 255, 0.09);
   --future-shade: rgba(1, 4, 9, 0.45);
+  --weekend-tint: rgba(255, 255, 255, 0.06);
 }
 
 body {
@@ -703,12 +706,24 @@ body {
     }
   }
 
+  /* Saturdays and Sundays: a lightening layer over the cell colour. */
+  &.weekend {
+    background-image: linear-gradient(var(--weekend-tint), var(--weekend-tint));
+  }
+
   /* Future days: the hatch over a darkening layer, both over the cell colour. */
   &.future {
     cursor: default;
     background-image:
       repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px 4px),
       linear-gradient(var(--future-shade), var(--future-shade));
+
+    &.weekend {
+      background-image:
+        repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px 4px),
+        linear-gradient(var(--future-shade), var(--future-shade)),
+        linear-gradient(var(--weekend-tint), var(--weekend-tint));
+    }
   }
 
   &.highlighted {

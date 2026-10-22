@@ -197,6 +197,7 @@ function CalendarGrid(props: Props) {
                         classList={{
                           today: isToday(),
                           future: future(),
+                          weekend: date.getDay() === 0 || date.getDay() === 6,
                           highlighted: store.highlightedKey === key,
                         }}
                         data-key={key}

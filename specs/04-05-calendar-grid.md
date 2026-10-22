@@ -22,6 +22,8 @@ Each calendar section's heatmap grid and its day detail panel.
 
 ## Cells
 - Calendar cells act as buttons, with clear hover, focus, and today outlines.
+- Saturdays and Sundays are slightly lighter than weekdays, over their cell colour, past and
+  future alike.
 - Scoring calendar: click or tap a day to add 1. Long-press for 600 ms resets it to 0 and vibrates
   for 50 ms.
 - GSD calendar: a day's colour follows its todos done, Nudges included. Its cells never change

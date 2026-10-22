@@ -54,8 +54,9 @@ file that restates them goes stale the moment a case is added.
 - Long press, also in `e2e/cross-tab.e2e.ts`: the reset threshold `04-design.md` fixes, with real
   pointer timing rather than a faked timer.
 - Calendar grid, in `e2e/calendar-grid.e2e.ts`, under a fixed browser clock: 22 weeks back and 4
-  ahead; future days darkened and hatched, `aria-disabled`, named upcoming, and unchanged by click, key or
-  long-press; a stepped line between months, with no background banding.
+  ahead; future days darkened and hatched, `aria-disabled`, named upcoming, and unchanged by click,
+  key or long-press; weekends tinted lighter; a stepped line between months, with no background
+  banding.
 - GSD calendars in the list, in `e2e/gsd-list.e2e.ts`: creating one by kind; its set-apart
   section, total and Open button; day figures, colour, names and due dots; every way in opening
   `#/gsd/<id>` while changing nothing; the filter and its persistence; the default bounty.

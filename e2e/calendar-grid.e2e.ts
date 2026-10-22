@@ -104,3 +104,20 @@ test('a line separates the months, with no banding behind the cells', async ({ p
   const backgrounds = await Promise.all(['2026-09-30', '2026-10-01', '2026-11-01'].map(background));
   expect(new Set(backgrounds)).toEqual(new Set(['rgba(0, 0, 0, 0)']));
 });
+
+test('Saturdays and Sundays are tinted lighter than weekdays, past and future', async ({ page }) => {
+  await openAtNow(page);
+  // 2026-10-17/18 are a past weekend; 2026-10-24/25 an upcoming one.
+  for (const key of ['2026-10-17', '2026-10-18']) {
+    await expect(cell(page, key)).toHaveClass(/\bweekend\b/);
+    expect(await backgroundImage(page, key)).toMatch(/^linear-gradient\(/);
+  }
+  for (const key of ['2026-10-24', '2026-10-25']) {
+    await expect(cell(page, key)).toHaveClass(/\bweekend\b/);
+    expect(await backgroundImage(page, key)).toMatch(/^repeating-linear-gradient\(.*\), linear-gradient\(.*\), linear-gradient\(/);
+  }
+  for (const key of ['2026-10-16', '2026-10-19']) {
+    await expect(cell(page, key)).not.toHaveClass(/\bweekend\b/);
+    expect(await backgroundImage(page, key)).toBe('none');
+  }
+});
