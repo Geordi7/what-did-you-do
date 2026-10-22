@@ -20,6 +20,7 @@
   --cell-gap: 2px;
   --month-line: #6e7681;
   --hatch: rgba(255, 255, 255, 0.09);
+  --future-shade: rgba(1, 4, 9, 0.45);
 }
 
 :root[data-theme-resolved='light'] {
@@ -34,6 +35,7 @@
   --scrim: rgba(27, 31, 36, 0.45);
   --month-line: #8c959f;
   --hatch: rgba(31, 35, 40, 0.08);
+  --future-shade: rgba(31, 35, 40, 0.14);
 }
 
 :root[data-theme-resolved='dark'] {
@@ -48,6 +50,7 @@
   --scrim: rgba(1, 4, 9, 0.7);
   --month-line: #6e7681;
   --hatch: rgba(255, 255, 255, 0.09);
+  --future-shade: rgba(1, 4, 9, 0.45);
 }
 
 body {
@@ -700,9 +703,12 @@ body {
     }
   }
 
+  /* Future days: the hatch over a darkening layer, both over the cell colour. */
   &.future {
     cursor: default;
-    background-image: repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px 4px);
+    background-image:
+      repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px 4px),
+      linear-gradient(var(--future-shade), var(--future-shade));
   }
 
   &.highlighted {

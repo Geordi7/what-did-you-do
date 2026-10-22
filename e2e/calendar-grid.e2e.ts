@@ -32,14 +32,17 @@ test('the grid runs 22 weeks ending with the current week, then 4 weeks ahead', 
   await expect(page.locator('.month-labels span')).toHaveText(['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov']);
 });
 
-test('future days are hatched, marked upcoming, and never change', async ({ page }) => {
+const backgroundImage = (page: Page, key: string) => cell(page, key).evaluate(el => getComputedStyle(el).backgroundImage);
+
+test('future days are hatched and darkened, marked upcoming, and never change', async ({ page }) => {
   await openAtNow(page);
 
   for (const key of ['2026-10-22', '2026-10-23', '2026-11-22']) {
     await expect(cell(page, key)).toHaveClass(/\bfuture\b/);
     await expect(cell(page, key)).toHaveAttribute('aria-disabled', 'true');
     await expect(cell(page, key)).toHaveAccessibleName(/upcoming/);
-    expect(await cell(page, key).evaluate(el => getComputedStyle(el).backgroundImage)).toContain('repeating-linear-gradient');
+    // The hatch, then a darkening layer over the cell colour.
+    expect(await backgroundImage(page, key)).toMatch(/^repeating-linear-gradient\(.*\), linear-gradient\(/);
   }
   for (const key of ['2026-10-20', '2026-10-21']) {
     await expect(cell(page, key)).not.toHaveClass(/\bfuture\b/);

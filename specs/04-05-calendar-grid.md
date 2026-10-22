@@ -9,8 +9,8 @@ Each calendar section's heatmap grid and its day detail panel.
   columns gives way to the next month's label.
 - A thin stepped line in the gaps between cells separates each month from the last. Cell colours
   are unaffected, and nothing shades the background behind the cells.
-- Days after today are future days: hatched over their cell colour, and never changed by a click,
-  tap, long-press or key.
+- Days after today are future days: darkened and hatched over their cell colour, so they stand
+  apart from past days in both themes, and never changed by a click, tap, long-press or key.
 
 ## Heatmap intensity curve
 - Intensity is relative to each calendar's maximum count over its visible grid, with a minimum
